@@ -10,6 +10,7 @@ from sinpapel.models.signatures import RegistroFirma
 from sinpapel.models.workflow import (
     ConfiguracionTransicion,
     Estado,
+    Etapa,
     RequisitoEstadoDocumento,
     SeguimientoWorkflow,
     VersionFlujo,
@@ -18,6 +19,7 @@ from sinpapel.models.workflow import (
 __all__ = [
     # workflow
     "Estado",
+    "Etapa",
     "VersionFlujo",
     "ConfiguracionTransicion",
     "SeguimientoWorkflow",

@@ -13,9 +13,20 @@ from simple_history.models import HistoricalRecords
 from sinpapel.mixins import Catalogo, Trazable
 
 
+class Etapa(Catalogo):
+    """Grupo de estados que representa una etapa del trámite."""
+
+    class Meta:
+        db_table = "creditos_etapa"
+        app_label = "sinpapel"
+        verbose_name = "Etapa"
+        verbose_name_plural = "Etapas"
+        ordering = ["orden"]
+
+
 class Estado(Catalogo):
     etapa = models.ForeignKey(
-        "creditos.EtapaTramite",  # cross-app: EtapaTramite vive en creditos
+        "sinpapel.Etapa",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
