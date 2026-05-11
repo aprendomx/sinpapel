@@ -47,13 +47,7 @@ pip install "git+ssh://git@github.com/jadrians/creditos.git#subdirectory=sinpape
 pip install "git+ssh://git@github.com/jadrians/creditos.git@v0.1.0#subdirectory=sinpapel&egg=sinpapel"
 ```
 
-**Dependencia adicional (`trazable`):** `sinpapel` usa el mixin `trazable.models.Trazable` (creado/actualizado/autor/modificador). Tampoco está en PyPI público; instálalo aparte:
-
-```bash
-pip install "git+ssh://git@github.com/jadrians/trazable.git"
-```
-
-**Python:** requiere `>=3.13`. **Django:** `>=5.0`.
+**Python:** requiere `>=3.10`. **Django:** `>=5.0`.
 
 Verificación post-install:
 
@@ -76,7 +70,6 @@ Agrega `sinpapel` (y deps) a `INSTALLED_APPS` **antes de tu app de dominio**:
 INSTALLED_APPS = [
     # ... django.contrib.* ...
     "simple_history",   # base — required by HistoricalRecords
-    "trazable",
     "sinpapel",         # antes de tu app de dominio para FK string-resolution
     "tu_app",           # ej. "creditos", "sep", "fondeso"
 ]
@@ -119,11 +112,7 @@ python manage.py migrate sinpapel
 
 Migraciones aplicadas:
 
-- `0001_initial` — `Estado`, `VersionFlujo`, `ConfiguracionTransicion`, `RegistroFirma`, `SeguimientoWorkflow`, `ExpedienteAdjunto`, `TipoDocumento`, `Documento`, `InstanciaDocumento`, `RazonRechazoDocumento`, `RequisitoEstadoDocumento`.
-- `0002_extract_remaining_models` — refinamientos de FK + GenericForeignKey.
-- `0003_historical_records` — tablas `historical*` para los 5 modelos auditables.
-
-> **Heads up:** las tablas SQL preservan el prefijo `creditos_*` (decisión histórica de extracción). Esto es transparente para el ORM. Si tu proyecto es greenfield y prefieres `sinpapel_*`, abre un issue.
+- `0001_initial` — `Etapa`, `Estado`, `VersionFlujo`, `ConfiguracionTransicion`, `RegistroFirma`, `SeguimientoWorkflow`, `ExpedienteAdjunto`, `TipoDocumento`, `Documento`, `InstanciaDocumento`, `RazonRechazoDocumento`, `RequisitoEstadoDocumento`, plus tablas `historical*`.
 
 ---
 
@@ -177,13 +166,15 @@ from django.db import migrations
 
 
 def seed(apps, schema_editor):
+    Etapa = apps.get_model("sinpapel", "Etapa")
     Estado = apps.get_model("sinpapel", "Estado")
     VersionFlujo = apps.get_model("sinpapel", "VersionFlujo")
     ConfiguracionTransicion = apps.get_model("sinpapel", "ConfiguracionTransicion")
 
-    captura, _ = Estado.objects.get_or_create(nombre="CAPTURA", activo=True)
-    revision, _ = Estado.objects.get_or_create(nombre="EN_REVISION", activo=True)
-    aprobada, _ = Estado.objects.get_or_create(nombre="APROBADA", activo=True)
+    etapa_inicial = Etapa.objects.create(nombre="Inicial", activo=True)
+    captura, _ = Estado.objects.get_or_create(nombre="CAPTURA", activo=True, etapa=etapa_inicial)
+    revision, _ = Estado.objects.get_or_create(nombre="EN_REVISION", activo=True, etapa=etapa_inicial)
+    aprobada, _ = Estado.objects.get_or_create(nombre="APROBADA", activo=True, etapa=etapa_inicial)
 
     flujo = VersionFlujo.objects.create(nombre="Flujo Estándar v1", activo=True)
 
@@ -196,7 +187,7 @@ def seed(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    dependencies = [("sinpapel", "0003_historical_records"), ("tu_app", "0001_initial")]
+    dependencies = [("sinpapel", "0001_initial"), ("tu_app", "0001_initial")]
     operations = [migrations.RunPython(seed, reverse_code=migrations.RunPython.noop)]
 ```
 
@@ -434,14 +425,11 @@ def test_history_user_populated(user):
 
 ## 12. Known limitations
 
-`sinpapel v0.1.0` es **alpha** — la API puede cambiar antes de v1.0. Limitaciones explícitas que un consumer debe conocer:
+`sinpapel v0.2.0` es **alpha** — la API puede cambiar antes de v1.0. Limitaciones explícitas que un consumer debe conocer:
 
-- **i18n hardcoded en español:** `verbose_name`, `help_text`, mensajes de error y choices están en ES. Si tu proyecto es multi-idioma, abre un issue — refactor a `gettext_lazy` está planificado pero no en v0.1.x.
 - **API `0.x.y` puede tener breaking changes en cada minor.** SemVer pre-1.0 no garantiza estabilidad. Pin a un commit/tag en producción y revisa los changelogs antes de upgrade.
 - **`WorkflowService` legacy en `creditos` no fue migrado.** Si extraes patrones del repo `creditos`, nota que `WorkflowService.cambiar_estado()` (con `TRANSICIONES` dict + `PERMISOS_ACCION` fallback) coexiste con `Solicitud.transition()`. La auditoría de los 9 callers vive en `creditos/work/epics/e12-sinpapel/notes/workflow-service-audit.md`. En tu proyecto greenfield, usa solo `instance.transition(...)`.
-- **`trazable` no está en PyPI público.** Instalación via git URL — coordina con el owner si necesitas el repo accesible.
-- **Sin `py.typed` marker.** El paquete tiene type annotations pero no ships type stubs externos. Mypy/pyright en strict mode pueden requerir configuración adicional.
-- **Migración del prefijo `creditos_*`:** las tablas SQL retienen el prefijo histórico. No es un blocker funcional, pero si te importa el naming en greenfield, abre un issue.
+- **Breaking migration history in v0.2.0:** migrations were squashed into a single `0001_initial`. Existing deployments must `migrate --fake` or recreate the DB.
 
 ---
 
@@ -462,7 +450,7 @@ Cuando la API se estabilice (v1.0.0), el contrato será:
 
 **Roadmap visible:**
 
-- v0.2 — i18n vía `gettext_lazy`, `py.typed`, eliminar `WorkflowService` legacy del consumer ejemplo.
+- v0.2 — i18n vía `gettext_lazy`, `py.typed`, tabla `sinpapel_*`, modelo `Etapa`, tests standalone, eliminar `WorkflowService` legacy del consumer ejemplo. **(DONE)**
 - v0.3 — soporte para PAdES (firma PDF universal vía endesive) como adapter adicional.
 - v1.0 — API estable + publicación a PyPI público (decisión final de nombre + licencia).
 
