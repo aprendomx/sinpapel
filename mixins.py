@@ -5,6 +5,7 @@ Provides Trazable (created/updated/author/modifier tracking) and Catalogo
 """
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class Trazable(models.Model):
@@ -39,7 +40,7 @@ class Catalogo(Trazable):
         max_length=1000,
         null=True,
         blank=True,
-        verbose_name="Miniatura",
+        verbose_name=_("Miniatura"),
     )
     metadatos = models.JSONField(null=True, blank=True)
 

@@ -6,6 +6,7 @@ SQL existente.
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from sinpapel.mixins import Trazable
 
@@ -23,9 +24,9 @@ class ExpedienteAdjunto(Trazable):
         ContentType,
         on_delete=models.CASCADE,
         related_name="+",
-        verbose_name="Tipo de entidad",
+        verbose_name=_("Tipo de entidad"),
     )
-    target_object_id = models.PositiveIntegerField(verbose_name="ID de entidad")
+    target_object_id = models.PositiveIntegerField(verbose_name=_("ID de entidad"))
     target = GenericForeignKey("target_content_type", "target_object_id")
 
     event_content_type = models.ForeignKey(
@@ -34,10 +35,10 @@ class ExpedienteAdjunto(Trazable):
         null=True,
         blank=True,
         related_name="+",
-        verbose_name="Tipo de evento",
+        verbose_name=_("Tipo de evento"),
     )
     event_object_id = models.PositiveIntegerField(
-        null=True, blank=True, verbose_name="ID de evento"
+        null=True, blank=True, verbose_name=_("ID de evento")
     )
     event = GenericForeignKey("event_content_type", "event_object_id")
 
@@ -45,19 +46,19 @@ class ExpedienteAdjunto(Trazable):
         max_length=200,
         blank=True,
         default="",
-        verbose_name="Nombre del documento",
-        help_text="Descripción breve del contenido del archivo.",
+        verbose_name=_("Nombre del documento"),
+        help_text=_("Descripción breve del contenido del archivo."),
     )
     archivo: models.FileField = models.FileField(
         upload_to="expedientes/",
-        verbose_name="Archivo",
+        verbose_name=_("Archivo"),
     )
 
     class Meta:
         db_table = "sinpapel_expedienteadjunto"
         app_label = "sinpapel"
-        verbose_name = "Expediente Adjunto"
-        verbose_name_plural = "Expedientes Adjuntos"
+        verbose_name = _("Expediente Adjunto")
+        verbose_name_plural = _("Expedientes Adjuntos")
         ordering = ["-creado"]
         indexes = [
             models.Index(fields=["target_content_type", "target_object_id"], name="exp_target_idx"),
