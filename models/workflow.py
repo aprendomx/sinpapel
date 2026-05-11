@@ -17,7 +17,7 @@ class Etapa(Catalogo):
     """Grupo de estados que representa una etapa del trámite."""
 
     class Meta:
-        db_table = "creditos_etapa"
+        db_table = "sinpapel_etapa"
         app_label = "sinpapel"
         verbose_name = "Etapa"
         verbose_name_plural = "Etapas"
@@ -52,7 +52,7 @@ class Estado(Catalogo):
     )
 
     class Meta:
-        db_table = "creditos_estado"
+        db_table = "sinpapel_estado"
         app_label = "sinpapel"
         verbose_name = "Estado"
         verbose_name_plural = "Estados"
@@ -93,7 +93,7 @@ class VersionFlujo(models.Model):
     history = HistoricalRecords()
 
     class Meta:
-        db_table = "creditos_versionflujo"
+        db_table = "sinpapel_versionflujo"
         app_label = "sinpapel"
         verbose_name = "Versión de Flujo"
         verbose_name_plural = "Versiones de Flujo"
@@ -140,7 +140,7 @@ class ConfiguracionTransicion(models.Model):
     history = HistoricalRecords(m2m_fields=[grupos_permitidos])
 
     class Meta:
-        db_table = "creditos_configuraciontransicion"
+        db_table = "sinpapel_configuraciontransicion"
         app_label = "sinpapel"
         unique_together = [("flujo", "estado_origen", "estado_destino")]
         verbose_name = "Transición"
@@ -242,7 +242,7 @@ class SeguimientoWorkflow(Trazable):
     )
 
     class Meta:
-        db_table = "creditos_seguimientoworkflow"
+        db_table = "sinpapel_seguimientoworkflow"
         app_label = "sinpapel"
         verbose_name = "Seguimiento de Workflow"
         verbose_name_plural = "Seguimientos de Workflow"
@@ -286,7 +286,7 @@ class RequisitoEstadoDocumento(Trazable):
     history = HistoricalRecords()
 
     class Meta:
-        db_table = "creditos_requisitoestadodocumento"
+        db_table = "sinpapel_requisitoestadodocumento"
         app_label = "sinpapel"
         unique_together = [["estado", "tipo_documento"]]
         verbose_name = "Requisito Estado-Documento"

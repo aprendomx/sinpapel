@@ -54,7 +54,7 @@ class ExpedienteAdjunto(Trazable):
     )
 
     class Meta:
-        db_table = "creditos_expedienteadjunto"
+        db_table = "sinpapel_expedienteadjunto"
         app_label = "sinpapel"
         verbose_name = "Expediente Adjunto"
         verbose_name_plural = "Expedientes Adjuntos"

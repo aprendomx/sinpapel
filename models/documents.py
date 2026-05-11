@@ -14,7 +14,7 @@ from sinpapel.mixins import Catalogo, Trazable
 
 class TipoDocumento(Catalogo):
     class Meta:
-        db_table = "creditos_tipodocumento"
+        db_table = "sinpapel_tipodocumento"
         app_label = "sinpapel"
         verbose_name = "Tipo de Documento"
         verbose_name_plural = "Tipos de Documento"
@@ -45,7 +45,7 @@ class Documento(Catalogo):
     )
 
     class Meta:
-        db_table = "creditos_documento"
+        db_table = "sinpapel_documento"
         app_label = "sinpapel"
         verbose_name = "Documento"
         verbose_name_plural = "Documentos"
@@ -89,7 +89,7 @@ class InstanciaDocumento(Trazable):
     history = HistoricalRecords()
 
     class Meta:
-        db_table = "creditos_instanciadocumento"
+        db_table = "sinpapel_instanciadocumento"
         app_label = "sinpapel"
         verbose_name = "Instancia de Documento"
         verbose_name_plural = "Instancias de Documentos"
@@ -107,7 +107,7 @@ class RazonRechazoDocumento(Trazable):
     activa: models.BooleanField = models.BooleanField(default=True)
 
     class Meta:
-        db_table = "creditos_razonrechazodocumento"
+        db_table = "sinpapel_razonrechazodocumento"
         app_label = "sinpapel"
         verbose_name = "Razón de Rechazo de Documento"
         verbose_name_plural = "Razones de Rechazo de Documento"

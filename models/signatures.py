@@ -92,7 +92,7 @@ class RegistroFirma(models.Model):
 
     class Meta:
         # Preserva tabla SQL existente — extracción a sinpapel sin data migration
-        db_table = "creditos_registrofirma"
+        db_table = "sinpapel_registrofirma"
         app_label = "sinpapel"
         verbose_name = "Registro de Firma"
         verbose_name_plural = "Registros de Firma"
