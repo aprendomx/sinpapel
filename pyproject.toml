@@ -24,8 +24,6 @@ dependencies = [
     "Django>=5.0",
     "django-simple-history>=3.5",
     "cryptography>=42.0",
-    # trazable: instalar separadamente vía git URL hasta que se publique a PyPI
-    # Ejemplo: pip install git+ssh://git@github.com/<owner>/trazable.git@v0.1.0
 ]
 
 [project.optional-dependencies]
@@ -51,6 +49,7 @@ packages = [
     "sinpapel.management",
     "sinpapel.management.commands",
     "sinpapel.migrations",
+    "sinpapel.mixins",
     "sinpapel.models",
     "sinpapel.schemas",
     "sinpapel.services",
@@ -63,6 +62,7 @@ sinpapel = "."
 "sinpapel.management" = "management"
 "sinpapel.management.commands" = "management/commands"
 "sinpapel.migrations" = "migrations"
+"sinpapel.mixins" = "."
 "sinpapel.models" = "models"
 "sinpapel.schemas" = "schemas"
 "sinpapel.services" = "services"

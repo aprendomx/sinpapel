@@ -9,7 +9,7 @@ from django.db import models
 from django.db.models import TextField
 
 from simple_history.models import HistoricalRecords
-from trazable.models import Catalogo, Trazable
+from sinpapel.mixins import Catalogo, Trazable
 
 
 class TipoDocumento(Catalogo):

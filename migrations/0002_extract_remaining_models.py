@@ -15,7 +15,6 @@ Total: 10 modelos. Combinado con T1 (RegistroFirma) = 11 modelos en sinpapel.
 HistorialRevisionDocumento y PlantillaDocumento permanecen en creditos
 (tienen FKs a DocumentoSolicitud/ProductoCreditoFOVISSSTE creditos-específicos).
 """
-import colorfield.fields
 import django.core.validators
 import django.db.models.deletion
 from django.conf import settings
@@ -27,7 +26,6 @@ class Migration(migrations.Migration):
     dependencies = [
         ('auth', '0012_alter_user_first_name_max_length'),
         ('contenttypes', '0002_remove_content_type_name'),
-        ('creditos', '0052_extract_registrofirma'),  # creditos.0053 depende de esta migration
         ('sinpapel', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
@@ -57,7 +55,7 @@ class Migration(migrations.Migration):
                     ('nombre', models.CharField(max_length=250)),
                     ('descripcion', models.TextField(blank=True, null=True)),
                     ('activo', models.BooleanField(default=False)),
-                    ('color', colorfield.fields.ColorField(default='#4DEFE2', image_field=None, max_length=25, samples=None)),
+                    ('color', models.CharField(default='#4DEFE2', max_length=25)),
                     ('orden', models.IntegerField(default=0)),
                     ('imagen', models.ImageField(blank=True, max_length=1000, null=True, upload_to='portadas/', verbose_name='Miniatura')),
                     ('metadatos', models.JSONField(blank=True, null=True)),
@@ -74,6 +72,28 @@ class Migration(migrations.Migration):
                 },
             ),
             migrations.CreateModel(
+                name='Etapa',
+                fields=[
+                    ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                    ('creado', models.DateTimeField(auto_now_add=True, null=True)),
+                    ('actualizado', models.DateTimeField(auto_now=True, null=True)),
+                    ('caducidad', models.DateTimeField(blank=True, null=True)),
+                    ('nombre', models.CharField(max_length=250)),
+                    ('descripcion', models.TextField(blank=True, null=True)),
+                    ('activo', models.BooleanField(default=False)),
+                    ('color', models.CharField(default='#4DEFE2', max_length=25)),
+                    ('orden', models.IntegerField(default=0)),
+                    ('imagen', models.ImageField(blank=True, max_length=1000, null=True, upload_to='portadas/', verbose_name='Miniatura')),
+                    ('metadatos', models.JSONField(blank=True, null=True)),
+                ],
+                options={
+                    'verbose_name': 'Etapa',
+                    'verbose_name_plural': 'Etapas',
+                    'db_table': 'creditos_etapa',
+                    'ordering': ['orden'],
+                },
+            ),
+            migrations.CreateModel(
                 name='Estado',
                 fields=[
                     ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -83,7 +103,7 @@ class Migration(migrations.Migration):
                     ('nombre', models.CharField(max_length=250)),
                     ('descripcion', models.TextField(blank=True, null=True)),
                     ('activo', models.BooleanField(default=False)),
-                    ('color', colorfield.fields.ColorField(default='#4DEFE2', image_field=None, max_length=25, samples=None)),
+                    ('color', models.CharField(default='#4DEFE2', max_length=25)),
                     ('orden', models.IntegerField(default=0)),
                     ('imagen', models.ImageField(blank=True, max_length=1000, null=True, upload_to='portadas/', verbose_name='Miniatura')),
                     ('metadatos', models.JSONField(blank=True, null=True)),
@@ -201,7 +221,7 @@ class Migration(migrations.Migration):
                     ('nombre', models.CharField(max_length=250)),
                     ('descripcion', models.TextField(blank=True, null=True)),
                     ('activo', models.BooleanField(default=False)),
-                    ('color', colorfield.fields.ColorField(default='#4DEFE2', image_field=None, max_length=25, samples=None)),
+                    ('color', models.CharField(default='#4DEFE2', max_length=25)),
                     ('orden', models.IntegerField(default=0)),
                     ('imagen', models.ImageField(blank=True, max_length=1000, null=True, upload_to='portadas/', verbose_name='Miniatura')),
                     ('metadatos', models.JSONField(blank=True, null=True)),
@@ -262,7 +282,7 @@ class Migration(migrations.Migration):
             migrations.AddField(
                 model_name='estado',
                 name='etapa',
-                field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='estados', to='creditos.etapatramite', verbose_name='Etapa'),
+                field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='estados', to='sinpapel.etapa', verbose_name='Etapa'),
             ),
             migrations.AddField(
                 model_name='estado',
