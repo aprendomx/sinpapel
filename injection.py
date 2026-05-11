@@ -1,0 +1,93 @@
+"""Sinpapel — Métodos inyectados por @workflow_enabled.
+
+Estos métodos se vinculan a la clase decorada via setattr en el decorator.
+Se importan localmente desde decorators.py para evitar circular imports.
+
+Métodos:
+    available_transitions(self, user) -> list[Estado]
+    can_transition_to(self, target_state_name, user) -> tuple[bool, str | None]
+    transition(self, target_state_name, user, **kwargs)
+
+Estrategia S12.3: lectura (`available_transitions`, `can_transition_to`) consulta
+DB directamente; mutación (`transition`) delega a WorkflowService para preservar
+compatibilidad con tests creditos. S12.4 reemplaza con WorkflowEngine extraído.
+"""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from django.contrib.auth.models import User
+
+    from sinpapel.models import Estado
+
+
+def available_transitions(self, user: "User") -> list["Estado"]:
+    """Retorna lista de Estado destino válidos desde el estado actual.
+
+    Consulta ConfiguracionTransicion filtrando por estado_origen.
+    No filtra por user permissions — eso lo hace can_transition_to.
+
+    Args:
+        user: usuario consultando (no se usa para filtrar en S12.3, reservado
+              para S12.4 cuando WorkflowEngine considere flujo activo + grupos)
+
+    Returns:
+        lista de instancias Estado destino válidos. Vacía si no hay estado actual.
+    """
+    from sinpapel.models import ConfiguracionTransicion
+
+    config = type(self)._workflow_config  # type: ignore[attr-defined]
+    estado_actual = getattr(self, config.state_field, None)
+    if estado_actual is None:
+        return []
+
+    transiciones = ConfiguracionTransicion.objects.filter(
+        estado_origen=estado_actual,
+    ).select_related("estado_destino")
+    return [t.estado_destino for t in transiciones]
+
+
+def can_transition_to(self, target_state_name: str, user: "User") -> tuple[bool, str | None]:
+    """Valida si la transición a target_state_name está permitida.
+
+    Delega a sinpapel.services.workflow_engine.WorkflowEngine (S12.4).
+
+    Args:
+        target_state_name: nombre del Estado destino (ej. "EN_JEFATURA")
+        user: usuario que intenta la transición
+
+    Returns:
+        tuple (puede: bool, mensaje: str | None)
+    """
+    # Import local: WorkflowEngine carga sinpapel.models, no top-level.
+    from sinpapel.services.workflow_engine import WorkflowEngine
+
+    return WorkflowEngine().puede_cambiar_estado(self, target_state_name, user)
+
+
+def transition(self, target_state_name: str, user: "User", **kwargs: Any) -> Any:
+    """Ejecuta la transición a target_state_name.
+
+    Delega a sinpapel.services.workflow_engine.WorkflowEngine (S12.4).
+
+    Args:
+        target_state_name: nombre del Estado destino
+        user: usuario que ejecuta la transición
+        **kwargs: parámetros adicionales (comentarios, monto_aprobado,
+                  condiciones, ip_address, firma_payload)
+
+    Returns:
+        dict con keys: success, instance_id, estado_anterior, estado_nuevo,
+        seguimiento_id, + extra del side_effects dispatch
+    """
+    from sinpapel.services.workflow_engine import WorkflowEngine
+
+    comentarios = kwargs.pop("comentarios", "")
+    return WorkflowEngine().cambiar_estado(
+        instance=self,
+        target_state_name=target_state_name,
+        user=user,
+        comentarios=comentarios,
+        **kwargs,
+    )
