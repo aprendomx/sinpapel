@@ -155,6 +155,95 @@ def test_v0_1_fixture_still_importable(catalog_setup):
     assert flujo.transiciones.count() == 2
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# S27.2 T2 — serialize_flujo with inline_catalogs (v0.2 export)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_serialize_flujo_default_is_v0_1(catalog_setup):
+    """S27.2 D2: default serialize sin inline_catalogs produce v0.1."""
+    from sinpapel.schemas.flujo_export import serialize_flujo
+    data = serialize_flujo(catalog_setup["flujo"])
+    assert data["schema_version"] == "0.1"
+    assert "catalogos" not in data
+
+
+@pytest.mark.django_db
+def test_serialize_flujo_inline_catalogs_produces_v0_2(catalog_setup):
+    """S27.2 AC1: opt-in inline_catalogs=True produce v0.2 con catalogos section."""
+    from sinpapel.schemas.flujo_export import serialize_flujo
+    data = serialize_flujo(catalog_setup["flujo"], inline_catalogs=True)
+    assert data["schema_version"] == "0.2"
+    assert "catalogos" in data
+    assert set(data["catalogos"].keys()) == {"estados", "etapas", "grupos", "tipos_documento"}
+
+    estado_names = {e["nombre"] for e in data["catalogos"]["estados"]}
+    assert estado_names == {"FP_CAPTURA", "FP_REVISION", "FP_APROBADO"}
+
+    tipo_names = {t["nombre"] for t in data["catalogos"]["tipos_documento"]}
+    assert "FP_INE" in tipo_names
+    assert "FP_CURP" in tipo_names
+
+    group_names = {g["name"] for g in data["catalogos"]["grupos"]}
+    assert group_names == {"FP_AsistenteTecnico", "FP_JefeModulo"}
+
+
+@pytest.mark.django_db
+def test_serialize_v0_2_includes_estado_etapa_relation(catalog_setup):
+    """S27.2 AC6: Estado.etapa serialized as nombre ref en v0.2."""
+    from sinpapel.models import Etapa
+    from sinpapel.schemas.flujo_export import serialize_flujo
+
+    etapa = Etapa.objects.create(nombre="FP_ETAPA_PRE")
+    estado_orig = catalog_setup["estados"]["orig"]
+    estado_orig.etapa = etapa
+    estado_orig.save()
+
+    data = serialize_flujo(catalog_setup["flujo"], inline_catalogs=True)
+    etapa_names = {e["nombre"] for e in data["catalogos"]["etapas"]}
+    assert "FP_ETAPA_PRE" in etapa_names
+
+    estado_orig_data = next(
+        e for e in data["catalogos"]["estados"] if e["nombre"] == "FP_CAPTURA"
+    )
+    assert estado_orig_data["etapa"] == "FP_ETAPA_PRE"
+
+    # Estado without etapa serialized as None
+    estado_dest_data = next(
+        e for e in data["catalogos"]["estados"] if e["nombre"] == "FP_REVISION"
+    )
+    assert estado_dest_data["etapa"] is None
+
+
+@pytest.mark.django_db
+def test_serialize_v0_2_positions_name_keyed(catalog_setup):
+    """S27.2 D6: v0.2 export migra metadatos.positions de ID-keying a name-keying."""
+    from sinpapel.schemas.flujo_export import serialize_flujo
+
+    flujo = catalog_setup["flujo"]
+    estado_orig = catalog_setup["estados"]["orig"]
+    estado_dest = catalog_setup["estados"]["dest"]
+    # Set positions con ID-keying (legacy creditos behavior)
+    flujo.metadatos = {
+        "positions": {
+            str(estado_orig.id): {"x": 100, "y": 200},
+            str(estado_dest.id): {"x": 300, "y": 400},
+        }
+    }
+    flujo.save()
+
+    data = serialize_flujo(flujo, inline_catalogs=True)
+    positions = data["flujo"]["metadatos"]["positions"]
+    assert "FP_CAPTURA" in positions
+    assert positions["FP_CAPTURA"] == {"x": 100, "y": 200}
+    assert "FP_REVISION" in positions
+    assert positions["FP_REVISION"] == {"x": 300, "y": 400}
+    # ID keys no longer present (converted)
+    assert str(estado_orig.id) not in positions
+    assert str(estado_dest.id) not in positions
+
+
 @pytest.mark.django_db
 def test_find_missing_entities_empty_when_complete(catalog_setup):
     from sinpapel.schemas.flujo_export import find_missing_entities, serialize_flujo

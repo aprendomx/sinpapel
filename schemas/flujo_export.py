@@ -34,11 +34,21 @@ SCHEMA_VERSION_LATEST = "0.2"  # S27.2 (ADR-017): emitido por serialize_flujo(in
 SUPPORTED_SCHEMA_VERSIONS = frozenset({"0.1", "0.2"})
 
 
-def serialize_flujo(flujo: "VersionFlujo") -> dict:
-    """Serializa VersionFlujo + transitions + requisitos a dict schema v0.1.
+def serialize_flujo(flujo: "VersionFlujo", *, inline_catalogs: bool = False) -> dict:
+    """Serializa VersionFlujo + transitions + requisitos.
 
-    FK externos por nombre. M2M grupos_permitidos sorted para determinism.
-    Requisitos incluyen los referidos por Estados involucrados en transitions.
+    Args:
+        flujo: VersionFlujo a serializar.
+        inline_catalogs: si True, emite v0.2 con sección 'catalogos' inline
+            (Estado, Etapa, Group, TipoDocumento referenciados por el flujo)
+            y metadatos.positions name-keyed. Si False (default), emite v0.1 —
+            referencias por nombre, catálogos asumidos en destino (backward-
+            compat S13.8).
+
+    Returns:
+        dict serializable a JSON:
+        - v0.1: {schema_version, exported_at, flujo: {...}}
+        - v0.2: {schema_version, exported_at, catalogos: {...}, flujo: {...}}
     """
     from sinpapel.models import RequisitoEstadoDocumento
 
@@ -73,17 +83,140 @@ def serialize_flujo(flujo: "VersionFlujo") -> dict:
         .order_by("estado__nombre", "tipo_documento__nombre")
     ]
 
-    return {
-        "schema_version": SCHEMA_VERSION,
+    # v0.2: convertir positions a name-keying (designer no conoce IDs)
+    if inline_catalogs and flujo.metadatos and "positions" in flujo.metadatos:
+        metadatos = {
+            **flujo.metadatos,
+            "positions": _positions_to_names(flujo.metadatos["positions"], flujo),
+        }
+    else:
+        metadatos = flujo.metadatos
+
+    schema_version = SCHEMA_VERSION_LATEST if inline_catalogs else SCHEMA_VERSION
+    result: dict = {
+        "schema_version": schema_version,
         "exported_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        "flujo": {
-            "nombre": flujo.nombre,
-            "descripcion": flujo.descripcion or "",
-            "activo": flujo.activo,
-            "metadatos": flujo.metadatos,
-            "transiciones": transitions,
-            "requisitos": requisitos,
-        },
+    }
+    if inline_catalogs:
+        result["catalogos"] = _serialize_catalogos(flujo)
+    result["flujo"] = {
+        "nombre": flujo.nombre,
+        "descripcion": flujo.descripcion or "",
+        "activo": flujo.activo,
+        "metadatos": metadatos,
+        "transiciones": transitions,
+        "requisitos": requisitos,
+    }
+    return result
+
+
+def _positions_to_names(
+    positions: dict | None, flujo: "VersionFlujo"  # noqa: ARG001
+) -> dict | None:
+    """Migra positions keying de ID -> nombre para v0.2 export.
+
+    Si positions es None o vacío, retorna as-is.
+    Si todas las keys son numéricas (legacy v0.1 creditos), lookup
+    Estado.objects.get(pk=...) y convierte a name-keyed.
+    Si keys ya son nombres, retorna as-is (idempotent).
+    Estados not found en DB se omiten silently (drop preferred sobre crash).
+    """
+    if not positions:
+        return positions
+
+    if not all(isinstance(k, str) and k.isdigit() for k in positions.keys()):
+        return positions  # ya name-keyed o mixed (skip migration)
+
+    from sinpapel.models import Estado
+
+    ids = [int(k) for k in positions.keys()]
+    id_to_nombre = {e.id: e.nombre for e in Estado.objects.filter(pk__in=ids)}
+    return {
+        id_to_nombre[int(id_str)]: pos
+        for id_str, pos in positions.items()
+        if int(id_str) in id_to_nombre
+    }
+
+
+def _serialize_catalogos(flujo: "VersionFlujo") -> dict:
+    """Extrae Estados/Etapas/Grupos/TiposDocumento referenciados por flujo + requisitos.
+
+    Subset (no todos los catálogos del DB). Ordenado por nombre deterministicamente
+    para round-trip equivalence.
+    """
+    from django.contrib.auth.models import Group
+    from sinpapel.models import Estado, Etapa, RequisitoEstadoDocumento, TipoDocumento
+
+    estado_names: set[str] = set()
+    group_names: set[str] = set()
+
+    for t in (
+        flujo.transiciones.all()
+        .select_related("estado_origen", "estado_destino")
+        .prefetch_related("grupos_permitidos")
+    ):
+        estado_names.add(t.estado_origen.nombre)
+        estado_names.add(t.estado_destino.nombre)
+        for g in t.grupos_permitidos.all():
+            group_names.add(g.name)
+
+    estados_qs = Estado.objects.filter(nombre__in=estado_names).select_related("etapa")
+
+    requisitos_qs = RequisitoEstadoDocumento.objects.filter(
+        estado__in=estados_qs
+    ).select_related("tipo_documento")
+    tipo_names = {r.tipo_documento.nombre for r in requisitos_qs}
+
+    estados_data = []
+    etapa_names: set[str] = set()
+    for e in estados_qs.order_by("nombre"):
+        etapa_nombre = e.etapa.nombre if e.etapa else None
+        if etapa_nombre:
+            etapa_names.add(etapa_nombre)
+        estados_data.append({
+            "nombre": e.nombre,
+            "color": e.color,
+            "icono": e.icono,
+            "descripcion": e.descripcion or "",
+            "orden": e.orden,
+            "activo": e.activo,
+            "etapa": etapa_nombre,
+            "permite_expediente": e.permite_expediente,
+            "expediente_obligatorio": e.expediente_obligatorio,
+        })
+
+    etapas_data = [
+        {
+            "nombre": etapa.nombre,
+            "color": etapa.color,
+            "descripcion": etapa.descripcion or "",
+            "orden": etapa.orden,
+            "activo": etapa.activo,
+        }
+        for etapa in Etapa.objects.filter(nombre__in=etapa_names).order_by("nombre")
+    ]
+
+    tipos_data = [
+        {
+            "nombre": td.nombre,
+            "color": td.color,
+            "descripcion": td.descripcion or "",
+            "orden": td.orden,
+            "activo": td.activo,
+        }
+        for td in TipoDocumento.objects.filter(nombre__in=tipo_names).order_by("nombre")
+    ]
+
+    grupos_data = [
+        {"name": g.name}
+        for g in Group.objects.filter(name__in=group_names).order_by("name")
+    ]
+
+    return {
+        "estados": estados_data,
+        "etapas": etapas_data,
+        "grupos": grupos_data,
+        "tipos_documento": tipos_data,
     }
 
 
