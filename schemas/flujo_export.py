@@ -361,6 +361,10 @@ def deserialize_flujo(
             )
 
     if dry_run:
+        # S27.3 fix: v0.2 + create_catalogs path writes via _upsert_catalogos.
+        # transaction.atomic commits al exit si no raise — explicit rollback
+        # garantiza dry-run zero-writes contract.
+        transaction.set_rollback(True)
         return None
 
     # 4. Persist atomicamente (transaction.atomic wraps todo)
