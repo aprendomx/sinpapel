@@ -383,6 +383,69 @@ def test_deserialize_v0_2_upserts_etapa_before_estado(db):
     assert estado_a.etapa_id == etapa.id
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# S27.2 T4 — Round-trip integration (real Django ORM, no mocks)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_round_trip_v0_2_with_inline_catalogs_real_db(catalog_setup):
+    """S27.2 AC10 + integration gate: round-trip v0.2 schema-equivalent vs real ORM.
+
+    Flow:
+        1. catalog_setup crea VersionFlujo + Estados/TipoDocumento/Group en DB
+        2. Export v0.2 (inline_catalogs=True)
+        3. Modify exported nombre (evita duplicate flujo reject)
+        4. Import → crea new VersionFlujo (catalogos existing son upserted no-op)
+        5. Re-export v0.2 del new flujo
+        6. Assert schema-equivalent (transitions, requisitos, catalog refs)
+    """
+    from sinpapel.schemas.flujo_export import deserialize_flujo, serialize_flujo
+
+    flujo = catalog_setup["flujo"]
+    # Set positions ID-keyed para validar conversion ID->nombre en round-trip
+    flujo.metadatos = {
+        "positions": {
+            str(catalog_setup["estados"]["orig"].id): {"x": 50, "y": 50},
+            str(catalog_setup["estados"]["dest"].id): {"x": 250, "y": 100},
+        }
+    }
+    flujo.save()
+
+    # Export v0.2
+    exported = serialize_flujo(flujo, inline_catalogs=True)
+    assert exported["schema_version"] == "0.2"
+    # positions migrated to name-keying
+    assert "FP_CAPTURA" in exported["flujo"]["metadatos"]["positions"]
+
+    # Modify nombre para evitar duplicate reject
+    exported["flujo"]["nombre"] = "FP_FLUJO_ROUNDTRIP"
+
+    # Import → upsert catalogos (no-op porque ya existen) + crea new flujo
+    imported_flujo = deserialize_flujo(exported)
+    assert imported_flujo is not None
+    assert imported_flujo.nombre == "FP_FLUJO_ROUNDTRIP"
+
+    # Re-export
+    re_exported = serialize_flujo(imported_flujo, inline_catalogs=True)
+    assert re_exported["schema_version"] == "0.2"
+
+    # Schema-equivalent: transiciones byte-equal
+    assert exported["flujo"]["transiciones"] == re_exported["flujo"]["transiciones"]
+    assert exported["flujo"]["requisitos"] == re_exported["flujo"]["requisitos"]
+    # Catalog references schema-equivalent (sorted by nombre + same field set)
+    assert (
+        sorted(e["nombre"] for e in exported["catalogos"]["estados"])
+        == sorted(e["nombre"] for e in re_exported["catalogos"]["estados"])
+    )
+    assert (
+        sorted(g["name"] for g in exported["catalogos"]["grupos"])
+        == sorted(g["name"] for g in re_exported["catalogos"]["grupos"])
+    )
+    # positions name-keyed both sides
+    assert exported["flujo"]["metadatos"]["positions"] == re_exported["flujo"]["metadatos"]["positions"]
+
+
 @pytest.mark.django_db
 def test_find_missing_entities_empty_when_complete(catalog_setup):
     from sinpapel.schemas.flujo_export import find_missing_entities, serialize_flujo
