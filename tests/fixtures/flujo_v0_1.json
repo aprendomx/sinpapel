@@ -1,0 +1,32 @@
+{
+  "schema_version": "0.1",
+  "exported_at": "2026-05-11T20:00:00+00:00",
+  "flujo": {
+    "nombre": "FP_FIXTURE_V0_1",
+    "descripcion": "Synthetic v0.1 fixture for S27.2 backward-compat regression test",
+    "activo": false,
+    "metadatos": {
+      "positions": {"1": {"x": 100, "y": 200}}
+    },
+    "transiciones": [
+      {
+        "estado_origen": "FP_CAPTURA",
+        "estado_destino": "FP_REVISION",
+        "grupos_permitidos": ["FP_AsistenteTecnico", "FP_JefeModulo"]
+      },
+      {
+        "estado_origen": "FP_REVISION",
+        "estado_destino": "FP_APROBADO",
+        "grupos_permitidos": []
+      }
+    ],
+    "requisitos": [
+      {
+        "estado": "FP_CAPTURA",
+        "tipo_documento": "FP_INE",
+        "porcentaje": 100,
+        "auto_carga": false
+      }
+    ]
+  }
+}

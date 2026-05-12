@@ -10,9 +10,12 @@ from __future__ import annotations
 
 import json
 from io import StringIO
+from pathlib import Path
 
 import pytest
 from django.contrib.auth.models import Group
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -112,8 +115,335 @@ def test_validate_schema_version_v01_ok():
 
 def test_validate_schema_version_unsupported_raises():
     from sinpapel.schemas.flujo_export import validate_schema_version
+    # "0.99" is clearly unsupported; "0.2" became supported in S27.2 (ADR-017).
     with pytest.raises(ValueError, match="Unsupported schema_version"):
-        validate_schema_version({"schema_version": "0.2"})
+        validate_schema_version({"schema_version": "0.99"})
+
+
+def test_validate_schema_version_v02_ok():
+    """S27.2 (ADR-017): validate acepta v0.2 (extension de S13.8 v0.1-only)."""
+    from sinpapel.schemas.flujo_export import validate_schema_version
+    validate_schema_version({"schema_version": "0.2"})  # no raise
+
+
+def test_validate_schema_version_rejects_0_3():
+    """S27.2: forward-compat reject explícito pre-1.0 (ADR-017)."""
+    from sinpapel.schemas.flujo_export import validate_schema_version
+    with pytest.raises(ValueError, match="Unsupported schema_version='0.3'"):
+        validate_schema_version({"schema_version": "0.3"})
+
+
+@pytest.mark.django_db
+def test_v0_1_fixture_still_importable(catalog_setup):
+    """S27.2 backward-compat (ADR-017): v0.1 fixture sigue importable post-v0.2.
+
+    Static fixture en tests/fixtures/flujo_v0_1.json protege contra
+    regresión accidental del contrato v0.1.
+    """
+    from sinpapel.schemas.flujo_export import deserialize_flujo
+    fixture_path = FIXTURES_DIR / "flujo_v0_1.json"
+    with open(fixture_path) as f:
+        data = json.load(f)
+
+    assert data["schema_version"] == "0.1"
+    assert "catalogos" not in data  # v0.1 shape
+
+    flujo = deserialize_flujo(data)
+    assert flujo is not None
+    assert flujo.nombre == "FP_FIXTURE_V0_1"
+    # Validate transitions persisted
+    assert flujo.transiciones.count() == 2
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# S27.2 T2 — serialize_flujo with inline_catalogs (v0.2 export)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_serialize_flujo_default_is_v0_1(catalog_setup):
+    """S27.2 D2: default serialize sin inline_catalogs produce v0.1."""
+    from sinpapel.schemas.flujo_export import serialize_flujo
+    data = serialize_flujo(catalog_setup["flujo"])
+    assert data["schema_version"] == "0.1"
+    assert "catalogos" not in data
+
+
+@pytest.mark.django_db
+def test_serialize_flujo_inline_catalogs_produces_v0_2(catalog_setup):
+    """S27.2 AC1: opt-in inline_catalogs=True produce v0.2 con catalogos section."""
+    from sinpapel.schemas.flujo_export import serialize_flujo
+    data = serialize_flujo(catalog_setup["flujo"], inline_catalogs=True)
+    assert data["schema_version"] == "0.2"
+    assert "catalogos" in data
+    assert set(data["catalogos"].keys()) == {"estados", "etapas", "grupos", "tipos_documento"}
+
+    estado_names = {e["nombre"] for e in data["catalogos"]["estados"]}
+    assert estado_names == {"FP_CAPTURA", "FP_REVISION", "FP_APROBADO"}
+
+    tipo_names = {t["nombre"] for t in data["catalogos"]["tipos_documento"]}
+    assert "FP_INE" in tipo_names
+    assert "FP_CURP" in tipo_names
+
+    group_names = {g["name"] for g in data["catalogos"]["grupos"]}
+    assert group_names == {"FP_AsistenteTecnico", "FP_JefeModulo"}
+
+
+@pytest.mark.django_db
+def test_serialize_v0_2_includes_estado_etapa_relation(catalog_setup):
+    """S27.2 AC6: Estado.etapa serialized as nombre ref en v0.2."""
+    from sinpapel.models import Etapa
+    from sinpapel.schemas.flujo_export import serialize_flujo
+
+    etapa = Etapa.objects.create(nombre="FP_ETAPA_PRE")
+    estado_orig = catalog_setup["estados"]["orig"]
+    estado_orig.etapa = etapa
+    estado_orig.save()
+
+    data = serialize_flujo(catalog_setup["flujo"], inline_catalogs=True)
+    etapa_names = {e["nombre"] for e in data["catalogos"]["etapas"]}
+    assert "FP_ETAPA_PRE" in etapa_names
+
+    estado_orig_data = next(
+        e for e in data["catalogos"]["estados"] if e["nombre"] == "FP_CAPTURA"
+    )
+    assert estado_orig_data["etapa"] == "FP_ETAPA_PRE"
+
+    # Estado without etapa serialized as None
+    estado_dest_data = next(
+        e for e in data["catalogos"]["estados"] if e["nombre"] == "FP_REVISION"
+    )
+    assert estado_dest_data["etapa"] is None
+
+
+@pytest.mark.django_db
+def test_serialize_v0_2_positions_name_keyed(catalog_setup):
+    """S27.2 D6: v0.2 export migra metadatos.positions de ID-keying a name-keying."""
+    from sinpapel.schemas.flujo_export import serialize_flujo
+
+    flujo = catalog_setup["flujo"]
+    estado_orig = catalog_setup["estados"]["orig"]
+    estado_dest = catalog_setup["estados"]["dest"]
+    # Set positions con ID-keying (legacy creditos behavior)
+    flujo.metadatos = {
+        "positions": {
+            str(estado_orig.id): {"x": 100, "y": 200},
+            str(estado_dest.id): {"x": 300, "y": 400},
+        }
+    }
+    flujo.save()
+
+    data = serialize_flujo(flujo, inline_catalogs=True)
+    positions = data["flujo"]["metadatos"]["positions"]
+    assert "FP_CAPTURA" in positions
+    assert positions["FP_CAPTURA"] == {"x": 100, "y": 200}
+    assert "FP_REVISION" in positions
+    assert positions["FP_REVISION"] == {"x": 300, "y": 400}
+    # ID keys no longer present (converted)
+    assert str(estado_orig.id) not in positions
+    assert str(estado_dest.id) not in positions
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# S27.2 T3 — deserialize_flujo with create_catalogs (v0.2 import + upsert)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _v0_2_minimal_data(flujo_nombre: str = "FP_FLUJO_S27_2") -> dict:
+    """Helper: build v0.2 JSON data for tests con catalogos inline."""
+    return {
+        "schema_version": "0.2",
+        "exported_at": "2026-05-11T20:00:00+00:00",
+        "catalogos": {
+            "etapas": [
+                {"nombre": "ETAPA_X", "color": "#aaa", "descripcion": "",
+                 "orden": 1, "activo": True}
+            ],
+            "estados": [
+                {
+                    "nombre": "EST_NUEVO_A", "color": "#111", "icono": "edit",
+                    "descripcion": "", "orden": 1, "activo": True,
+                    "etapa": "ETAPA_X",
+                    "permite_expediente": False, "expediente_obligatorio": False,
+                },
+                {
+                    "nombre": "EST_NUEVO_B", "color": "#222", "icono": "check",
+                    "descripcion": "", "orden": 2, "activo": True,
+                    "etapa": None,
+                    "permite_expediente": False, "expediente_obligatorio": False,
+                },
+            ],
+            "grupos": [{"name": "GRP_NUEVO"}],
+            "tipos_documento": [],
+        },
+        "flujo": {
+            "nombre": flujo_nombre,
+            "descripcion": "S27.2 T3 test",
+            "activo": False,
+            "metadatos": {"positions": {"EST_NUEVO_A": {"x": 10, "y": 20}}},
+            "transiciones": [
+                {"estado_origen": "EST_NUEVO_A", "estado_destino": "EST_NUEVO_B",
+                 "grupos_permitidos": ["GRP_NUEVO"]}
+            ],
+            "requisitos": [],
+        },
+    }
+
+
+@pytest.mark.django_db
+def test_deserialize_v0_2_creates_inline_catalogs(db):
+    """S27.2 AC3: v0.2 import con create_catalogs=True crea Estados/Etapas/Grupos missing."""
+    from django.contrib.auth.models import Group
+    from sinpapel.models import Estado, Etapa, VersionFlujo
+    from sinpapel.schemas.flujo_export import deserialize_flujo
+
+    assert not Estado.objects.filter(nombre="EST_NUEVO_A").exists()
+    assert not Etapa.objects.filter(nombre="ETAPA_X").exists()
+    assert not Group.objects.filter(name="GRP_NUEVO").exists()
+
+    data = _v0_2_minimal_data()
+    flujo = deserialize_flujo(data)  # create_catalogs=True by default
+
+    assert flujo is not None
+    assert Estado.objects.filter(nombre="EST_NUEVO_A").exists()
+    assert Estado.objects.filter(nombre="EST_NUEVO_B").exists()
+    assert Etapa.objects.filter(nombre="ETAPA_X").exists()
+    assert Group.objects.filter(name="GRP_NUEVO").exists()
+    # Estado.etapa FK resolved
+    estado_a = Estado.objects.get(nombre="EST_NUEVO_A")
+    assert estado_a.etapa is not None
+    assert estado_a.etapa.nombre == "ETAPA_X"
+    # Flujo transitions persisted
+    assert VersionFlujo.objects.get(nombre="FP_FLUJO_S27_2").transiciones.count() == 1
+
+
+@pytest.mark.django_db
+def test_deserialize_v0_2_update_existing_emits_warning(db, caplog):
+    """S27.2 AC4 + D5: upsert update existing Estado emite WARNING (no exception)."""
+    import logging
+    from sinpapel.models import Estado
+    from sinpapel.schemas.flujo_export import deserialize_flujo
+
+    # Pre-existing Estado con defaults distintos
+    Estado.objects.create(nombre="EST_NUEVO_A", color="#OLD", icono="old_icon")
+
+    data = _v0_2_minimal_data()
+    with caplog.at_level(logging.WARNING, logger="sinpapel.schemas.flujo_export"):
+        flujo = deserialize_flujo(data)
+
+    assert flujo is not None
+    estado_a = Estado.objects.get(nombre="EST_NUEVO_A")
+    assert estado_a.color == "#111"  # updated to inline value
+    assert estado_a.icono == "edit"
+    # WARNING emitted
+    warning_msgs = [r.message for r in caplog.records if r.levelname == "WARNING"]
+    assert any("EST_NUEVO_A" in m for m in warning_msgs)
+
+
+@pytest.mark.django_db
+def test_deserialize_v0_2_no_create_catalogs_rejects_missing(db):
+    """S27.2 AC5: create_catalogs=False con missing Estado raises (v0.1 semantics)."""
+    from sinpapel.schemas.flujo_export import deserialize_flujo
+
+    data = _v0_2_minimal_data()
+    with pytest.raises(ValueError, match="Missing entities in destination"):
+        deserialize_flujo(data, create_catalogs=False)
+
+
+@pytest.mark.django_db
+def test_deserialize_v0_2_ambiguous_estado_rejects(db):
+    """S27.2 AC7: ambiguity check preservado en v0.2 (PAT-E-523)."""
+    from sinpapel.models import Estado
+    from sinpapel.schemas.flujo_export import deserialize_flujo
+
+    # Create AMBIGUITY: 2 Estados con mismo nombre (Catalogo.nombre NOT unique)
+    Estado.objects.create(nombre="EST_NUEVO_A", color="#one")
+    Estado.objects.create(nombre="EST_NUEVO_A", color="#two")
+
+    data = _v0_2_minimal_data()
+    with pytest.raises(ValueError, match="AMBIGUOUS"):
+        deserialize_flujo(data)
+
+
+@pytest.mark.django_db
+def test_deserialize_v0_2_upserts_etapa_before_estado(db):
+    """S27.2 D7: upsert order Etapa -> Estado (FK dependency)."""
+    from sinpapel.models import Estado, Etapa
+    from sinpapel.schemas.flujo_export import deserialize_flujo
+
+    assert not Etapa.objects.exists()
+    assert not Estado.objects.exists()
+
+    data = _v0_2_minimal_data()
+    deserialize_flujo(data)
+
+    # Etapa creada antes que Estado (FK resolved)
+    etapa = Etapa.objects.get(nombre="ETAPA_X")
+    estado_a = Estado.objects.get(nombre="EST_NUEVO_A")
+    assert estado_a.etapa_id == etapa.id
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# S27.2 T4 — Round-trip integration (real Django ORM, no mocks)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_round_trip_v0_2_with_inline_catalogs_real_db(catalog_setup):
+    """S27.2 AC10 + integration gate: round-trip v0.2 schema-equivalent vs real ORM.
+
+    Flow:
+        1. catalog_setup crea VersionFlujo + Estados/TipoDocumento/Group en DB
+        2. Export v0.2 (inline_catalogs=True)
+        3. Modify exported nombre (evita duplicate flujo reject)
+        4. Import → crea new VersionFlujo (catalogos existing son upserted no-op)
+        5. Re-export v0.2 del new flujo
+        6. Assert schema-equivalent (transitions, requisitos, catalog refs)
+    """
+    from sinpapel.schemas.flujo_export import deserialize_flujo, serialize_flujo
+
+    flujo = catalog_setup["flujo"]
+    # Set positions ID-keyed para validar conversion ID->nombre en round-trip
+    flujo.metadatos = {
+        "positions": {
+            str(catalog_setup["estados"]["orig"].id): {"x": 50, "y": 50},
+            str(catalog_setup["estados"]["dest"].id): {"x": 250, "y": 100},
+        }
+    }
+    flujo.save()
+
+    # Export v0.2
+    exported = serialize_flujo(flujo, inline_catalogs=True)
+    assert exported["schema_version"] == "0.2"
+    # positions migrated to name-keying
+    assert "FP_CAPTURA" in exported["flujo"]["metadatos"]["positions"]
+
+    # Modify nombre para evitar duplicate reject
+    exported["flujo"]["nombre"] = "FP_FLUJO_ROUNDTRIP"
+
+    # Import → upsert catalogos (no-op porque ya existen) + crea new flujo
+    imported_flujo = deserialize_flujo(exported)
+    assert imported_flujo is not None
+    assert imported_flujo.nombre == "FP_FLUJO_ROUNDTRIP"
+
+    # Re-export
+    re_exported = serialize_flujo(imported_flujo, inline_catalogs=True)
+    assert re_exported["schema_version"] == "0.2"
+
+    # Schema-equivalent: transiciones byte-equal
+    assert exported["flujo"]["transiciones"] == re_exported["flujo"]["transiciones"]
+    assert exported["flujo"]["requisitos"] == re_exported["flujo"]["requisitos"]
+    # Catalog references schema-equivalent (sorted by nombre + same field set)
+    assert (
+        sorted(e["nombre"] for e in exported["catalogos"]["estados"])
+        == sorted(e["nombre"] for e in re_exported["catalogos"]["estados"])
+    )
+    assert (
+        sorted(g["name"] for g in exported["catalogos"]["grupos"])
+        == sorted(g["name"] for g in re_exported["catalogos"]["grupos"])
+    )
+    # positions name-keyed both sides
+    assert exported["flujo"]["metadatos"]["positions"] == re_exported["flujo"]["metadatos"]["positions"]
 
 
 @pytest.mark.django_db
@@ -354,12 +684,16 @@ def test_import_command_missing_entities_raises(db, tmp_path):
 
 @pytest.mark.django_db
 def test_import_command_unsupported_schema_version_raises(db, tmp_path):
-    """schema_version != 0.1 → CommandError."""
+    """schema_version no en SUPPORTED_SCHEMA_VERSIONS → CommandError.
+
+    Pre-S27.2: solo "0.1" soportado. Post-S27.2: {0.1, 0.2}. Usar "0.99"
+    como clearly-unsupported version-agnostic.
+    """
     from django.core.management import call_command
     from django.core.management.base import CommandError
 
-    file_path = tmp_path / "v02.json"
-    file_path.write_text(json.dumps({"schema_version": "0.2", "flujo": {}}),
+    file_path = tmp_path / "v099.json"
+    file_path.write_text(json.dumps({"schema_version": "0.99", "flujo": {}}),
                          encoding="utf-8")
     with pytest.raises(CommandError, match="Unsupported schema_version"):
         call_command("sinpapel_import_flujo", str(file_path))
