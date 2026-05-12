@@ -10,9 +10,12 @@ from __future__ import annotations
 
 import json
 from io import StringIO
+from pathlib import Path
 
 import pytest
 from django.contrib.auth.models import Group
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -112,8 +115,44 @@ def test_validate_schema_version_v01_ok():
 
 def test_validate_schema_version_unsupported_raises():
     from sinpapel.schemas.flujo_export import validate_schema_version
+    # "0.99" is clearly unsupported; "0.2" became supported in S27.2 (ADR-017).
     with pytest.raises(ValueError, match="Unsupported schema_version"):
-        validate_schema_version({"schema_version": "0.2"})
+        validate_schema_version({"schema_version": "0.99"})
+
+
+def test_validate_schema_version_v02_ok():
+    """S27.2 (ADR-017): validate acepta v0.2 (extension de S13.8 v0.1-only)."""
+    from sinpapel.schemas.flujo_export import validate_schema_version
+    validate_schema_version({"schema_version": "0.2"})  # no raise
+
+
+def test_validate_schema_version_rejects_0_3():
+    """S27.2: forward-compat reject explícito pre-1.0 (ADR-017)."""
+    from sinpapel.schemas.flujo_export import validate_schema_version
+    with pytest.raises(ValueError, match="Unsupported schema_version='0.3'"):
+        validate_schema_version({"schema_version": "0.3"})
+
+
+@pytest.mark.django_db
+def test_v0_1_fixture_still_importable(catalog_setup):
+    """S27.2 backward-compat (ADR-017): v0.1 fixture sigue importable post-v0.2.
+
+    Static fixture en tests/fixtures/flujo_v0_1.json protege contra
+    regresión accidental del contrato v0.1.
+    """
+    from sinpapel.schemas.flujo_export import deserialize_flujo
+    fixture_path = FIXTURES_DIR / "flujo_v0_1.json"
+    with open(fixture_path) as f:
+        data = json.load(f)
+
+    assert data["schema_version"] == "0.1"
+    assert "catalogos" not in data  # v0.1 shape
+
+    flujo = deserialize_flujo(data)
+    assert flujo is not None
+    assert flujo.nombre == "FP_FIXTURE_V0_1"
+    # Validate transitions persisted
+    assert flujo.transiciones.count() == 2
 
 
 @pytest.mark.django_db
@@ -354,12 +393,16 @@ def test_import_command_missing_entities_raises(db, tmp_path):
 
 @pytest.mark.django_db
 def test_import_command_unsupported_schema_version_raises(db, tmp_path):
-    """schema_version != 0.1 → CommandError."""
+    """schema_version no en SUPPORTED_SCHEMA_VERSIONS → CommandError.
+
+    Pre-S27.2: solo "0.1" soportado. Post-S27.2: {0.1, 0.2}. Usar "0.99"
+    como clearly-unsupported version-agnostic.
+    """
     from django.core.management import call_command
     from django.core.management.base import CommandError
 
-    file_path = tmp_path / "v02.json"
-    file_path.write_text(json.dumps({"schema_version": "0.2", "flujo": {}}),
+    file_path = tmp_path / "v099.json"
+    file_path.write_text(json.dumps({"schema_version": "0.99", "flujo": {}}),
                          encoding="utf-8")
     with pytest.raises(CommandError, match="Unsupported schema_version"):
         call_command("sinpapel_import_flujo", str(file_path))

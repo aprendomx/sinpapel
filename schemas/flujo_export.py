@@ -29,7 +29,9 @@ from django.db import transaction
 if TYPE_CHECKING:
     from sinpapel.models import VersionFlujo
 
-SCHEMA_VERSION = "0.1"
+SCHEMA_VERSION = "0.1"  # default emitido por serialize_flujo() backward-compat
+SCHEMA_VERSION_LATEST = "0.2"  # S27.2 (ADR-017): emitido por serialize_flujo(inline_catalogs=True)
+SUPPORTED_SCHEMA_VERSIONS = frozenset({"0.1", "0.2"})
 
 
 def serialize_flujo(flujo: "VersionFlujo") -> dict:
@@ -86,12 +88,17 @@ def serialize_flujo(flujo: "VersionFlujo") -> dict:
 
 
 def validate_schema_version(data: dict) -> None:
-    """Reject si schema_version != current. Forward-compat strict pre-1.0."""
+    """Reject si schema_version no está en SUPPORTED_SCHEMA_VERSIONS.
+
+    Forward-compat strict pre-1.0: solo versiones explícitamente soportadas.
+    S27.2 (ADR-017): añade v0.2 con backward-compat v0.1.
+    """
     version = data.get("schema_version")
-    if version != SCHEMA_VERSION:
+    if version not in SUPPORTED_SCHEMA_VERSIONS:
+        supported = sorted(SUPPORTED_SCHEMA_VERSIONS)
         raise ValueError(
             f"Unsupported schema_version='{version}'. "
-            f"This sinpapel knows '{SCHEMA_VERSION}'. "
+            f"This sinpapel knows {supported}. "
             f"Upgrade sinpapel package or downgrade source schema."
         )
 
