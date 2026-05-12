@@ -32,7 +32,7 @@ jobs:
           python -m django migrate --run-syncdb --settings=tests.settings
 
       - name: Run tests
-        run: pytest tests/ -v
+        run: python -m pytest tests/ -v
 
       - name: Type check with pyright
         run: |
