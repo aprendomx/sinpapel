@@ -583,6 +583,45 @@ def test_export_command_to_file(catalog_setup, tmp_path):
 
 
 @pytest.mark.django_db
+def test_export_command_inline_catalogs_emits_v0_2(catalog_setup):
+    """S27.3 AC1: --inline-catalogs flag produce v0.2 con seccion catalogos."""
+    from django.core.management import call_command
+
+    out = StringIO()
+    call_command(
+        "sinpapel_export_flujo", catalog_setup["flujo"].pk,
+        inline_catalogs=True, stdout=out,
+    )
+    data = json.loads(out.getvalue())
+    assert data["schema_version"] == "0.2"
+    assert "catalogos" in data
+    assert set(data["catalogos"].keys()) == {
+        "estados", "etapas", "grupos", "tipos_documento"
+    }
+
+
+@pytest.mark.django_db
+def test_export_command_inline_catalogs_to_file(catalog_setup, tmp_path):
+    """S27.3 AC7: --inline-catalogs combinable con --output + message refleja version."""
+    from django.core.management import call_command
+
+    out_path = tmp_path / "flujo_v0_2.json"
+    out_buf = StringIO()
+    call_command(
+        "sinpapel_export_flujo", catalog_setup["flujo"].pk,
+        inline_catalogs=True, output=str(out_path), stdout=out_buf,
+    )
+    assert out_path.exists()
+    data = json.loads(out_path.read_text(encoding="utf-8"))
+    assert data["schema_version"] == "0.2"
+    assert "catalogos" in data
+    # Success message refleja version
+    msg = out_buf.getvalue()
+    assert "Exported" in msg
+    assert "0.2" in msg
+
+
+@pytest.mark.django_db
 def test_export_command_invalid_id_raises(db):
     """VersionFlujo no existe → CommandError."""
     from django.core.management import call_command
@@ -719,6 +758,102 @@ def test_import_command_file_not_found_raises(db):
 
     with pytest.raises(CommandError, match="not found|No such"):
         call_command("sinpapel_import_flujo", "/tmp/does_not_exist_s138.json")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# S27.3 — Import command v0.2 flags (--no-create-catalogs)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_import_command_v0_2_creates_inline_catalogs(db, tmp_path):
+    """S27.3 AC4: default v0.2 import crea inline catalogos via CLI."""
+    from django.core.management import call_command
+    from sinpapel.models import Estado, VersionFlujo
+
+    data = _v0_2_minimal_data(flujo_nombre="FP_S27_3_CREATE")
+    file_path = tmp_path / "v02.json"
+    file_path.write_text(json.dumps(data, indent=2, ensure_ascii=False),
+                         encoding="utf-8")
+
+    out = StringIO()
+    call_command("sinpapel_import_flujo", str(file_path), stdout=out)
+
+    assert VersionFlujo.objects.filter(nombre="FP_S27_3_CREATE").exists()
+    assert Estado.objects.filter(nombre="EST_NUEVO_A").exists()
+    assert Estado.objects.filter(nombre="EST_NUEVO_B").exists()
+    msg = out.getvalue()
+    assert "Imported" in msg
+    assert "v0.2" in msg
+
+
+@pytest.mark.django_db
+def test_import_command_no_create_catalogs_rejects_missing(db, tmp_path):
+    """S27.3 AC3: --no-create-catalogs con v0.2 + missing entities → CommandError (PAT-E-523)."""
+    from django.core.management import call_command
+    from django.core.management.base import CommandError
+    from sinpapel.models import Estado
+
+    data = _v0_2_minimal_data(flujo_nombre="FP_S27_3_NOCREATE")
+    file_path = tmp_path / "v02.json"
+    file_path.write_text(json.dumps(data, indent=2, ensure_ascii=False),
+                         encoding="utf-8")
+
+    with pytest.raises(CommandError, match="Missing entities"):
+        call_command(
+            "sinpapel_import_flujo", str(file_path), no_create_catalogs=True
+        )
+
+    # No write occurred (rollback)
+    assert not Estado.objects.filter(nombre="EST_NUEVO_A").exists()
+
+
+@pytest.mark.django_db
+def test_import_command_v0_2_dry_run_no_writes(db, tmp_path):
+    """S27.3 AC6: --dry-run con v0.2 + catalogos missing → exit 0 + zero DB writes."""
+    from django.core.management import call_command
+    from sinpapel.models import Estado, Etapa, VersionFlujo
+
+    data = _v0_2_minimal_data(flujo_nombre="FP_S27_3_DRY")
+    file_path = tmp_path / "v02.json"
+    file_path.write_text(json.dumps(data, indent=2, ensure_ascii=False),
+                         encoding="utf-8")
+
+    count_estados_before = Estado.objects.count()
+    count_etapas_before = Etapa.objects.count()
+
+    out = StringIO()
+    call_command("sinpapel_import_flujo", str(file_path),
+                 dry_run=True, stdout=out)
+
+    # Zero writes (atomic rollback en dry-run path)
+    assert Estado.objects.count() == count_estados_before
+    assert Etapa.objects.count() == count_etapas_before
+    assert not VersionFlujo.objects.filter(nombre="FP_S27_3_DRY").exists()
+    msg = out.getvalue()
+    assert "DRY-RUN" in msg
+    assert "v0.2" in msg
+
+
+@pytest.mark.django_db
+def test_import_command_message_v0_2_lists_inline_catalogos_count(db, tmp_path):
+    """S27.3 AC4: success message v0.2 incluye per-type count de inline catalogos."""
+    from django.core.management import call_command
+
+    data = _v0_2_minimal_data(flujo_nombre="FP_S27_3_COUNT")
+    # _v0_2_minimal_data has 2 estados + 1 etapa + 1 grupo + 0 tipos
+    file_path = tmp_path / "v02.json"
+    file_path.write_text(json.dumps(data, indent=2, ensure_ascii=False),
+                         encoding="utf-8")
+
+    out = StringIO()
+    call_command("sinpapel_import_flujo", str(file_path), stdout=out)
+
+    msg = out.getvalue()
+    # Per-type count format (per Q1 plan resolution)
+    assert "2 Estados" in msg or "Estados: 2" in msg
+    assert "1 Etapa" in msg or "Etapas: 1" in msg
+    assert "1 Grupo" in msg or "Grupos: 1" in msg
 
 
 # ─────────────────────────────────────────────────────────────────────────────
