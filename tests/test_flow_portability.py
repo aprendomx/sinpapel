@@ -244,6 +244,145 @@ def test_serialize_v0_2_positions_name_keyed(catalog_setup):
     assert str(estado_dest.id) not in positions
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# S27.2 T3 — deserialize_flujo with create_catalogs (v0.2 import + upsert)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _v0_2_minimal_data(flujo_nombre: str = "FP_FLUJO_S27_2") -> dict:
+    """Helper: build v0.2 JSON data for tests con catalogos inline."""
+    return {
+        "schema_version": "0.2",
+        "exported_at": "2026-05-11T20:00:00+00:00",
+        "catalogos": {
+            "etapas": [
+                {"nombre": "ETAPA_X", "color": "#aaa", "descripcion": "",
+                 "orden": 1, "activo": True}
+            ],
+            "estados": [
+                {
+                    "nombre": "EST_NUEVO_A", "color": "#111", "icono": "edit",
+                    "descripcion": "", "orden": 1, "activo": True,
+                    "etapa": "ETAPA_X",
+                    "permite_expediente": False, "expediente_obligatorio": False,
+                },
+                {
+                    "nombre": "EST_NUEVO_B", "color": "#222", "icono": "check",
+                    "descripcion": "", "orden": 2, "activo": True,
+                    "etapa": None,
+                    "permite_expediente": False, "expediente_obligatorio": False,
+                },
+            ],
+            "grupos": [{"name": "GRP_NUEVO"}],
+            "tipos_documento": [],
+        },
+        "flujo": {
+            "nombre": flujo_nombre,
+            "descripcion": "S27.2 T3 test",
+            "activo": False,
+            "metadatos": {"positions": {"EST_NUEVO_A": {"x": 10, "y": 20}}},
+            "transiciones": [
+                {"estado_origen": "EST_NUEVO_A", "estado_destino": "EST_NUEVO_B",
+                 "grupos_permitidos": ["GRP_NUEVO"]}
+            ],
+            "requisitos": [],
+        },
+    }
+
+
+@pytest.mark.django_db
+def test_deserialize_v0_2_creates_inline_catalogs(db):
+    """S27.2 AC3: v0.2 import con create_catalogs=True crea Estados/Etapas/Grupos missing."""
+    from django.contrib.auth.models import Group
+    from sinpapel.models import Estado, Etapa, VersionFlujo
+    from sinpapel.schemas.flujo_export import deserialize_flujo
+
+    assert not Estado.objects.filter(nombre="EST_NUEVO_A").exists()
+    assert not Etapa.objects.filter(nombre="ETAPA_X").exists()
+    assert not Group.objects.filter(name="GRP_NUEVO").exists()
+
+    data = _v0_2_minimal_data()
+    flujo = deserialize_flujo(data)  # create_catalogs=True by default
+
+    assert flujo is not None
+    assert Estado.objects.filter(nombre="EST_NUEVO_A").exists()
+    assert Estado.objects.filter(nombre="EST_NUEVO_B").exists()
+    assert Etapa.objects.filter(nombre="ETAPA_X").exists()
+    assert Group.objects.filter(name="GRP_NUEVO").exists()
+    # Estado.etapa FK resolved
+    estado_a = Estado.objects.get(nombre="EST_NUEVO_A")
+    assert estado_a.etapa is not None
+    assert estado_a.etapa.nombre == "ETAPA_X"
+    # Flujo transitions persisted
+    assert VersionFlujo.objects.get(nombre="FP_FLUJO_S27_2").transiciones.count() == 1
+
+
+@pytest.mark.django_db
+def test_deserialize_v0_2_update_existing_emits_warning(db, caplog):
+    """S27.2 AC4 + D5: upsert update existing Estado emite WARNING (no exception)."""
+    import logging
+    from sinpapel.models import Estado
+    from sinpapel.schemas.flujo_export import deserialize_flujo
+
+    # Pre-existing Estado con defaults distintos
+    Estado.objects.create(nombre="EST_NUEVO_A", color="#OLD", icono="old_icon")
+
+    data = _v0_2_minimal_data()
+    with caplog.at_level(logging.WARNING, logger="sinpapel.schemas.flujo_export"):
+        flujo = deserialize_flujo(data)
+
+    assert flujo is not None
+    estado_a = Estado.objects.get(nombre="EST_NUEVO_A")
+    assert estado_a.color == "#111"  # updated to inline value
+    assert estado_a.icono == "edit"
+    # WARNING emitted
+    warning_msgs = [r.message for r in caplog.records if r.levelname == "WARNING"]
+    assert any("EST_NUEVO_A" in m for m in warning_msgs)
+
+
+@pytest.mark.django_db
+def test_deserialize_v0_2_no_create_catalogs_rejects_missing(db):
+    """S27.2 AC5: create_catalogs=False con missing Estado raises (v0.1 semantics)."""
+    from sinpapel.schemas.flujo_export import deserialize_flujo
+
+    data = _v0_2_minimal_data()
+    with pytest.raises(ValueError, match="Missing entities in destination"):
+        deserialize_flujo(data, create_catalogs=False)
+
+
+@pytest.mark.django_db
+def test_deserialize_v0_2_ambiguous_estado_rejects(db):
+    """S27.2 AC7: ambiguity check preservado en v0.2 (PAT-E-523)."""
+    from sinpapel.models import Estado
+    from sinpapel.schemas.flujo_export import deserialize_flujo
+
+    # Create AMBIGUITY: 2 Estados con mismo nombre (Catalogo.nombre NOT unique)
+    Estado.objects.create(nombre="EST_NUEVO_A", color="#one")
+    Estado.objects.create(nombre="EST_NUEVO_A", color="#two")
+
+    data = _v0_2_minimal_data()
+    with pytest.raises(ValueError, match="AMBIGUOUS"):
+        deserialize_flujo(data)
+
+
+@pytest.mark.django_db
+def test_deserialize_v0_2_upserts_etapa_before_estado(db):
+    """S27.2 D7: upsert order Etapa -> Estado (FK dependency)."""
+    from sinpapel.models import Estado, Etapa
+    from sinpapel.schemas.flujo_export import deserialize_flujo
+
+    assert not Etapa.objects.exists()
+    assert not Estado.objects.exists()
+
+    data = _v0_2_minimal_data()
+    deserialize_flujo(data)
+
+    # Etapa creada antes que Estado (FK resolved)
+    etapa = Etapa.objects.get(nombre="ETAPA_X")
+    estado_a = Estado.objects.get(nombre="EST_NUEVO_A")
+    assert estado_a.etapa_id == etapa.id
+
+
 @pytest.mark.django_db
 def test_find_missing_entities_empty_when_complete(catalog_setup):
     from sinpapel.schemas.flujo_export import find_missing_entities, serialize_flujo

@@ -22,12 +22,15 @@ PAT-E-523: missing entities → reject explícito, never silent skip.
 from __future__ import annotations
 
 import datetime
+import logging
 from typing import TYPE_CHECKING
 
 from django.db import transaction
 
 if TYPE_CHECKING:
     from sinpapel.models import VersionFlujo
+
+logger = logging.getLogger(__name__)
 
 SCHEMA_VERSION = "0.1"  # default emitido por serialize_flujo() backward-compat
 SCHEMA_VERSION_LATEST = "0.2"  # S27.2 (ADR-017): emitido por serialize_flujo(inline_catalogs=True)
@@ -277,13 +280,26 @@ def find_missing_entities(data: dict) -> dict[str, list[str]]:
 
 @transaction.atomic
 def deserialize_flujo(
-    data: dict, *, dry_run: bool = False, activo: bool = False
+    data: dict,
+    *,
+    dry_run: bool = False,
+    activo: bool = False,
+    create_catalogs: bool = True,
 ) -> "VersionFlujo | None":
     """Crea VersionFlujo + transitions + requisitos atomicamente.
 
+    Args:
+        data: dict en schema v0.1 o v0.2 (validate_schema_version).
+        dry_run: si True, retorna None sin persistir.
+        activo: setea VersionFlujo.activo (default False, defensive).
+        create_catalogs: solo aplica a v0.2. Si True (default), upsert
+            inline catalogos antes de procesar flujo. Si False, comporta
+            como v0.1 — rely en destino, reject si missing.
+
     Pre-validations (reject-on-missing antes de cualquier write):
     1. validate_schema_version
-    2. find_missing_entities → raise si algo missing
+    2. Si v0.2 + create_catalogs=True: upsert catalogos
+       Else: find_missing_entities → raise si algo missing
     3. ambiguity check (Catalogo.nombre NOT unique → reject si >1 match)
     4. duplicate flujo check (mismo nombre existing → reject)
 
@@ -302,10 +318,22 @@ def deserialize_flujo(
     validate_schema_version(data)
     flujo_data = data["flujo"]
 
-    # 1. Missing entities check (PAT-E-523)
-    missing = find_missing_entities(data)
-    if any(missing.values()):
-        raise ValueError(_format_missing_error(missing))
+    # S27.2: v0.2 + create_catalogs=True → upsert inline catalogos primero
+    # (ambiguity check se delega a _upsert_catalogos, ya que valida
+    # multiple matches via Catalogo.nombre NOT unique)
+    is_v0_2_inline = (
+        data.get("schema_version") == SCHEMA_VERSION_LATEST
+        and "catalogos" in data
+        and create_catalogs
+    )
+
+    if is_v0_2_inline:
+        _upsert_catalogos(data["catalogos"])
+    else:
+        # 1. Missing entities check (PAT-E-523) — v0.1 path o v0.2 opt-out
+        missing = find_missing_entities(data)
+        if any(missing.values()):
+            raise ValueError(_format_missing_error(missing))
 
     # 2. Duplicate flujo nombre check
     if VersionFlujo.objects.filter(nombre=flujo_data["nombre"]).exists():
@@ -387,3 +415,134 @@ def _format_missing_error(missing: dict[str, list[str]]) -> str:
     lines.append(f"Total missing: {total} entities")
     lines.append("Action required: create them in destination, then retry import.")
     return "\n".join(lines)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# S27.2 — Upsert helpers para v0.2 inline catalogos
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _upsert_catalogos(catalogos: dict) -> None:
+    """Upsert Etapas → Estados → TipoDocumento → Group (FK order D7).
+
+    Args:
+        catalogos: dict con keys 'etapas', 'estados', 'tipos_documento', 'grupos'
+            (todos opcionales — sections vacías son OK).
+
+    Side-effects:
+        - Crea entities missing por natural key (nombre/name).
+        - Actualiza entities existentes con defaults distintos + emit WARNING.
+        - Ambiguity (>1 match por nombre) → raise PAT-E-523.
+
+    Raises:
+        ValueError: si Catalogo.nombre NOT unique constraint genera >1 match.
+    """
+    for etapa_data in catalogos.get("etapas", []):
+        _upsert_etapa(etapa_data)
+    for estado_data in catalogos.get("estados", []):
+        _upsert_estado(estado_data)
+    for tipo_data in catalogos.get("tipos_documento", []):
+        _upsert_tipo_documento(tipo_data)
+    for grupo_data in catalogos.get("grupos", []):
+        _upsert_grupo(grupo_data)
+
+
+def _check_ambiguity(model, nombre_field: str, nombre_value: str) -> None:
+    """Reject si >1 match por nombre/name (PAT-E-523 preserved en upsert path)."""
+    count = model.objects.filter(**{nombre_field: nombre_value}).count()
+    if count > 1:
+        raise ValueError(
+            f"AMBIGUOUS: multiple {model.__name__} con {nombre_field}='{nombre_value}'. "
+            f"Rename or de-dup en destino, retry."
+        )
+
+
+def _upsert_etapa(data: dict) -> None:
+    from sinpapel.models import Etapa
+    _check_ambiguity(Etapa, "nombre", data["nombre"])
+    existing = Etapa.objects.filter(nombre=data["nombre"]).first()
+    fields = {
+        "color": data.get("color", "#4DEFE2"),
+        "descripcion": data.get("descripcion", ""),
+        "orden": data.get("orden", 0),
+        "activo": data.get("activo", False),
+    }
+    if existing is None:
+        Etapa.objects.create(nombre=data["nombre"], **fields)
+        return
+    changed = {
+        f: (getattr(existing, f), v) for f, v in fields.items() if getattr(existing, f) != v
+    }
+    if changed:
+        logger.warning(f"Updating Etapa '{data['nombre']}' inline: {list(changed.keys())}")
+        for f, (_, new) in changed.items():
+            setattr(existing, f, new)
+        existing.save()
+
+
+def _upsert_estado(data: dict) -> None:
+    from sinpapel.models import Estado, Etapa
+    _check_ambiguity(Estado, "nombre", data["nombre"])
+    etapa_nombre = data.get("etapa")
+    etapa = None
+    if etapa_nombre:
+        _check_ambiguity(Etapa, "nombre", etapa_nombre)
+        etapa = Etapa.objects.filter(nombre=etapa_nombre).first()
+        if etapa is None:
+            raise ValueError(
+                f"Estado '{data['nombre']}' refers to Etapa '{etapa_nombre}' "
+                f"not found in destination. Include in catalogos.etapas inline."
+            )
+    existing = Estado.objects.filter(nombre=data["nombre"]).first()
+    fields = {
+        "color": data.get("color", "#4DEFE2"),
+        "icono": data.get("icono", "circle"),
+        "descripcion": data.get("descripcion", ""),
+        "orden": data.get("orden", 0),
+        "activo": data.get("activo", False),
+        "etapa": etapa,
+        "permite_expediente": data.get("permite_expediente", False),
+        "expediente_obligatorio": data.get("expediente_obligatorio", False),
+    }
+    if existing is None:
+        Estado.objects.create(nombre=data["nombre"], **fields)
+        return
+    changed = {
+        f: (getattr(existing, f), v) for f, v in fields.items() if getattr(existing, f) != v
+    }
+    if changed:
+        logger.warning(f"Updating Estado '{data['nombre']}' inline: {list(changed.keys())}")
+        for f, (_, new) in changed.items():
+            setattr(existing, f, new)
+        existing.save()
+
+
+def _upsert_tipo_documento(data: dict) -> None:
+    from sinpapel.models import TipoDocumento
+    _check_ambiguity(TipoDocumento, "nombre", data["nombre"])
+    existing = TipoDocumento.objects.filter(nombre=data["nombre"]).first()
+    fields = {
+        "color": data.get("color", "#4DEFE2"),
+        "descripcion": data.get("descripcion", ""),
+        "orden": data.get("orden", 0),
+        "activo": data.get("activo", False),
+    }
+    if existing is None:
+        TipoDocumento.objects.create(nombre=data["nombre"], **fields)
+        return
+    changed = {
+        f: (getattr(existing, f), v) for f, v in fields.items() if getattr(existing, f) != v
+    }
+    if changed:
+        logger.warning(
+            f"Updating TipoDocumento '{data['nombre']}' inline: {list(changed.keys())}"
+        )
+        for f, (_, new) in changed.items():
+            setattr(existing, f, new)
+        existing.save()
+
+
+def _upsert_grupo(data: dict) -> None:
+    from django.contrib.auth.models import Group
+    # auth Group: name unique constraint enforced by Django (no _check_ambiguity needed)
+    Group.objects.get_or_create(name=data["name"])
