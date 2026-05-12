@@ -583,6 +583,45 @@ def test_export_command_to_file(catalog_setup, tmp_path):
 
 
 @pytest.mark.django_db
+def test_export_command_inline_catalogs_emits_v0_2(catalog_setup):
+    """S27.3 AC1: --inline-catalogs flag produce v0.2 con seccion catalogos."""
+    from django.core.management import call_command
+
+    out = StringIO()
+    call_command(
+        "sinpapel_export_flujo", catalog_setup["flujo"].pk,
+        inline_catalogs=True, stdout=out,
+    )
+    data = json.loads(out.getvalue())
+    assert data["schema_version"] == "0.2"
+    assert "catalogos" in data
+    assert set(data["catalogos"].keys()) == {
+        "estados", "etapas", "grupos", "tipos_documento"
+    }
+
+
+@pytest.mark.django_db
+def test_export_command_inline_catalogs_to_file(catalog_setup, tmp_path):
+    """S27.3 AC7: --inline-catalogs combinable con --output + message refleja version."""
+    from django.core.management import call_command
+
+    out_path = tmp_path / "flujo_v0_2.json"
+    out_buf = StringIO()
+    call_command(
+        "sinpapel_export_flujo", catalog_setup["flujo"].pk,
+        inline_catalogs=True, output=str(out_path), stdout=out_buf,
+    )
+    assert out_path.exists()
+    data = json.loads(out_path.read_text(encoding="utf-8"))
+    assert data["schema_version"] == "0.2"
+    assert "catalogos" in data
+    # Success message refleja version
+    msg = out_buf.getvalue()
+    assert "Exported" in msg
+    assert "0.2" in msg
+
+
+@pytest.mark.django_db
 def test_export_command_invalid_id_raises(db):
     """VersionFlujo no existe → CommandError."""
     from django.core.management import call_command
