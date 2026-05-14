@@ -45,6 +45,8 @@
 
 Transitions, document requirements, audit, signatures, and metadata are **data, not code**. Your application can mutate business flows without redeployment.
 
+> **Visual Designer:** [sinpapel-designer](https://github.com/aprendomx/sinpapel-designer) is a standalone Vue 3 + Quasar companion app for drawing workflows visually. It round-trips JSON with sinpapel via `sinpapel_export_flujo` / `sinpapel_import_flujo` management commands.
+
 ---
 
 ## 2. Features
@@ -232,6 +234,8 @@ class Migration(migrations.Migration):
 ```
 
 To restrict transitions by Django group, add members to `ConfiguracionTransicion.grupos_permitidos`.
+
+> **Designer tip:** You can also configure workflows visually with [sinpapel-designer](https://github.com/aprendomx/sinpapel-designer) and import them via `python manage.py sinpapel_import_flujo flujo.json`.
 
 ---
 

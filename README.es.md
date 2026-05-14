@@ -45,6 +45,8 @@
 
 Las transiciones, requisitos documentales, auditoría, firmas y metadatos son **datos, no código**. Tu aplicación puede mutar los flujos de negocio sin redeployment.
 
+> **Diseñador Visual:** [sinpapel-designer](https://github.com/aprendomx/sinpapel-designer) es una app complementaria standalone en Vue 3 + Quasar para dibujar flujos visualmente. Hace round-trip de JSON con sinpapel vía los management commands `sinpapel_export_flujo` / `sinpapel_import_flujo`.
+
 ---
 
 ## 2. Características
@@ -233,6 +235,8 @@ class Migration(migrations.Migration):
 ```
 
 Para restringir transiciones por grupo Django, agrega miembros a `ConfiguracionTransicion.grupos_permitidos`.
+
+> **Tip del diseñador:** También puedes configurar flujos visualmente con [sinpapel-designer](https://github.com/aprendomx/sinpapel-designer) e importarlos vía `python manage.py sinpapel_import_flujo flujo.json`.
 
 ---
 
