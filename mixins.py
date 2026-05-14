@@ -6,9 +6,10 @@ Provides Trazable (created/updated/author/modifier tracking) and Catalogo
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from typing import Any
+from typing import Any, ClassVar
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -47,14 +48,14 @@ class MetadatosProxy:
     def __init__(self, instance, schema: list[CampoMetadato]) -> None:
         self._instance = instance
         self._schema = {c.nombre: c for c in schema}
-        self._datos = instance.datos_capturados or {}
+        self._datos = dict(instance.datos_capturados or {})
 
     def __getattr__(self, name: str):
         if name.startswith("_"):
             return object.__getattribute__(self, name)
         campo = self._schema.get(name)
         if campo is None:
-            raise AttributeError(f"Campo '{name}' no definido en SCHEMA_METADATOS")
+            raise AttributeError(f"Campo '{name}' no definido en el schema")
         raw = self._datos.get(name, campo.default)
         return self._deserializar(campo, raw)
 
@@ -64,7 +65,7 @@ class MetadatosProxy:
             return
         campo = self._schema.get(name)
         if campo is None:
-            raise AttributeError(f"Campo '{name}' no definido en SCHEMA_METADATOS")
+            raise AttributeError(f"Campo '{name}' no definido en el schema")
         self._validar(campo, value)
         self._datos[name] = self._serializar(value)
         self._instance.datos_capturados = self._datos
@@ -103,9 +104,9 @@ class MetadatosProxy:
     def _deserializar(self, campo: CampoMetadato, raw):
         if raw is None:
             return None
-        if campo.tipo is Decimal and isinstance(raw, str):
+        if campo.tipo is Decimal and isinstance(raw, str) and raw != "":
             return Decimal(raw)
-        if campo.tipo is date and isinstance(raw, str):
+        if campo.tipo is date and isinstance(raw, str) and raw != "":
             return date.fromisoformat(raw)
         return raw
 
@@ -127,6 +128,43 @@ class MetadatosProxy:
             elif incluir_defaults:
                 resultado[campo.nombre] = None
         return resultado
+
+
+class MetadatosCapturables(models.Model):
+    """Mixin que agrega captura estructurada de metadatos via schema.
+
+    Uso:
+        class MiModelo(MetadatosCapturables):
+            SCHEMA_METADATOS = [
+                CampoMetadato("rfc", str, requerido=True),
+            ]
+            # ... otros campos Django
+
+    Runtime:
+        obj.meta.rfc = "ABCD010101ABC"
+        obj.save()   # valida automaticamente
+        obj.meta.to_dict()
+    """
+
+    SCHEMA_METADATOS: ClassVar[list[CampoMetadato]] = []
+    datos_capturados = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name=_("Datos capturados"),
+    )
+
+    @property
+    def meta(self) -> MetadatosProxy:
+        return MetadatosProxy(self, self.SCHEMA_METADATOS)
+
+    def clean(self):
+        super().clean()
+        errores = self.meta.errores()
+        if errores:
+            raise ValidationError(errores)
+
+    class Meta:
+        abstract = True
 
 
 class Trazable(models.Model):
