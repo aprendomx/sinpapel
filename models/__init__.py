@@ -6,6 +6,7 @@ from sinpapel.models.documents import (
     RazonRechazoDocumento,
     TipoDocumento,
 )
+from sinpapel.models.predicates import CondicionTransicion
 from sinpapel.models.signatures import RegistroFirma
 from sinpapel.models.workflow import (
     ConfiguracionTransicion,
@@ -17,6 +18,8 @@ from sinpapel.models.workflow import (
 )
 
 __all__ = [
+    # predicates
+    "CondicionTransicion",
     # workflow
     "Estado",
     "Etapa",
