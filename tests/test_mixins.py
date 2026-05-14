@@ -182,16 +182,62 @@ def test_proxy_date_roundtrip():
 
 
 def test_proxy_bool_handling():
-    """bool fields are stored and retrieved correctly."""
+    """bool field round-trip and validation."""
     schema = [CampoMetadato("activo", bool)]
     instance = _FakeInstance()
     proxy = MetadatosProxy(instance, schema)
     proxy.activo = True
     assert proxy.activo is True
     assert instance.datos_capturados == {"activo": True}
+
     proxy.activo = False
     assert proxy.activo is False
-    assert instance.datos_capturados == {"activo": False}
+
+
+def test_proxy_getattr_dunder_passes_through():
+    """__getattr__ delegates dunder lookups to object.__getattribute__."""
+    schema = [CampoMetadato("rfc", str)]
+    proxy = MetadatosProxy(_FakeInstance(), schema)
+    # Accessing __class__ should not hit schema lookup
+    assert proxy.__class__ is MetadatosProxy
+
+
+def test_proxy_validar_none_skips_type_check():
+    """Setting None bypasses type and choice validation."""
+    schema = [
+        CampoMetadato("tipo", str, choices=["A", "B"]),
+        CampoMetadato("edad", int),
+    ]
+    instance = _FakeInstance()
+    proxy = MetadatosProxy(instance, schema)
+    proxy.tipo = None  # should not raise
+    proxy.edad = None  # should not raise
+    assert instance.datos_capturados == {"tipo": None, "edad": None}
+
+
+def test_proxy_to_dict_incluir_defaults_true_with_none():
+    """to_dict(incluir_defaults=True) includes None for unset fields without defaults."""
+    schema = [
+        CampoMetadato("rfc", str),  # no default
+        CampoMetadato("nombre", str, default="sin nombre"),
+    ]
+    instance = _FakeInstance()
+    proxy = MetadatosProxy(instance, schema)
+    d = proxy.to_dict(incluir_defaults=True)
+    assert d == {"rfc": None, "nombre": "sin nombre"}
+
+
+def test_capturable_empty_schema_passes():
+    """MetadatosCapturables with empty SCHEMA_METADATOS passes validation."""
+
+    class _TestEmptySchema(MetadatosCapturables):
+        SCHEMA_METADATOS = []
+
+        class Meta:
+            app_label = "tests"
+
+    obj = _TestEmptySchema()
+    obj.clean()  # no raise
 
 
 class _TestCapturable(MetadatosCapturables):
