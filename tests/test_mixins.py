@@ -4,7 +4,7 @@ from __future__ import annotations
 import pytest
 from django.db import models
 
-from sinpapel.mixins import Catalogo, Trazable
+from sinpapel.mixins import CampoMetadato, Catalogo, Trazable
 
 
 class _TestTrazableModel(Trazable):
@@ -42,3 +42,14 @@ def test_catalogo_fields_exist():
     assert obj.activo is True
     assert obj.orden == 1
     assert str(obj) == "cat"
+
+
+def test_campo_metadato_dataclass():
+    """CampoMetadato frozen dataclass stores schema definition."""
+    campo = CampoMetadato("rfc", str, requerido=True, etiqueta="RFC")
+    assert campo.nombre == "rfc"
+    assert campo.tipo is str
+    assert campo.requerido is True
+    assert campo.etiqueta == "RFC"
+    assert campo.default is None
+    assert campo.choices is None

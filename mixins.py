@@ -3,9 +3,35 @@
 Provides Trazable (created/updated/author/modifier tracking) and Catalogo
 (base catalog with nombre/activo/orden/color/metadata).
 """
+from dataclasses import dataclass
+from typing import Any
+
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+
+@dataclass(frozen=True)
+class CampoMetadato:
+    """Definición de un campo capturable en el mixin MetadatosCapturables.
+
+    Attributes:
+        nombre: nombre del campo (usado como key en JSON y como atributo en proxy)
+        tipo: tipo de dato esperado (str, int, bool, Decimal, date)
+        requerido: si el campo debe estar presente para pasar validación
+        default: valor por omisión cuando no está seteado
+        choices: lista opcional de valores permitidos
+        etiqueta: etiqueta para UI / forms
+        ayuda: texto de ayuda para UI
+    """
+
+    nombre: str
+    tipo: type
+    requerido: bool = False
+    default: Any = None
+    choices: list[str] | None = None
+    etiqueta: str = ""
+    ayuda: str = ""
 
 
 class Trazable(models.Model):
