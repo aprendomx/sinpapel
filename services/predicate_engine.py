@@ -8,6 +8,8 @@ from __future__ import annotations
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, Callable
 
+from django.conf import settings
+
 from sinpapel.json_logic import evaluar as evaluar_json_logic
 
 if TYPE_CHECKING:
@@ -21,6 +23,14 @@ if TYPE_CHECKING:
 _PREDICATE_MODULE_WHITELIST: set[str] = set()
 
 
+def _get_predicate_whitelist() -> set[str]:
+    """Lazy lookup — override_settings safe."""
+    modules = getattr(settings, "SINPAPEL_PREDICATE_MODULES", None)
+    if modules is not None:
+        return set(modules)
+    return _PREDICATE_MODULE_WHITELIST
+
+
 def _build_data_context(instance: "models.Model | None", user: "User | None") -> dict[str, Any]:
     """Construye el contexto de datos para evaluación JSON Logic.
 
@@ -31,13 +41,14 @@ def _build_data_context(instance: "models.Model | None", user: "User | None") ->
     """
     data: dict[str, Any] = {}
     if instance is not None:
-        data["instance"] = {"pk": instance.pk}
+        data["instance.pk"] = instance.pk
         if hasattr(instance, "meta"):
             meta_dict = instance.meta.to_dict()
             for key, value in meta_dict.items():
                 data[f"meta.{key}"] = value
     if user is not None:
-        data["user"] = {"id": user.id, "username": user.username}
+        data["user.id"] = user.id
+        data["user.username"] = user.username
     return data
 
 
@@ -56,14 +67,18 @@ def _backend_python_path(config: dict, instance: "models.Model | None", user: "U
 
     module_path, func_name = path.rsplit(".", 1)
 
-    if _PREDICATE_MODULE_WHITELIST and module_path not in _PREDICATE_MODULE_WHITELIST:
+    if module_path not in _get_predicate_whitelist():
         raise ValueError(
             f"Módulo '{module_path}' no está en la whitelist de predicados. "
             f"Configura SINPAPEL_PREDICATE_MODULES o usa un módulo permitido."
         )
 
     module = import_module(module_path)
-    func = getattr(module, func_name)
+    func = getattr(module, func_name, None)
+    if func is None:
+        raise ValueError(f"Función '{func_name}' no encontrada en módulo '{module_path}'")
+    if not callable(func):
+        raise ValueError(f"'{func_name}' en módulo '{module_path}' no es callable")
 
     result = func(instance, user)
     if isinstance(result, bool):
@@ -106,10 +121,6 @@ def _backend_django_orm(config: dict, instance: "models.Model | None", user: "Us
 
 class PredicateEngine:
     """Motor extensible de evaluación de condiciones de transición."""
-
-    _backend_python_path = staticmethod(_backend_python_path)
-    _backend_json_logic = staticmethod(_backend_json_logic)
-    _backend_django_orm = staticmethod(_backend_django_orm)
 
     _backends: dict[str, Callable] = {
         "python_path": _backend_python_path,

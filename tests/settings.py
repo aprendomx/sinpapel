@@ -28,3 +28,4 @@ CACHES = {
 }
 
 SINPAPEL_SIGNATURE_BACKEND = "sinpapel.signing.backends.fake.FakeBackend"
+SINPAPEL_PREDICATE_MODULES = ["tests.test_predicates"]

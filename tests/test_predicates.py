@@ -1,11 +1,37 @@
 """Tests for Transition Predicates (CondicionTransicion + PredicateEngine)."""
 from __future__ import annotations
 
+import sys
+
 import pytest
 from django.db import models
+from django.test import override_settings
 
+from sinpapel.json_logic import evaluar
+from sinpapel.mixins import CampoMetadato, MetadatosCapturables
 from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
 from sinpapel.models.predicates import CondicionTransicion
+from sinpapel.services.predicate_engine import (
+    PredicateEngine,
+    _backend_django_orm,
+    _backend_json_logic,
+    _backend_python_path,
+)
+
+# Prevent duplicate model registration when this module is imported
+# under different paths (e.g., tests.test_predicates vs sinpapel.tests.test_predicates).
+_current = sys.modules[__name__]
+if "tests.test_predicates" not in sys.modules:
+    sys.modules["tests.test_predicates"] = _current
+if "sinpapel.tests.test_predicates" not in sys.modules:
+    sys.modules["sinpapel.tests.test_predicates"] = _current
+
+
+class _FakeModel(MetadatosCapturables):
+    SCHEMA_METADATOS = [CampoMetadato("monto", int)]
+
+    class Meta:
+        app_label = "tests"
 
 
 @pytest.mark.django_db
@@ -27,9 +53,6 @@ def test_condicion_transicion_model_exists():
     assert cond.tipo == "python_path"
     assert cond.activo is True
     assert str(cond) == "Condicion #1 (python_path)"
-
-
-from sinpapel.json_logic import evaluar
 
 
 def test_json_logic_var():
@@ -121,9 +144,6 @@ def test_json_logic_empty_rule():
         evaluar({}, {})
 
 
-from sinpapel.services.predicate_engine import PredicateEngine
-
-
 def _always_true(instance, user):
     return True
 
@@ -135,55 +155,38 @@ def _always_false(instance, user):
 def test_predicate_engine_python_path_pass():
     """Python path backend returns True when function returns True."""
     config = {"path": "tests.test_predicates._always_true"}
-    result = PredicateEngine._backend_python_path(config, None, None)
+    result = _backend_python_path(config, None, None)
     assert result == (True, None)
 
 
 def test_predicate_engine_python_path_fail():
     """Python path backend returns False + message when function returns tuple."""
     config = {"path": "tests.test_predicates._always_false"}
-    result = PredicateEngine._backend_python_path(config, None, None)
+    result = _backend_python_path(config, None, None)
     assert result == (False, "Condición rechazada")
 
 
 def test_predicate_engine_json_logic_pass():
     """JSON Logic backend evaluates rule against instance data."""
-    from sinpapel.mixins import CampoMetadato, MetadatosCapturables
-
-    class _FakeModel(MetadatosCapturables):
-        SCHEMA_METADATOS = [CampoMetadato("monto", int)]
-        class Meta:
-            app_label = "tests"
-
     obj = _FakeModel()
     obj.meta.monto = 150000
     config = {"rule": {">=": [{"var": "meta.monto"}, 100000]}}
-    result = PredicateEngine._backend_json_logic(config, obj, None)
+    result = _backend_json_logic(config, obj, None)
     assert result == (True, None)
 
 
 def test_predicate_engine_json_logic_fail():
     """JSON Logic backend returns False when rule does not match."""
-    from sinpapel.mixins import CampoMetadato, MetadatosCapturables
-
-    class _FakeModel(MetadatosCapturables):
-        SCHEMA_METADATOS = [CampoMetadato("monto", int)]
-        class Meta:
-            app_label = "tests"
-
     obj = _FakeModel()
     obj.meta.monto = 50000
     config = {"rule": {">=": [{"var": "meta.monto"}, 100000]}}
-    result = PredicateEngine._backend_json_logic(config, obj, None)
+    result = _backend_json_logic(config, obj, None)
     assert result == (False, None)
 
 
 @pytest.mark.django_db
 def test_predicate_engine_evaluar_dispatches_by_tipo():
     """evaluar() dispatches to correct backend by tipo."""
-    from sinpapel.models.predicates import CondicionTransicion
-    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
-
     estado_origen = Estado.objects.create(nombre="ORIG2", activo=True)
     estado_destino = Estado.objects.create(nombre="DEST2", activo=True)
     flujo = VersionFlujo.objects.create(nombre="F2", activo=True)
@@ -202,9 +205,6 @@ def test_predicate_engine_evaluar_dispatches_by_tipo():
 @pytest.mark.django_db
 def test_predicate_engine_evaluar_unknown_tipo_raises():
     """evaluar() raises ValueError for unregistered backend tipo."""
-    from sinpapel.models.predicates import CondicionTransicion
-    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
-
     estado_origen = Estado.objects.create(nombre="ORIG3", activo=True)
     estado_destino = Estado.objects.create(nombre="DEST3", activo=True)
     flujo = VersionFlujo.objects.create(nombre="F3", activo=True)
@@ -218,3 +218,71 @@ def test_predicate_engine_evaluar_unknown_tipo_raises():
     )
     with pytest.raises(ValueError, match="no registrado"):
         PredicateEngine.evaluar(cond, None, None)
+
+
+@pytest.mark.django_db
+def test_predicate_engine_django_orm_pass():
+    """Django ORM backend evaluates lookup against real model instance."""
+    from tests.models import TestProducto
+
+    producto = TestProducto.objects.create(nombre="Producto A")
+    config = {"lookup": {"nombre": "Producto A"}}
+    result = _backend_django_orm(config, producto, None)
+    assert result == (True, None)
+
+
+@pytest.mark.django_db
+def test_predicate_engine_django_orm_fail():
+    """Django ORM backend returns False when lookup does not match."""
+    from tests.models import TestProducto
+
+    producto = TestProducto.objects.create(nombre="Producto A")
+    config = {"lookup": {"nombre": "Producto B"}}
+    result = _backend_django_orm(config, producto, None)
+    assert result == (False, None)
+
+
+def test_predicate_engine_python_path_no_dot():
+    """python_path without module raises ValueError."""
+    config = {"path": "nodot"}
+    with pytest.raises(ValueError, match="debe incluir módulo"):
+        _backend_python_path(config, None, None)
+
+
+@override_settings(SINPAPEL_PREDICATE_MODULES=["nonexistent.module"])
+def test_predicate_engine_python_path_nonexistent_module():
+    """Non-existent module raises ImportError."""
+    config = {"path": "nonexistent.module.function"}
+    with pytest.raises(ImportError):
+        _backend_python_path(config, None, None)
+
+
+@override_settings(SINPAPEL_PREDICATE_MODULES=["tests.test_predicates"])
+def test_predicate_engine_python_path_nonexistent_function():
+    """Non-existent function raises ValueError with friendly message."""
+    config = {"path": "tests.test_predicates._does_not_exist"}
+    with pytest.raises(ValueError, match="no encontrada"):
+        _backend_python_path(config, None, None)
+
+
+@override_settings(SINPAPEL_PREDICATE_MODULES=["tests.test_predicates"])
+def test_predicate_engine_python_path_not_callable():
+    """Non-callable attribute raises ValueError."""
+    config = {"path": "tests.test_predicates.SOME_CONSTANT"}
+    with pytest.raises(ValueError, match="no es callable"):
+        _backend_python_path(config, None, None)
+
+
+def _bad_return(instance, user):
+    return "not a bool"
+
+
+@override_settings(SINPAPEL_PREDICATE_MODULES=["tests.test_predicates"])
+def test_predicate_engine_python_path_invalid_return():
+    """Invalid return type raises ValueError."""
+    config = {"path": "tests.test_predicates._bad_return"}
+    with pytest.raises(ValueError, match="debe retornar bool"):
+        _backend_python_path(config, None, None)
+
+
+SOME_CONSTANT = 42
