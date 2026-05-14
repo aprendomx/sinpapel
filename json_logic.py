@@ -37,24 +37,40 @@ def evaluar(rule: Any, data: dict[str, Any]) -> Any:
 
     if op == ">":
         left, right = _eval_args(args, data)
-        return left > right
+        try:
+            return left > right
+        except TypeError:
+            return False
 
     if op == ">=":
         left, right = _eval_args(args, data)
-        return left >= right
+        try:
+            return left >= right
+        except TypeError:
+            return False
 
     if op == "<":
         left, right = _eval_args(args, data)
-        return left < right
+        try:
+            return left < right
+        except TypeError:
+            return False
 
     if op == "<=":
         left, right = _eval_args(args, data)
-        return left <= right
+        try:
+            return left <= right
+        except TypeError:
+            return False
 
     if op == "and":
+        if not isinstance(args, list):
+            raise ValueError(f"Operador 'and' requiere una lista de argumentos, recibió: {args}")
         return all(evaluar(subrule, data) for subrule in args)
 
     if op == "or":
+        if not isinstance(args, list):
+            raise ValueError(f"Operador 'or' requiere una lista de argumentos, recibió: {args}")
         return any(evaluar(subrule, data) for subrule in args)
 
     if op == "!":

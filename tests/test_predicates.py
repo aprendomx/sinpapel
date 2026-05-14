@@ -69,6 +69,16 @@ def test_json_logic_gt_lt():
     assert evaluar({"<": [{"var": "a"}, 5]}, {"a": 3}) is True
 
 
+def test_json_logic_gte_lte_ne():
+    """Greater-or-equal, less-or-equal, not-equal."""
+    assert evaluar({">=": [{"var": "a"}, 5]}, {"a": 5}) is True
+    assert evaluar({">=": [{"var": "a"}, 5]}, {"a": 4}) is False
+    assert evaluar({"<=": [{"var": "a"}, 5]}, {"a": 5}) is True
+    assert evaluar({"<=": [{"var": "a"}, 5]}, {"a": 6}) is False
+    assert evaluar({"!=": [{"var": "a"}, 5]}, {"a": 3}) is True
+    assert evaluar({"!=": [{"var": "a"}, 5]}, {"a": 5}) is False
+
+
 def test_json_logic_not():
     """NOT operator."""
     assert evaluar({"!": {"var": "inactivo"}}, {"inactivo": False}) is True
@@ -83,3 +93,29 @@ def test_json_logic_missing_var_returns_none():
     """Missing variables return None (falsy)."""
     assert evaluar({"var": "inexistente"}, {}) is None
     assert evaluar({"==": [{"var": "inexistente"}, None]}, {}) is True
+
+
+def test_json_logic_missing_var_comparisons():
+    """Missing variables in numeric comparisons evaluate to False instead of crashing."""
+    assert evaluar({">": [{"var": "edad"}, 30]}, {}) is False
+    assert evaluar({">=": [{"var": "edad"}, 30]}, {}) is False
+    assert evaluar({"<": [{"var": "edad"}, 30]}, {}) is False
+    assert evaluar({"<=": [{"var": "edad"}, 30]}, {}) is False
+
+
+def test_json_logic_invalid_operator():
+    """Invalid operators raise ValueError."""
+    with pytest.raises(ValueError, match="no soportado"):
+        evaluar({"bad": 1}, {})
+
+
+def test_json_logic_malformed_binary_args():
+    """Binary operators with fewer than 2 args raise ValueError."""
+    with pytest.raises(ValueError, match="requiere lista de 2 argumentos"):
+        evaluar({"==": [{"var": "x"}]}, {})
+
+
+def test_json_logic_empty_rule():
+    """Empty rule dict raises ValueError."""
+    with pytest.raises(ValueError, match="exactamente una clave"):
+        evaluar({}, {})
