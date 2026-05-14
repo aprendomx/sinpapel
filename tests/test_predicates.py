@@ -4,6 +4,7 @@ from __future__ import annotations
 import sys
 
 import pytest
+from django.contrib.auth.models import Group, User
 from django.db import models
 from django.test import override_settings
 
@@ -17,6 +18,7 @@ from sinpapel.services.predicate_engine import (
     _backend_json_logic,
     _backend_python_path,
 )
+from sinpapel.services.workflow_engine import WorkflowEngine
 
 # Prevent duplicate model registration when this module is imported
 # under different paths (e.g., tests.test_predicates vs sinpapel.tests.test_predicates).
@@ -33,6 +35,44 @@ class _FakeModel(MetadatosCapturables):
     class Meta:
         app_label = "tests"
 
+
+# ─── Setup helpers ────────────────────────────────────────────────────────
+
+def _crear_transicion_con_usuario():
+    """Crea Estado origen/destino, VersionFlujo, ConfiguracionTransicion,
+    Group, User con grupo, y una instancia fake decorada con workflow."""
+    estado_origen = Estado.objects.create(nombre="SETUP_ORIG", activo=True)
+    estado_destino = Estado.objects.create(nombre="SETUP_DEST", activo=True)
+    flujo = VersionFlujo.objects.create(nombre="SETUP_F", activo=True)
+    transicion = ConfiguracionTransicion.objects.create(
+        flujo=flujo, estado_origen=estado_origen, estado_destino=estado_destino
+    )
+    grupo = Group.objects.create(name="SETUP_GRP")
+    user = User.objects.create_user("setup_user", password="x")
+    user.groups.add(grupo)
+    transicion.grupos_permitidos.add(grupo)
+
+    class _FakeInstance:
+        _workflow_config = type(
+            "Config", (), {"state_field": "estado", "version_field": None}
+        )()
+        estado = estado_origen
+
+        def resolve_workflow_version(self):
+            return flujo
+
+    return {
+        "estado_origen": estado_origen,
+        "estado_destino": estado_destino,
+        "flujo": flujo,
+        "transicion": transicion,
+        "grupo": grupo,
+        "user": user,
+        "fake_instance": _FakeInstance(),
+    }
+
+
+# ─── CondicionTransicion model tests ──────────────────────────────────────
 
 @pytest.mark.django_db
 def test_condicion_transicion_model_exists():
@@ -54,6 +94,8 @@ def test_condicion_transicion_model_exists():
     assert cond.activo is True
     assert str(cond) == "Condicion #1 (python_path)"
 
+
+# ─── JSON Logic unit tests ────────────────────────────────────────────────
 
 def test_json_logic_var():
     """Access variable from data context."""
@@ -144,12 +186,18 @@ def test_json_logic_empty_rule():
         evaluar({}, {})
 
 
+# ─── PredicateEngine backend unit tests ───────────────────────────────────
+
 def _always_true(instance, user):
     return True
 
 
 def _always_false(instance, user):
     return False, "Condición rechazada"
+
+
+def _bad_return(instance, user):
+    return "not a bool"
 
 
 def test_predicate_engine_python_path_pass():
@@ -273,8 +321,7 @@ def test_predicate_engine_python_path_not_callable():
         _backend_python_path(config, None, None)
 
 
-def _bad_return(instance, user):
-    return "not a bool"
+SOME_CONSTANT = 42
 
 
 @override_settings(SINPAPEL_PREDICATE_MODULES=["tests.test_predicates"])
@@ -285,40 +332,22 @@ def test_predicate_engine_python_path_invalid_return():
         _backend_python_path(config, None, None)
 
 
-SOME_CONSTANT = 42
-
+# ─── WorkflowEngine integration tests ─────────────────────────────────────
 
 @pytest.mark.django_db
 def test_workflow_engine_condicion_activa_bloquea_transicion():
     """WorkflowEngine.puede_cambiar_estado returns False when condition fails."""
-    from django.contrib.auth.models import User
-    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
-    from sinpapel.models.predicates import CondicionTransicion
-    from sinpapel.services.workflow_engine import WorkflowEngine
-
-    estado_origen = Estado.objects.create(nombre="BLOQ_ORIG", activo=True)
-    estado_destino = Estado.objects.create(nombre="BLOQ_DEST", activo=True)
-    flujo = VersionFlujo.objects.create(nombre="BLOQ_F", activo=True)
-    transicion = ConfiguracionTransicion.objects.create(
-        flujo=flujo, estado_origen=estado_origen, estado_destino=estado_destino
-    )
+    setup = _crear_transicion_con_usuario()
     CondicionTransicion.objects.create(
-        transicion=transicion,
+        transicion=setup["transicion"],
         tipo="python_path",
         configuracion={"path": "tests.test_predicates._always_false"},
         mensaje_error="Siempre rechazado",
     )
 
-    class _FakeInstance:
-        _workflow_config = type(
-            "Config", (), {"state_field": "estado", "version_field": None}
-        )()
-        estado = estado_origen
-        def resolve_workflow_version(self):
-            return flujo
-
-    user = User.objects.create_superuser("bloq_test", password="x")
-    puede, msg = WorkflowEngine().puede_cambiar_estado(_FakeInstance(), "BLOQ_DEST", user)
+    puede, msg = WorkflowEngine().puede_cambiar_estado(
+        setup["fake_instance"], "SETUP_DEST", setup["user"]
+    )
     assert puede is False
     assert "Siempre rechazado" in msg
 
@@ -326,32 +355,117 @@ def test_workflow_engine_condicion_activa_bloquea_transicion():
 @pytest.mark.django_db
 def test_workflow_engine_condicion_inactiva_ignorada():
     """Inactive conditions are skipped during evaluation."""
-    from django.contrib.auth.models import User
-    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
-    from sinpapel.models.predicates import CondicionTransicion
-    from sinpapel.services.workflow_engine import WorkflowEngine
-
-    estado_origen = Estado.objects.create(nombre="IGN_ORIG", activo=True)
-    estado_destino = Estado.objects.create(nombre="IGN_DEST", activo=True)
-    flujo = VersionFlujo.objects.create(nombre="IGN_F", activo=True)
-    transicion = ConfiguracionTransicion.objects.create(
-        flujo=flujo, estado_origen=estado_origen, estado_destino=estado_destino
-    )
+    setup = _crear_transicion_con_usuario()
     CondicionTransicion.objects.create(
-        transicion=transicion,
+        transicion=setup["transicion"],
         tipo="python_path",
         configuracion={"path": "tests.test_predicates._always_false"},
         activo=False,
     )
 
-    class _FakeInstance:
-        _workflow_config = type(
-            "Config", (), {"state_field": "estado", "version_field": None}
-        )()
-        estado = estado_origen
-        def resolve_workflow_version(self):
-            return flujo
-
-    user = User.objects.create_superuser("ign_test", password="x")
-    puede, msg = WorkflowEngine().puede_cambiar_estado(_FakeInstance(), "IGN_DEST", user)
+    puede, msg = WorkflowEngine().puede_cambiar_estado(
+        setup["fake_instance"], "SETUP_DEST", setup["user"]
+    )
     assert puede is True
+
+
+@pytest.mark.django_db
+def test_workflow_engine_multiple_conditions_and_bloquea():
+    """2 active conditions, first passes, second fails → transition blocked."""
+    setup = _crear_transicion_con_usuario()
+    CondicionTransicion.objects.create(
+        transicion=setup["transicion"],
+        tipo="python_path",
+        configuracion={"path": "tests.test_predicates._always_true"},
+        orden=1,
+    )
+    CondicionTransicion.objects.create(
+        transicion=setup["transicion"],
+        tipo="python_path",
+        configuracion={"path": "tests.test_predicates._always_false"},
+        mensaje_error="Segunda condición falló",
+        orden=2,
+    )
+
+    puede, msg = WorkflowEngine().puede_cambiar_estado(
+        setup["fake_instance"], "SETUP_DEST", setup["user"]
+    )
+    assert puede is False
+    assert "Segunda condición falló" in msg
+
+
+@pytest.mark.django_db
+def test_workflow_engine_multiple_conditions_and_pasa():
+    """2 active conditions, both pass → transition allowed."""
+    setup = _crear_transicion_con_usuario()
+    CondicionTransicion.objects.create(
+        transicion=setup["transicion"],
+        tipo="python_path",
+        configuracion={"path": "tests.test_predicates._always_true"},
+        orden=1,
+    )
+    CondicionTransicion.objects.create(
+        transicion=setup["transicion"],
+        tipo="python_path",
+        configuracion={"path": "tests.test_predicates._always_true"},
+        orden=2,
+    )
+
+    puede, msg = WorkflowEngine().puede_cambiar_estado(
+        setup["fake_instance"], "SETUP_DEST", setup["user"]
+    )
+    assert puede is True
+    assert msg == "OK"
+
+
+def _falla_primera(instance, user):
+    return False, "Falló la primera"
+
+
+def _falla_segunda(instance, user):
+    return False, "Falló la segunda"
+
+
+@pytest.mark.django_db
+def test_workflow_engine_orden_evaluacion_early_exit():
+    """2 conditions with different orden, first fails → second is NOT evaluated."""
+    setup = _crear_transicion_con_usuario()
+    CondicionTransicion.objects.create(
+        transicion=setup["transicion"],
+        tipo="python_path",
+        configuracion={"path": "tests.test_predicates._falla_primera"},
+        mensaje_error="",
+        orden=1,
+    )
+    CondicionTransicion.objects.create(
+        transicion=setup["transicion"],
+        tipo="python_path",
+        configuracion={"path": "tests.test_predicates._falla_segunda"},
+        mensaje_error="",
+        orden=2,
+    )
+
+    puede, msg = WorkflowEngine().puede_cambiar_estado(
+        setup["fake_instance"], "SETUP_DEST", setup["user"]
+    )
+    assert puede is False
+    assert "Falló la primera" in msg
+    assert "Falló la segunda" not in (msg or "")
+
+
+@pytest.mark.django_db
+def test_workflow_engine_fallback_error_message():
+    """condition with empty mensaje_error, backend returns custom msg → custom msg returned."""
+    setup = _crear_transicion_con_usuario()
+    CondicionTransicion.objects.create(
+        transicion=setup["transicion"],
+        tipo="python_path",
+        configuracion={"path": "tests.test_predicates._always_false"},
+        mensaje_error="",
+    )
+
+    puede, msg = WorkflowEngine().puede_cambiar_estado(
+        setup["fake_instance"], "SETUP_DEST", setup["user"]
+    )
+    assert puede is False
+    assert "Condición rechazada" in msg

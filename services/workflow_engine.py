@@ -26,10 +26,12 @@ from sinpapel.cache import (
     get_transitions_for,
 )
 from sinpapel.models import (
+    CondicionTransicion,
     ConfiguracionTransicion,
     Estado,
     SeguimientoWorkflow,
 )
+from sinpapel.services.predicate_engine import PredicateEngine
 from sinpapel.services.side_effects import ejecutar_side_effects
 
 if TYPE_CHECKING:
@@ -87,10 +89,29 @@ class WorkflowEngine:
                 f"'{target_state_name}'"
             )
 
-        # 4. Evaluar condiciones personalizadas (aplican a todos, incluidos superusers)
-        from sinpapel.models.predicates import CondicionTransicion
-        from sinpapel.services.predicate_engine import PredicateEngine
+        # 4. Superuser bypass (antes de gates de permisos y condiciones)
+        if user.is_superuser:
+            return True, "OK"
 
+        # 5. Gate de expediente_obligatorio (si el modelo tiene .expedientes GenericRelation)
+        if estado_actual.expediente_obligatorio:
+            expedientes = getattr(instance, "expedientes", None)
+            if expedientes is not None and not expedientes.exists():
+                return False, (
+                    f"Se requiere adjuntar al menos un documento antes de "
+                    f"avanzar desde '{estado_actual.nombre}'."
+                )
+
+        # 6. Validar grupos permitidos (vacío = cualquier grupo puede)
+        grupos_requeridos = list(
+            config_transicion.grupos_permitidos.values_list("name", flat=True)
+        )
+        if grupos_requeridos:
+            grupos_user = list(user.groups.values_list("name", flat=True))
+            if not any(g in grupos_requeridos for g in grupos_user):
+                return False, "No tiene permisos para realizar esta acción"
+
+        # 7. Evaluar condiciones personalizadas (después de validación de grupos)
         condiciones = CondicionTransicion.objects.filter(
             transicion=config_transicion,
             activo=True,
@@ -100,28 +121,6 @@ class WorkflowEngine:
             pasa, msg = PredicateEngine.evaluar(condicion, instance, user)
             if not pasa:
                 return False, condicion.mensaje_error or msg
-
-        # 5. Superuser bypass (después de condiciones de negocio)
-        if user.is_superuser:
-            return True, "OK"
-
-        # 6. Gate de expediente_obligatorio (si el modelo tiene .expedientes GenericRelation)
-        if estado_actual.expediente_obligatorio:
-            expedientes = getattr(instance, "expedientes", None)
-            if expedientes is not None and not expedientes.exists():
-                return False, (
-                    f"Se requiere adjuntar al menos un documento antes de "
-                    f"avanzar desde '{estado_actual.nombre}'."
-                )
-
-        # 7. Validar grupos permitidos (vacío = cualquier grupo puede)
-        grupos_requeridos = list(
-            config_transicion.grupos_permitidos.values_list("name", flat=True)
-        )
-        if grupos_requeridos:
-            grupos_user = list(user.groups.values_list("name", flat=True))
-            if not any(g in grupos_requeridos for g in grupos_user):
-                return False, "No tiene permisos para realizar esta acción"
 
         return True, "OK"
 
