@@ -1,6 +1,9 @@
 """Tests for MetaFormFactory Django Form generation."""
 from __future__ import annotations
 
+from datetime import date
+from decimal import Decimal
+
 import pytest
 from django import forms
 
@@ -25,7 +28,6 @@ def test_build_form_int_field():
 
 def test_build_form_decimal_field():
     """Decimal CampoMetadato generates DecimalField with correct digits."""
-    from decimal import Decimal
     schema = [CampoMetadato("monto", Decimal)]
     MetaForm = MetaFormFactory.build_form(schema)
     field = MetaForm.base_fields["monto"]
@@ -36,7 +38,6 @@ def test_build_form_decimal_field():
 
 def test_build_form_date_field():
     """date CampoMetadato generates DateField."""
-    from datetime import date
     schema = [CampoMetadato("fecha", date)]
     MetaForm = MetaFormFactory.build_form(schema)
     assert isinstance(MetaForm.base_fields["fecha"], forms.DateField)
@@ -98,8 +99,6 @@ def test_form_validates_type():
 
 def test_form_accepts_valid_data():
     """Generated form accepts valid data."""
-    from decimal import Decimal
-    from datetime import date
     schema = [
         CampoMetadato("nombre", str),
         CampoMetadato("edad", int),
@@ -108,16 +107,61 @@ def test_form_accepts_valid_data():
         CampoMetadato("activo", bool),
     ]
     MetaForm = MetaFormFactory.build_form(schema)
-    form = MetaForm(data={
-        "nombre": "Juan",
-        "edad": "30",
-        "monto": "150000.50",
-        "fecha": "2024-01-15",
-        "activo": "on",
-    })
+    form = MetaForm(
+        data={
+            "nombre": "Juan",
+            "edad": "30",
+            "monto": "150000.50",
+            "fecha": "2024-01-15",
+            "activo": "on",
+        }
+    )
     assert form.is_valid(), form.errors
     assert form.cleaned_data["nombre"] == "Juan"
     assert form.cleaned_data["edad"] == 30
     assert form.cleaned_data["monto"] == Decimal("150000.50")
     assert form.cleaned_data["fecha"] == date(2024, 1, 15)
     assert form.cleaned_data["activo"] is True
+
+
+# --- Review fixes ---
+
+
+def test_build_form_auto_label():
+    """Cuando etiqueta está vacía, se deriva de nombre.replace('_', ' ').title()."""
+    schema = [CampoMetadato("primer_nombre", str)]
+    MetaForm = MetaFormFactory.build_form(schema)
+    assert MetaForm.base_fields["primer_nombre"].label == "Primer Nombre"
+
+
+def test_build_form_unsupported_type():
+    """Tipo no soportado levanta ValueError descriptivo."""
+    schema = [CampoMetadato("campo", float)]
+    with pytest.raises(ValueError, match="Tipo no soportado"):
+        MetaFormFactory.build_form(schema)
+
+
+def test_build_form_kwargs_collision():
+    """Kwargs que colisionan con nombres de campo levantan ValueError."""
+    schema = [CampoMetadato("nombre", str)]
+    with pytest.raises(ValueError, match="colisionan"):
+        MetaFormFactory.build_form(schema, nombre="foo")
+
+
+def test_build_form_custom_name():
+    """Se puede pasar name para parametrizar el nombre de la clase."""
+    schema = [CampoMetadato("nombre", str)]
+    MetaForm = MetaFormFactory.build_form(schema, name="MiForma")
+    assert MetaForm.__name__ == "MiForma"
+
+
+def test_build_form_default_is_initial_not_fallback():
+    """default en Django Forms se mapea a initial (pre-relleno), no fallback real."""
+    schema = [CampoMetadato("nombre", str, default="sin nombre", requerido=False)]
+    MetaForm = MetaFormFactory.build_form(schema)
+    # initial está seteado
+    assert MetaForm.base_fields["nombre"].initial == "sin nombre"
+    # Pero si no se envía el campo, no se usa como fallback
+    form = MetaForm(data={})
+    assert form.is_valid()
+    assert form.cleaned_data.get("nombre") == ""
