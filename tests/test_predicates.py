@@ -119,3 +119,102 @@ def test_json_logic_empty_rule():
     """Empty rule dict raises ValueError."""
     with pytest.raises(ValueError, match="exactamente una clave"):
         evaluar({}, {})
+
+
+from sinpapel.services.predicate_engine import PredicateEngine
+
+
+def _always_true(instance, user):
+    return True
+
+
+def _always_false(instance, user):
+    return False, "Condición rechazada"
+
+
+def test_predicate_engine_python_path_pass():
+    """Python path backend returns True when function returns True."""
+    config = {"path": "tests.test_predicates._always_true"}
+    result = PredicateEngine._backend_python_path(config, None, None)
+    assert result == (True, None)
+
+
+def test_predicate_engine_python_path_fail():
+    """Python path backend returns False + message when function returns tuple."""
+    config = {"path": "tests.test_predicates._always_false"}
+    result = PredicateEngine._backend_python_path(config, None, None)
+    assert result == (False, "Condición rechazada")
+
+
+def test_predicate_engine_json_logic_pass():
+    """JSON Logic backend evaluates rule against instance data."""
+    from sinpapel.mixins import CampoMetadato, MetadatosCapturables
+
+    class _FakeModel(MetadatosCapturables):
+        SCHEMA_METADATOS = [CampoMetadato("monto", int)]
+        class Meta:
+            app_label = "tests"
+
+    obj = _FakeModel()
+    obj.meta.monto = 150000
+    config = {"rule": {">=": [{"var": "meta.monto"}, 100000]}}
+    result = PredicateEngine._backend_json_logic(config, obj, None)
+    assert result == (True, None)
+
+
+def test_predicate_engine_json_logic_fail():
+    """JSON Logic backend returns False when rule does not match."""
+    from sinpapel.mixins import CampoMetadato, MetadatosCapturables
+
+    class _FakeModel(MetadatosCapturables):
+        SCHEMA_METADATOS = [CampoMetadato("monto", int)]
+        class Meta:
+            app_label = "tests"
+
+    obj = _FakeModel()
+    obj.meta.monto = 50000
+    config = {"rule": {">=": [{"var": "meta.monto"}, 100000]}}
+    result = PredicateEngine._backend_json_logic(config, obj, None)
+    assert result == (False, None)
+
+
+@pytest.mark.django_db
+def test_predicate_engine_evaluar_dispatches_by_tipo():
+    """evaluar() dispatches to correct backend by tipo."""
+    from sinpapel.models.predicates import CondicionTransicion
+    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
+
+    estado_origen = Estado.objects.create(nombre="ORIG2", activo=True)
+    estado_destino = Estado.objects.create(nombre="DEST2", activo=True)
+    flujo = VersionFlujo.objects.create(nombre="F2", activo=True)
+    transicion = ConfiguracionTransicion.objects.create(
+        flujo=flujo, estado_origen=estado_origen, estado_destino=estado_destino
+    )
+    cond = CondicionTransicion(
+        transicion=transicion,
+        tipo="python_path",
+        configuracion={"path": "tests.test_predicates._always_true"},
+    )
+    result = PredicateEngine.evaluar(cond, None, None)
+    assert result == (True, None)
+
+
+@pytest.mark.django_db
+def test_predicate_engine_evaluar_unknown_tipo_raises():
+    """evaluar() raises ValueError for unregistered backend tipo."""
+    from sinpapel.models.predicates import CondicionTransicion
+    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
+
+    estado_origen = Estado.objects.create(nombre="ORIG3", activo=True)
+    estado_destino = Estado.objects.create(nombre="DEST3", activo=True)
+    flujo = VersionFlujo.objects.create(nombre="F3", activo=True)
+    transicion = ConfiguracionTransicion.objects.create(
+        flujo=flujo, estado_origen=estado_origen, estado_destino=estado_destino
+    )
+    cond = CondicionTransicion(
+        transicion=transicion,
+        tipo="unknown_type",
+        configuracion={},
+    )
+    with pytest.raises(ValueError, match="no registrado"):
+        PredicateEngine.evaluar(cond, None, None)
