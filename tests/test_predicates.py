@@ -286,3 +286,72 @@ def test_predicate_engine_python_path_invalid_return():
 
 
 SOME_CONSTANT = 42
+
+
+@pytest.mark.django_db
+def test_workflow_engine_condicion_activa_bloquea_transicion():
+    """WorkflowEngine.puede_cambiar_estado returns False when condition fails."""
+    from django.contrib.auth.models import User
+    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
+    from sinpapel.models.predicates import CondicionTransicion
+    from sinpapel.services.workflow_engine import WorkflowEngine
+
+    estado_origen = Estado.objects.create(nombre="BLOQ_ORIG", activo=True)
+    estado_destino = Estado.objects.create(nombre="BLOQ_DEST", activo=True)
+    flujo = VersionFlujo.objects.create(nombre="BLOQ_F", activo=True)
+    transicion = ConfiguracionTransicion.objects.create(
+        flujo=flujo, estado_origen=estado_origen, estado_destino=estado_destino
+    )
+    CondicionTransicion.objects.create(
+        transicion=transicion,
+        tipo="python_path",
+        configuracion={"path": "tests.test_predicates._always_false"},
+        mensaje_error="Siempre rechazado",
+    )
+
+    class _FakeInstance:
+        _workflow_config = type(
+            "Config", (), {"state_field": "estado", "version_field": None}
+        )()
+        estado = estado_origen
+        def resolve_workflow_version(self):
+            return flujo
+
+    user = User.objects.create_superuser("bloq_test", password="x")
+    puede, msg = WorkflowEngine().puede_cambiar_estado(_FakeInstance(), "BLOQ_DEST", user)
+    assert puede is False
+    assert "Siempre rechazado" in msg
+
+
+@pytest.mark.django_db
+def test_workflow_engine_condicion_inactiva_ignorada():
+    """Inactive conditions are skipped during evaluation."""
+    from django.contrib.auth.models import User
+    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
+    from sinpapel.models.predicates import CondicionTransicion
+    from sinpapel.services.workflow_engine import WorkflowEngine
+
+    estado_origen = Estado.objects.create(nombre="IGN_ORIG", activo=True)
+    estado_destino = Estado.objects.create(nombre="IGN_DEST", activo=True)
+    flujo = VersionFlujo.objects.create(nombre="IGN_F", activo=True)
+    transicion = ConfiguracionTransicion.objects.create(
+        flujo=flujo, estado_origen=estado_origen, estado_destino=estado_destino
+    )
+    CondicionTransicion.objects.create(
+        transicion=transicion,
+        tipo="python_path",
+        configuracion={"path": "tests.test_predicates._always_false"},
+        activo=False,
+    )
+
+    class _FakeInstance:
+        _workflow_config = type(
+            "Config", (), {"state_field": "estado", "version_field": None}
+        )()
+        estado = estado_origen
+        def resolve_workflow_version(self):
+            return flujo
+
+    user = User.objects.create_superuser("ign_test", password="x")
+    puede, msg = WorkflowEngine().puede_cambiar_estado(_FakeInstance(), "IGN_DEST", user)
+    assert puede is True

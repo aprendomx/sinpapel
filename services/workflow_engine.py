@@ -87,11 +87,25 @@ class WorkflowEngine:
                 f"'{target_state_name}'"
             )
 
-        # 4. Superuser bypass
+        # 4. Evaluar condiciones personalizadas (aplican a todos, incluidos superusers)
+        from sinpapel.models.predicates import CondicionTransicion
+        from sinpapel.services.predicate_engine import PredicateEngine
+
+        condiciones = CondicionTransicion.objects.filter(
+            transicion=config_transicion,
+            activo=True,
+        ).order_by("orden")
+
+        for condicion in condiciones:
+            pasa, msg = PredicateEngine.evaluar(condicion, instance, user)
+            if not pasa:
+                return False, condicion.mensaje_error or msg
+
+        # 5. Superuser bypass (después de condiciones de negocio)
         if user.is_superuser:
             return True, "OK"
 
-        # 5. Gate de expediente_obligatorio (si el modelo tiene .expedientes GenericRelation)
+        # 6. Gate de expediente_obligatorio (si el modelo tiene .expedientes GenericRelation)
         if estado_actual.expediente_obligatorio:
             expedientes = getattr(instance, "expedientes", None)
             if expedientes is not None and not expedientes.exists():
@@ -100,7 +114,7 @@ class WorkflowEngine:
                     f"avanzar desde '{estado_actual.nombre}'."
                 )
 
-        # 6. Validar grupos permitidos (vacío = cualquier grupo puede)
+        # 7. Validar grupos permitidos (vacío = cualquier grupo puede)
         grupos_requeridos = list(
             config_transicion.grupos_permitidos.values_list("name", flat=True)
         )
