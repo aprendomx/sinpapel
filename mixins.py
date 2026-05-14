@@ -163,6 +163,10 @@ class MetadatosCapturables(models.Model):
         if errores:
             raise ValidationError(errores)
 
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
     class Meta:
         abstract = True
 

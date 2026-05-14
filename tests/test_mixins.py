@@ -6,9 +6,10 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.db import models
 
-from sinpapel.mixins import CampoMetadato, Catalogo, MetadatosProxy, Trazable
+from sinpapel.mixins import CampoMetadato, Catalogo, MetadatosCapturables, MetadatosProxy, Trazable
 
 
 class _TestTrazableModel(Trazable):
@@ -193,13 +194,6 @@ def test_proxy_bool_handling():
     assert instance.datos_capturados == {"activo": False}
 
 
-import pytest
-from django.core.exceptions import ValidationError
-from django.db import models
-
-from sinpapel.mixins import CampoMetadato, MetadatosCapturables
-
-
 class _TestCapturable(MetadatosCapturables):
     SCHEMA_METADATOS = [
         CampoMetadato("rfc", str, requerido=True),
@@ -233,3 +227,44 @@ def test_capturable_meta_property():
     assert obj.meta.rfc is None
     obj.meta.rfc = "XYZ"
     assert obj.datos_capturados == {"rfc": "XYZ"}
+
+
+@pytest.mark.django_db
+def test_integration_workflow_and_metadatos():
+    """Modelo con workflow_enabled + MetadatosCapturables funciona end-to-end."""
+    from tests.models import TestSolicitudConMetadatos
+    from sinpapel.models import Estado
+
+    estado = Estado.objects.create(nombre="META_CAPTURA", activo=True)
+    obj = TestSolicitudConMetadatos(
+        folio="META-001",
+        estado=estado,
+    )
+    obj.meta.rfc = "ABCD010101ABC"
+    obj.meta.monto_solicitado = Decimal("500000")
+    obj.meta.tipo_credito = "FOVISSSTE"
+    obj.save()
+
+    obj.refresh_from_db()
+    assert obj.meta.rfc == "ABCD010101ABC"
+    assert obj.meta.monto_solicitado == Decimal("500000")
+    assert obj.meta.tipo_credito == "FOVISSSTE"
+
+    # to_dict
+    d = obj.meta.to_dict()
+    assert d["rfc"] == "ABCD010101ABC"
+    assert d["monto_solicitado"] == Decimal("500000")
+    assert d["tipo_credito"] == "FOVISSSTE"
+
+
+@pytest.mark.django_db
+def test_integration_validation_blocks_save():
+    """Faltan campos requeridos → ValidationError en save."""
+    from tests.models import TestSolicitudConMetadatos
+    from sinpapel.models import Estado
+
+    estado = Estado.objects.create(nombre="META_INVALID", activo=True)
+    obj = TestSolicitudConMetadatos(folio="META-002", estado=estado)
+    # No seteamos rfc ni tipo_credito
+    with pytest.raises(ValidationError):
+        obj.save()
