@@ -8,7 +8,7 @@ import pytest
 from django import forms
 
 from sinpapel.forms import MetaFormFactory
-from sinpapel.mixins import CampoMetadato
+from sinpapel.mixins import CampoMetadato, MetadatosCapturables
 
 
 def test_build_form_str_field():
@@ -165,3 +165,31 @@ def test_build_form_default_is_initial_not_fallback():
     form = MetaForm(data={})
     assert form.is_valid()
     assert form.cleaned_data.get("nombre") == ""
+
+
+class _TestModel(MetadatosCapturables):
+    SCHEMA_METADATOS = [
+        CampoMetadato("rfc", str, requerido=True),
+        CampoMetadato("monto", Decimal, default=Decimal("0")),
+    ]
+
+    class Meta:
+        app_label = "tests"
+
+
+@pytest.mark.django_db
+def test_form_integration_with_metadatos_capturables():
+    """Generated form writes correctly to MetadatosCapturables instance."""
+    obj = _TestModel()
+    MetaForm = MetaFormFactory.build_form(_TestModel.SCHEMA_METADATOS)
+    form = MetaForm(data={"rfc": "ABCD010101ABC", "monto": "500000"})
+    assert form.is_valid(), form.errors
+
+    # Write cleaned data to instance
+    for key, value in form.cleaned_data.items():
+        setattr(obj.meta, key, value)
+    obj.save()
+
+    obj.refresh_from_db()
+    assert obj.meta.rfc == "ABCD010101ABC"
+    assert obj.meta.monto == Decimal("500000")
