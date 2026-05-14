@@ -1,10 +1,13 @@
 """Tests for inlined Trazable and Catalogo mixins."""
 from __future__ import annotations
 
+import dataclasses
+from decimal import Decimal
+
 import pytest
 from django.db import models
 
-from sinpapel.mixins import CampoMetadato, Catalogo, Trazable
+from sinpapel.mixins import CampoMetadato, Catalogo, MetadatosProxy, Trazable
 
 
 class _TestTrazableModel(Trazable):
@@ -53,3 +56,66 @@ def test_campo_metadato_dataclass():
     assert campo.etiqueta == "RFC"
     assert campo.default is None
     assert campo.choices is None
+    assert campo.ayuda == ""
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        campo.nombre = "x"
+
+
+class _FakeInstance:
+    """Fake Django model instance for testing MetadatosProxy in isolation."""
+    datos_capturados = {}
+
+
+def test_proxy_get_returns_default():
+    """Proxy returns default when field not set."""
+    schema = [CampoMetadato("monto", Decimal, default=Decimal("0"))]
+    proxy = MetadatosProxy(_FakeInstance(), schema)
+    assert proxy.monto == Decimal("0")
+
+
+def test_proxy_set_and_get():
+    """Proxy stores and retrieves values."""
+    schema = [CampoMetadato("rfc", str)]
+    instance = _FakeInstance()
+    proxy = MetadatosProxy(instance, schema)
+    proxy.rfc = "ABCD010101ABC"
+    assert proxy.rfc == "ABCD010101ABC"
+    assert instance.datos_capturados == {"rfc": "ABCD010101ABC"}
+
+
+def test_proxy_unknown_field_raises():
+    """Accessing unknown field raises AttributeError."""
+    proxy = MetadatosProxy(_FakeInstance(), [CampoMetadato("rfc", str)])
+    with pytest.raises(AttributeError, match="campo_inexistente"):
+        proxy.campo_inexistente
+
+
+def test_proxy_set_unknown_field_raises():
+    """Setting unknown field raises AttributeError."""
+    proxy = MetadatosProxy(_FakeInstance(), [CampoMetadato("rfc", str)])
+    with pytest.raises(AttributeError, match="campo_inexistente"):
+        proxy.campo_inexistente = "x"
+
+
+def test_proxy_invalid_type_raises():
+    """Setting wrong type raises TypeError."""
+    proxy = MetadatosProxy(_FakeInstance(), [CampoMetadato("edad", int)])
+    with pytest.raises(TypeError):
+        proxy.edad = "not an int"
+
+
+def test_proxy_invalid_choice_raises():
+    """Setting value not in choices raises ValueError."""
+    proxy = MetadatosProxy(_FakeInstance(), [CampoMetadato("tipo", str, choices=["A", "B"])])
+    with pytest.raises(ValueError, match="tipo"):
+        proxy.tipo = "C"
+
+
+def test_proxy_decimal_roundtrip():
+    """Decimal survives JSON round-trip via string serialization."""
+    schema = [CampoMetadato("monto", Decimal)]
+    instance = _FakeInstance()
+    proxy = MetadatosProxy(instance, schema)
+    proxy.monto = Decimal("123.45")
+    assert proxy.monto == Decimal("123.45")
+    assert instance.datos_capturados == {"monto": "123.45"}
