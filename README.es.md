@@ -1,6 +1,6 @@
 # sinpapel
 
-> **v0.2.0-alpha** — Motor de workflow + auditoría + firma digital + captura de metadatos estructurados para Django.
+> **v0.3.0-alpha** — Motor de workflow + auditoría + firma digital + captura de metadatos estructurados + predicados de transición + forms dinámicos para Django.
 >
 > Extraído de [creditos](https://github.com/jadrians/creditos) (E12). Diseñado para SEP, FONDESO, y cualquier proyecto Django que necesite **transiciones versionadas + auditoría inmutable + firmas electrónicas plugables + metadatos basados en schema** sin reinventar la rueda.
 >
@@ -18,14 +18,16 @@
 6. [Inicio Rápido](#6-inicio-rápido)
 7. [Configuración del Workflow](#7-configuración-del-workflow)
 8. [Transiciones de Estado](#8-transiciones-de-estado)
-9. [Captura de Metadatos Estructurados](#9-captura-de-metadatos-estructurados)
-10. [Backends de Firma](#10-backends-de-firma)
-11. [Auditoría (Audit Trail)](#11-auditoría-audit-trail)
-12. [Efectos Secundarios (Side Effects)](#12-efectos-secundarios-side-effects)
-13. [Testing](#13-testing)
-14. [Referencia de API](#14-referencia-de-api)
-15. [Contribuir](#15-contribuir)
-16. [Licencia y Versionado](#16-licencia-y-versionado)
+9. [Predicados de Transición](#9-predicados-de-transición)
+10. [Captura de Metadatos Estructurados](#10-captura-de-metadatos-estructurados)
+11. [Factory de Forms/Serializers](#11-factory-de-formsserializers)
+12. [Backends de Firma](#12-backends-de-firma)
+13. [Auditoría (Audit Trail)](#13-auditoría-audit-trail)
+14. [Efectos Secundarios (Side Effects)](#14-efectos-secundarios-side-effects)
+15. [Testing](#15-testing)
+16. [Referencia de API](#16-referencia-de-api)
+17. [Contribuir](#17-contribuir)
+18. [Licencia y Versionado](#18-licencia-y-versionado)
 
 ---
 
@@ -54,6 +56,9 @@ Las transiciones, requisitos documentales, auditoría, firmas y metadatos son **
 | `ConfiguracionTransicion` | Aristas dirigidas entre estados con permisos basados en grupos |
 | `SeguimientoWorkflow` | Log de auditoría inmutable de cada transición con timestamp, IP, comentarios |
 | `MetadatosCapturables` | Captura de metadatos basada en schema con validación de tipos y acceso proxy |
+| `MetaFormFactory` | Generación dinámica de Django Forms / DRF Serializers desde `SCHEMA_METADATOS` |
+| `CondicionTransicion` | Predicados configurables por transición con backends plugables (Python, JSON Logic, ORM) |
+| `PredicateEngine` | Motor extensible para evaluar reglas de negocio antes de transiciones de estado |
 | `Trazable` / `Catalogo` | Mixins reutilizables para tracking de creación/actualización y modelos catálogo |
 | `RegistroFirma` | Registros de firma criptográfica con verificación agnóstica al backend |
 | `ExpedienteAdjunto` | Adjuntos de archivos genéricos con vinculación por content-type |
@@ -266,7 +271,65 @@ Errores comunes:
 
 ---
 
-## 9. Captura de Metadatos Estructurados
+## 9. Predicados de Transición
+
+Adjunta reglas de negocio configurables a cualquier `ConfiguracionTransicion` via `CondicionTransicion`. El `WorkflowEngine` evalúa todas las condiciones activas (en `orden`) después de la validación de grupos y antes de permitir la transición.
+
+**Backends:**
+
+| Backend | `tipo` | Caso de uso |
+|---------|--------|-------------|
+| **Python Path** | `python_path` | Lógica compleja, validadores reutilizables, llamadas a APIs externas. Solo módulos en whitelist (`SINPAPEL_PREDICATE_MODULES`). |
+| **JSON Logic** | `json_logic` | Reglas declarativas simples editables por no-desarrolladores via UI. Operadores seguros: `var`, `==`, `!=`, `<`, `>`, `<=`, `>=`, `and`, `or`, `!`, `in`. |
+| **Django ORM** | `django_orm` | Condiciones sobre campos de modelos relacionados via lookups ORM. |
+
+**Ejemplo — Python Path:**
+
+```python
+# tu_app/validators.py
+def monto_minimo_100k(instance, user):
+    if instance.meta.monto_solicitado >= 100_000:
+        return True
+    return False, "El monto debe ser al menos $100,000"
+```
+
+```python
+# Admin o migración
+from sinpapel.models.predicates import CondicionTransicion
+
+CondicionTransicion.objects.create(
+    transicion=transicion_aprobacion,
+    tipo="python_path",
+    configuracion={"path": "tu_app.validators.monto_minimo_100k"},
+    mensaje_error="No cumple con las condiciones de monto",
+    orden=1,
+)
+```
+
+**Ejemplo — JSON Logic:**
+
+```python
+CondicionTransicion.objects.create(
+    transicion=transicion_aprobacion,
+    tipo="json_logic",
+    configuracion={
+        "rule": {
+            "and": [
+                {">=": [{"var": "meta.monto_solicitado"}, 100000]},
+                {"==": [{"var": "meta.tipo_credito"}, "FOVISSSTE"]},
+            ]
+        }
+    },
+    mensaje_error="Solo FOVISSSTE con monto >= $100k puede avanzar",
+    orden=2,
+)
+```
+
+**Seguridad:** El backend `python_path` solo importa desde módulos listados en `SINPAPEL_PREDICATE_MODULES` (setting de Django). Una whitelist vacía bloquea todas las importaciones por defecto.
+
+---
+
+## 10. Captura de Metadatos Estructurados
 
 Los modelos que heredan de `MetadatosCapturables` declaran un schema de campos de metadatos capturables:
 
@@ -311,7 +374,68 @@ Tipos soportados: `str`, `int`, `bool`, `Decimal`, `date`.
 
 ---
 
-## 10. Backends de Firma
+## 11. Factory de Forms/Serializers
+
+Genera Django Forms y DRF Serializers dinámicamente desde `SCHEMA_METADATOS` — no necesitas escribir clases Form/Serializer manualmente.
+
+### Django Forms
+
+```python
+from sinpapel.forms import MetaFormFactory
+
+MetaForm = MetaFormFactory.build_form(
+    Solicitud.SCHEMA_METADATOS,
+    name="SolicitudMetaForm",
+)
+
+# En una vista
+form = MetaForm(request.POST or None, initial=solicitud.meta.to_dict())
+if form.is_valid():
+    for key, value in form.cleaned_data.items():
+        setattr(solicitud.meta, key, value)
+    solicitud.save()
+```
+
+### DRF Serializers
+
+```python
+from sinpapel.forms import MetaFormFactory
+
+MetaSerializer = MetaFormFactory.build_serializer(
+    Solicitud.SCHEMA_METADATOS,
+    name="SolicitudMetaSerializer",
+)
+
+# En un viewset
+serializer = MetaSerializer(data=request.data)
+if serializer.is_valid():
+    for key, value in serializer.validated_data.items():
+        setattr(solicitud.meta, key, value)
+    solicitud.save()
+```
+
+> **Nota:** DRF es una dependencia opcional. `build_serializer()` lanza `ImportError` con instrucciones de instalación si `djangorestframework` no está instalado.
+
+### Mapeo de Campos
+
+| `CampoMetadato.tipo` | Django Form Field | DRF Field |
+|----------------------|-------------------|-----------|
+| `str` (sin choices) | `CharField` | `CharField` |
+| `str` (con choices) | `ChoiceField` | `ChoiceField` |
+| `int` | `IntegerField` | `IntegerField` |
+| `bool` | `BooleanField` | `BooleanField` |
+| `Decimal` | `DecimalField(max_digits=15, decimal_places=2)` | `DecimalField(max_digits=15, decimal_places=2)` |
+| `date` | `DateField` | `DateField` |
+
+**Metadata mapeada:**
+- `requerido` → `required`
+- `default` → `initial` (Django) / `default` (DRF)
+- `etiqueta` → `label`
+- `ayuda` → `help_text`
+
+---
+
+## 12. Backends de Firma
 
 `sinpapel.signing` define un Protocolo `SignatureBackend` con tres operaciones: `request_signature`, `verify`, `revoke`. Tres implementaciones incluidas:
 
@@ -540,6 +664,42 @@ Servicio core para validación y ejecución de transiciones.
 - `cambiar_estado(instance, nombre_estado_destino, user, comentarios="", firma_payload=None) → dict`
 - `available_transitions(instance, user) → list[Estado]`
 
+### `CondicionTransicion`
+
+Modelo que almacena un predicado configurable para una transición.
+
+**Campos:**
+- `transicion: ForeignKey[ConfiguracionTransicion]` — la transición a la que aplica esta condición
+- `tipo: str` — tipo de backend: `python_path`, `json_logic`, `django_orm`
+- `configuracion: JSONField` — parámetros específicos del backend
+- `mensaje_error: str` — mensaje de error mostrado cuando la condición falla
+- `orden: int` — orden de evaluación (menor primero)
+- `activo: bool` — si esta condición es evaluada
+
+### `PredicateEngine`
+
+Motor extensible para evaluar condiciones de transición.
+
+**Métodos de clase:**
+- `registrar_backend(tipo: str, funcion: callable) → None` — registra un backend personalizado
+- `evaluar(condicion, instance, user) → (bool, str | None)` — evalúa una condición individual
+
+**Backends incluidos:**
+- `python_path` — importa y llama una función Python desde un módulo en whitelist
+- `json_logic` — evalúa una regla JSON Logic contra los metadatos de la instancia
+- `django_orm` — evalúa un lookup de Django ORM contra la instancia
+
+**Settings:**
+- `SINPAPEL_PREDICATE_MODULES: list[str]` — whitelist de módulos para el backend `python_path`
+
+### `MetaFormFactory`
+
+Factory para generar Django Forms y DRF Serializers desde `SCHEMA_METADATOS`.
+
+**Métodos de clase:**
+- `build_form(schema, name=None, **kwargs) → type[forms.Form]` — genera un Django Form
+- `build_serializer(schema, name=None, **kwargs) → type[serializers.Serializer]` — genera un DRF Serializer (lanza `ImportError` si DRF no está instalado)
+
 ### `MetadatosCapturables`
 
 Mixin abstracto de modelo Django. Agrega a tu modelo junto con `Trazable`.
@@ -617,7 +777,8 @@ Cuando la API se estabilice (v1.0.0), el contrato será:
 **Roadmap visible:**
 
 - v0.2 — i18n vía `gettext_lazy`, `py.typed`, tablas `sinpapel_*`, modelo `Etapa`, tests standalone, mixin `MetadatosCapturables`. **(DONE)**
-- v0.3 — Soporte para PAdES (firma PDF universal vía endesive) como adapter adicional.
+- v0.3 — Predicados de Transición (`CondicionTransicion` + `PredicateEngine`), Factory de Forms/Serializers (`MetaFormFactory`), evaluador JSON Logic, backends de predicados plugables. **(DONE)**
+- v0.4 — Soporte para PAdES (firma PDF universal vía endesive) como adapter adicional.
 - v1.0 — API estable + publicación a PyPI pública (decisión final de nombre + licencia).
 
 **Reportar issues / proponer cambios:** [github.com/aprendomx/sinpapel/issues](https://github.com/aprendomx/sinpapel/issues)
