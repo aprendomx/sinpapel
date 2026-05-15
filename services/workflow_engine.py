@@ -45,6 +45,138 @@ if TYPE_CHECKING:
 class WorkflowEngine:
     """Motor genérico de transiciones de workflow."""
 
+    def _validar_estado_destino(self, target_state_name: str):
+        """Valida que el estado destino existe."""
+        from sinpapel.cache import get_estado_by_name
+        estado_destino = get_estado_by_name(target_state_name)
+        if estado_destino is None:
+            return None, f"Estado destino '{target_state_name}' no existe"
+        return estado_destino, None
+
+    def _validar_configuracion_transicion(
+        self, estado_actual, estado_destino, flujo
+    ):
+        """Busca la configuración de transición."""
+        from sinpapel.models import ConfiguracionTransicion
+        qs = ConfiguracionTransicion.objects.filter(
+            estado_origen=estado_actual,
+            estado_destino=estado_destino,
+        )
+        if flujo is not None:
+            qs = qs.filter(flujo=flujo)
+        config_transicion = qs.first()
+        if config_transicion is None:
+            return None, (
+                f"No se puede cambiar de '{estado_actual.nombre}' a "
+                f"'{estado_destino.nombre}'"
+            )
+        return config_transicion, None
+
+    def _validar_grupos_permitidos(self, config_transicion, user):
+        """Valida que el usuario tiene permisos."""
+        if user.is_superuser:
+            return True, None
+        grupos_requeridos = list(
+            config_transicion.grupos_permitidos.values_list("name", flat=True)
+        )
+        if grupos_requeridos:
+            grupos_user = list(user.groups.values_list("name", flat=True))
+            if not any(g in grupos_requeridos for g in grupos_user):
+                return False, "No tiene permisos para realizar esta acción"
+        return True, None
+
+    def _validar_documentos(self, instance, estado_actual):
+        """Verifica requisitos documentales. Retorna lista de faltantes."""
+        faltantes = []
+        if estado_actual.expediente_obligatorio:
+            expedientes = getattr(instance, "expedientes", None)
+            if expedientes is not None and not expedientes.exists():
+                faltantes.append({
+                    "tipo": "expediente",
+                    "mensaje": f"Se requiere adjuntar al menos un documento antes de avanzar desde '{estado_actual.nombre}'.",
+                })
+        return faltantes
+
+    def _validar_predicados(self, config_transicion, instance, user):
+        """Evalúa condiciones de transición. Retorna lista de fallidas."""
+        from sinpapel.models.predicates import CondicionTransicion
+        from sinpapel.services.predicate_engine import PredicateEngine
+
+        fallidas = []
+        condiciones = CondicionTransicion.objects.filter(
+            transicion=config_transicion,
+            activo=True,
+        ).order_by("orden")
+
+        for condicion in condiciones:
+            pasa, msg = PredicateEngine.evaluar(condicion, instance, user)
+            if not pasa:
+                fallidas.append({
+                    "condicion_id": condicion.id,
+                    "tipo": condicion.tipo,
+                    "mensaje": msg or condicion.mensaje_error,
+                })
+        return fallidas
+
+    def preview_transition(
+        self,
+        instance: "models.Model",
+        target_state_name: str,
+        user: "User",
+    ) -> dict[str, Any]:
+        """Preview a transition without executing it.
+
+        Returns detailed validation results.
+        """
+        config = self._get_config(instance)
+        estado_actual = getattr(instance, config.state_field, None)
+        if estado_actual is None:
+            return {
+                "can_transition": False,
+                "error": "Instance has no current state",
+            }
+
+        estado_destino, error = self._validar_estado_destino(target_state_name)
+        if error:
+            return {
+                "can_transition": False,
+                "error": error,
+            }
+
+        flujo = self._resolve_flujo(instance, config)
+        config_transicion, error = self._validar_configuracion_transicion(
+            estado_actual, estado_destino, flujo
+        )
+        if error:
+            return {
+                "can_transition": False,
+                "error": error,
+            }
+
+        result: dict[str, Any] = {
+            "can_transition": True,
+            "estado_destino": estado_destino,
+            "config_transicion": config_transicion,
+        }
+
+        if not user.is_superuser:
+            documentos_faltantes = self._validar_documentos(instance, estado_actual)
+            if documentos_faltantes:
+                result["can_transition"] = False
+                result["documentos_faltantes"] = documentos_faltantes
+
+            permisos_ok, error = self._validar_grupos_permitidos(config_transicion, user)
+            if not permisos_ok:
+                result["can_transition"] = False
+                result["permisos_error"] = error
+
+            predicados_fallidos = self._validar_predicados(config_transicion, instance, user)
+            if predicados_fallidos:
+                result["can_transition"] = False
+                result["predicados_fallidos"] = predicados_fallidos
+
+        return result
+
     def puede_cambiar_estado(
         self,
         instance: "models.Model",
@@ -66,61 +198,31 @@ class WorkflowEngine:
         if estado_actual is None:
             return False, "Instance has no current state"
 
-        # 1. Validar que el Estado destino existe (S13.1: cache helper, D6)
-        estado_destino = get_estado_by_name(target_state_name)
-        if estado_destino is None:
-            return False, f"Estado destino '{target_state_name}' no existe"
+        estado_destino, error = self._validar_estado_destino(target_state_name)
+        if error:
+            return False, error
 
-        # 2. Resolver flujo activo (puede ser None)
         flujo = self._resolve_flujo(instance, config)
-
-        # 3. Validar transición contra ConfiguracionTransicion
-        qs = ConfiguracionTransicion.objects.filter(
-            estado_origen=estado_actual,
-            estado_destino=estado_destino,
+        config_transicion, error = self._validar_configuracion_transicion(
+            estado_actual, estado_destino, flujo
         )
-        if flujo is not None:
-            qs = qs.filter(flujo=flujo)
+        if error:
+            return False, error
 
-        config_transicion = qs.first()
-        if config_transicion is None:
-            return False, (
-                f"No se puede cambiar de '{estado_actual.nombre}' a "
-                f"'{target_state_name}'"
-            )
-
-        # 4. Superuser bypass (antes de gates de permisos y condiciones)
         if user.is_superuser:
             return True, "OK"
 
-        # 5. Gate de expediente_obligatorio (si el modelo tiene .expedientes GenericRelation)
-        if estado_actual.expediente_obligatorio:
-            expedientes = getattr(instance, "expedientes", None)
-            if expedientes is not None and not expedientes.exists():
-                return False, (
-                    f"Se requiere adjuntar al menos un documento antes de "
-                    f"avanzar desde '{estado_actual.nombre}'."
-                )
+        documentos_faltantes = self._validar_documentos(instance, estado_actual)
+        if documentos_faltantes:
+            return False, documentos_faltantes[0]["mensaje"]
 
-        # 6. Validar grupos permitidos (vacío = cualquier grupo puede)
-        grupos_requeridos = list(
-            config_transicion.grupos_permitidos.values_list("name", flat=True)
-        )
-        if grupos_requeridos:
-            grupos_user = list(user.groups.values_list("name", flat=True))
-            if not any(g in grupos_requeridos for g in grupos_user):
-                return False, "No tiene permisos para realizar esta acción"
+        permisos_ok, error = self._validar_grupos_permitidos(config_transicion, user)
+        if not permisos_ok:
+            return False, error
 
-        # 7. Evaluar condiciones personalizadas (después de validación de grupos)
-        condiciones = CondicionTransicion.objects.filter(
-            transicion=config_transicion,
-            activo=True,
-        ).order_by("orden")
-
-        for condicion in condiciones:
-            pasa, msg = PredicateEngine.evaluar(condicion, instance, user)
-            if not pasa:
-                return False, condicion.mensaje_error or msg
+        predicados_fallidos = self._validar_predicados(config_transicion, instance, user)
+        if predicados_fallidos:
+            return False, predicados_fallidos[0]["mensaje"]
 
         return True, "OK"
 

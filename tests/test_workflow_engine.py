@@ -7,6 +7,11 @@ from django.contrib.auth.models import Group, User
 from sinpapel.services.workflow_engine import WorkflowEngine
 
 
+def test_preview_transition_exists():
+    """WorkflowEngine has preview_transition method."""
+    assert hasattr(WorkflowEngine, "preview_transition")
+
+
 @pytest.fixture
 def setup_engine_basico(db):
     """Crea Estado, VersionFlujo, ConfiguracionTransicion, TestProducto, TestSolicitud."""
