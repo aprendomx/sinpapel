@@ -282,3 +282,60 @@ def test_engine_modo_a_verify_fields_uses_fiel_backend(setup_engine_basico, monk
     assert captured["certificado_cer_b64"] == "ZmFrZWNlcnQ="
     assert captured["content"] == b"canonical content"
     assert captured["signer"] == superuser
+
+
+@pytest.mark.django_db
+def test_preview_transition_permitido():
+    """Preview returns permitido=True when all validations pass."""
+    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
+    from tests.models import TestSolicitud
+
+    estado = Estado.objects.create(nombre="PREV_OK", activo=True)
+    flujo = VersionFlujo.objects.create(nombre="PREV_F", activo=True)
+    ConfiguracionTransicion.objects.create(
+        flujo=flujo, estado_origen=estado, estado_destino=estado
+    )
+    solicitud = TestSolicitud.objects.create(folio="PREV-001", estado=estado)
+    user = User.objects.create_superuser("prev_ok", password="x")
+
+    preview = WorkflowEngine().preview_transition(solicitud, "PREV_OK", user)
+    assert preview["permitido"] is True
+    assert preview["razones_bloqueo"] == []
+
+
+@pytest.mark.django_db
+def test_preview_transition_bloqueado_permiso():
+    """Preview returns permitido=False with permission error."""
+    from django.contrib.auth.models import Group
+    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
+    from tests.models import TestSolicitud
+
+    estado_origen = Estado.objects.create(nombre="PREV_ORIG", activo=True)
+    estado_destino = Estado.objects.create(nombre="PREV_DEST", activo=True)
+    flujo = VersionFlujo.objects.create(nombre="PREV_F2", activo=True)
+    ct = ConfiguracionTransicion.objects.create(
+        flujo=flujo, estado_origen=estado_origen, estado_destino=estado_destino
+    )
+    g_req = Group.objects.create(name="PREV_REQ")
+    ct.grupos_permitidos.add(g_req)
+    solicitud = TestSolicitud.objects.create(folio="PREV-002", estado=estado_origen)
+    user = User.objects.create_user("prev_no", password="x")
+
+    preview = WorkflowEngine().preview_transition(solicitud, "PREV_DEST", user)
+    assert preview["permitido"] is False
+    assert any(r["tipo"] == "permiso" for r in preview["razones_bloqueo"])
+
+
+@pytest.mark.django_db
+def test_preview_no_muta_instancia():
+    """Preview does not change instance state."""
+    from sinpapel.models import Estado
+    from tests.models import TestSolicitud
+
+    estado = Estado.objects.create(nombre="PREV_MUTA", activo=True)
+    solicitud = TestSolicitud.objects.create(folio="PREV-003", estado=estado)
+    user = User.objects.create_superuser("prev_muta", password="x")
+
+    estado_before = solicitud.estado
+    WorkflowEngine().preview_transition(solicitud, "PREV_MUTA", user)
+    assert solicitud.estado == estado_before

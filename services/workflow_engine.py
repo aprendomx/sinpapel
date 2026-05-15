@@ -124,58 +124,124 @@ class WorkflowEngine:
         target_state_name: str,
         user: "User",
     ) -> dict[str, Any]:
-        """Preview a transition without executing it.
+        """Simula una transición y retorna un reporte de impacto.
 
-        Returns detailed validation results.
+        NO muta la instancia ni persiste nada.
+
+        Returns:
+            dict con keys: permitido, razones_bloqueo, side_effects,
+            documentos_faltantes, predicados_fallidos, aprobadores_requeridos,
+            historial_reciente
         """
+        from sinpapel.services.side_effects import SIDE_EFFECTS
+        from sinpapel.models import SeguimientoWorkflow
+
         config = self._get_config(instance)
         estado_actual = getattr(instance, config.state_field, None)
-        if estado_actual is None:
-            return {
-                "can_transition": False,
-                "error": "Instance has no current state",
-            }
 
+        reporte: dict[str, Any] = {
+            "permitido": True,
+            "razones_bloqueo": [],
+            "side_effects": [],
+            "documentos_faltantes": [],
+            "predicados_fallidos": [],
+            "aprobadores_requeridos": [],
+            "historial_reciente": [],
+        }
+
+        # 1. Validar estado actual
+        if estado_actual is None:
+            reporte["permitido"] = False
+            reporte["razones_bloqueo"].append({
+                "tipo": "estado",
+                "mensaje": "Instance has no current state",
+            })
+            return reporte
+
+        # 2. Validar estado destino
         estado_destino, error = self._validar_estado_destino(target_state_name)
         if error:
-            return {
-                "can_transition": False,
-                "error": error,
-            }
+            reporte["permitido"] = False
+            reporte["razones_bloqueo"].append({
+                "tipo": "estado",
+                "mensaje": error,
+            })
+            return reporte
 
+        # 3. Validar configuración de transición
         flujo = self._resolve_flujo(instance, config)
         config_transicion, error = self._validar_configuracion_transicion(
             estado_actual, estado_destino, flujo
         )
         if error:
-            return {
-                "can_transition": False,
-                "error": error,
-            }
+            reporte["permitido"] = False
+            reporte["razones_bloqueo"].append({
+                "tipo": "transicion",
+                "mensaje": error,
+            })
+            return reporte
 
-        result: dict[str, Any] = {
-            "can_transition": True,
-            "estado_destino": estado_destino,
-            "config_transicion": config_transicion,
-        }
+        # 4. Documentos faltantes
+        documentos = self._validar_documentos(instance, estado_actual)
+        if documentos:
+            reporte["documentos_faltantes"] = documentos
+            reporte["permitido"] = False
+            for doc in documentos:
+                reporte["razones_bloqueo"].append({
+                    "tipo": "documento",
+                    "mensaje": doc["mensaje"],
+                })
 
+        # 5. Permisos (si no es superuser)
         if not user.is_superuser:
-            documentos_faltantes = self._validar_documentos(instance, estado_actual)
-            if documentos_faltantes:
-                result["can_transition"] = False
-                result["documentos_faltantes"] = documentos_faltantes
-
             permisos_ok, error = self._validar_grupos_permitidos(config_transicion, user)
             if not permisos_ok:
-                result["can_transition"] = False
-                result["permisos_error"] = error
+                reporte["permitido"] = False
+                reporte["razones_bloqueo"].append({
+                    "tipo": "permiso",
+                    "mensaje": error,
+                })
 
-            predicados_fallidos = self._validar_predicados(config_transicion, instance, user)
-            if predicados_fallidos:
-                result["can_transition"] = False
-                result["predicados_fallidos"] = predicados_fallidos
+        # 6. Predicados
+        predicados = self._validar_predicados(config_transicion, instance, user)
+        if predicados:
+            reporte["predicados_fallidos"] = predicados
+            reporte["permitido"] = False
+            for pred in predicados:
+                reporte["razones_bloqueo"].append({
+                    "tipo": "predicado",
+                    "mensaje": pred["mensaje"],
+                })
 
-        return result
+        # 7. Side effects
+        reporte["side_effects"] = [
+            name for name in SIDE_EFFECTS.keys()
+            if name == target_state_name
+        ]
+
+        # 8. Historial reciente
+        reporte["historial_reciente"] = self._obtener_historial_reciente(instance)
+
+        return reporte
+
+    def _obtener_historial_reciente(self, instance: "models.Model") -> list[dict]:
+        """Retorna últimos seguimientos de la instancia."""
+        from sinpapel.models import SeguimientoWorkflow
+        try:
+            seguimientos = SeguimientoWorkflow.objects.filter(
+                target=instance
+            ).order_by("-fecha_accion")[:5]
+            return [
+                {
+                    "fecha": seg.fecha_accion.isoformat(),
+                    "transicion": f"{seg.estado_anterior.nombre if seg.estado_anterior else 'Nuevo'} → {seg.estado_nuevo.nombre}",
+                    "usuario": seg.usuario_accion.username if seg.usuario_accion else None,
+                    "comentarios": seg.comentarios,
+                }
+                for seg in seguimientos
+            ]
+        except Exception:
+            return []
 
     def puede_cambiar_estado(
         self,
@@ -193,37 +259,9 @@ class WorkflowEngine:
         Returns:
             (puede: bool, mensaje: str | None)
         """
-        config = self._get_config(instance)
-        estado_actual = getattr(instance, config.state_field, None)
-        if estado_actual is None:
-            return False, "Instance has no current state"
-
-        estado_destino, error = self._validar_estado_destino(target_state_name)
-        if error:
-            return False, error
-
-        flujo = self._resolve_flujo(instance, config)
-        config_transicion, error = self._validar_configuracion_transicion(
-            estado_actual, estado_destino, flujo
-        )
-        if error:
-            return False, error
-
-        if user.is_superuser:
-            return True, "OK"
-
-        documentos_faltantes = self._validar_documentos(instance, estado_actual)
-        if documentos_faltantes:
-            return False, documentos_faltantes[0]["mensaje"]
-
-        permisos_ok, error = self._validar_grupos_permitidos(config_transicion, user)
-        if not permisos_ok:
-            return False, error
-
-        predicados_fallidos = self._validar_predicados(config_transicion, instance, user)
-        if predicados_fallidos:
-            return False, predicados_fallidos[0]["mensaje"]
-
+        preview = self.preview_transition(instance, target_state_name, user)
+        if not preview["permitido"]:
+            return False, preview["razones_bloqueo"][0]["mensaje"]
         return True, "OK"
 
     def available_transitions(
