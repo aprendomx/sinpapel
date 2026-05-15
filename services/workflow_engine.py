@@ -26,10 +26,12 @@ from sinpapel.cache import (
     get_transitions_for,
 )
 from sinpapel.models import (
+    CondicionTransicion,
     ConfiguracionTransicion,
     Estado,
     SeguimientoWorkflow,
 )
+from sinpapel.services.predicate_engine import PredicateEngine
 from sinpapel.services.side_effects import ejecutar_side_effects
 
 if TYPE_CHECKING:
@@ -42,6 +44,204 @@ if TYPE_CHECKING:
 
 class WorkflowEngine:
     """Motor genérico de transiciones de workflow."""
+
+    def _validar_estado_destino(self, target_state_name: str):
+        """Valida que el estado destino existe."""
+        from sinpapel.cache import get_estado_by_name
+        estado_destino = get_estado_by_name(target_state_name)
+        if estado_destino is None:
+            return None, f"Estado destino '{target_state_name}' no existe"
+        return estado_destino, None
+
+    def _validar_configuracion_transicion(
+        self, estado_actual, estado_destino, flujo
+    ):
+        """Busca la configuración de transición."""
+        from sinpapel.models import ConfiguracionTransicion
+        qs = ConfiguracionTransicion.objects.filter(
+            estado_origen=estado_actual,
+            estado_destino=estado_destino,
+        )
+        if flujo is not None:
+            qs = qs.filter(flujo=flujo)
+        config_transicion = qs.first()
+        if config_transicion is None:
+            return None, (
+                f"No se puede cambiar de '{estado_actual.nombre}' a "
+                f"'{estado_destino.nombre}'"
+            )
+        return config_transicion, None
+
+    def _validar_grupos_permitidos(self, config_transicion, user):
+        """Valida que el usuario tiene permisos."""
+        if user.is_superuser:
+            return True, None
+        grupos_requeridos = list(
+            config_transicion.grupos_permitidos.values_list("name", flat=True)
+        )
+        if grupos_requeridos:
+            grupos_user = list(user.groups.values_list("name", flat=True))
+            if not any(g in grupos_requeridos for g in grupos_user):
+                return False, "No tiene permisos para realizar esta acción"
+        return True, None
+
+    def _validar_documentos(self, instance, estado_actual):
+        """Verifica requisitos documentales. Retorna lista de faltantes."""
+        faltantes = []
+        if estado_actual.expediente_obligatorio:
+            expedientes = getattr(instance, "expedientes", None)
+            if expedientes is not None and not expedientes.exists():
+                faltantes.append({
+                    "tipo": "expediente",
+                    "mensaje": f"Se requiere adjuntar al menos un documento antes de avanzar desde '{estado_actual.nombre}'.",
+                })
+        return faltantes
+
+    def _validar_predicados(self, config_transicion, instance, user):
+        """Evalúa condiciones de transición. Retorna lista de fallidas."""
+        from sinpapel.models.predicates import CondicionTransicion
+        from sinpapel.services.predicate_engine import PredicateEngine
+
+        fallidas = []
+        condiciones = CondicionTransicion.objects.filter(
+            transicion=config_transicion,
+            activo=True,
+        ).order_by("orden")
+
+        for condicion in condiciones:
+            pasa, msg = PredicateEngine.evaluar(condicion, instance, user)
+            if not pasa:
+                fallidas.append({
+                    "condicion_id": condicion.id,
+                    "tipo": condicion.tipo,
+                    "mensaje": condicion.mensaje_error or msg,
+                })
+        return fallidas
+
+    def preview_transition(
+        self,
+        instance: "models.Model",
+        target_state_name: str,
+        user: "User",
+    ) -> dict[str, Any]:
+        """Simula una transición y retorna un reporte de impacto.
+
+        NO muta la instancia ni persiste nada.
+
+        Returns:
+            dict con keys: permitido, razones_bloqueo, side_effects,
+            documentos_faltantes, predicados_fallidos, aprobadores_requeridos,
+            historial_reciente
+        """
+        from sinpapel.services.side_effects import SIDE_EFFECTS
+        from sinpapel.models import SeguimientoWorkflow
+
+        config = self._get_config(instance)
+        estado_actual = getattr(instance, config.state_field, None)
+
+        reporte: dict[str, Any] = {
+            "permitido": True,
+            "razones_bloqueo": [],
+            "side_effects": [],
+            "documentos_faltantes": [],
+            "predicados_fallidos": [],
+            "aprobadores_requeridos": [],
+            "historial_reciente": [],
+        }
+
+        # 1. Validar estado actual
+        if estado_actual is None:
+            reporte["permitido"] = False
+            reporte["razones_bloqueo"].append({
+                "tipo": "estado",
+                "mensaje": "Instance has no current state",
+            })
+            return reporte
+
+        # 2. Validar estado destino
+        estado_destino, error = self._validar_estado_destino(target_state_name)
+        if error:
+            reporte["permitido"] = False
+            reporte["razones_bloqueo"].append({
+                "tipo": "estado",
+                "mensaje": error,
+            })
+            return reporte
+
+        # 3. Validar configuración de transición
+        flujo = self._resolve_flujo(instance, config)
+        config_transicion, error = self._validar_configuracion_transicion(
+            estado_actual, estado_destino, flujo
+        )
+        if error:
+            reporte["permitido"] = False
+            reporte["razones_bloqueo"].append({
+                "tipo": "transicion",
+                "mensaje": error,
+            })
+            return reporte
+
+        # 4. Documentos faltantes
+        documentos = self._validar_documentos(instance, estado_actual)
+        if documentos:
+            reporte["documentos_faltantes"] = documentos
+            reporte["permitido"] = False
+            for doc in documentos:
+                reporte["razones_bloqueo"].append({
+                    "tipo": "documento",
+                    "mensaje": doc["mensaje"],
+                })
+
+        # 5. Permisos (si no es superuser)
+        if not user.is_superuser:
+            permisos_ok, error = self._validar_grupos_permitidos(config_transicion, user)
+            if not permisos_ok:
+                reporte["permitido"] = False
+                reporte["razones_bloqueo"].append({
+                    "tipo": "permiso",
+                    "mensaje": error,
+                })
+
+        # 6. Predicados
+        predicados = self._validar_predicados(config_transicion, instance, user)
+        if predicados:
+            reporte["predicados_fallidos"] = predicados
+            reporte["permitido"] = False
+            for pred in predicados:
+                reporte["razones_bloqueo"].append({
+                    "tipo": "predicado",
+                    "mensaje": pred["mensaje"],
+                })
+
+        # 7. Side effects
+        reporte["side_effects"] = [
+            name for name in SIDE_EFFECTS.keys()
+            if name == target_state_name
+        ]
+
+        # 8. Historial reciente
+        reporte["historial_reciente"] = self._obtener_historial_reciente(instance)
+
+        return reporte
+
+    def _obtener_historial_reciente(self, instance: "models.Model") -> list[dict]:
+        """Retorna últimos seguimientos de la instancia."""
+        from sinpapel.models import SeguimientoWorkflow
+        try:
+            seguimientos = SeguimientoWorkflow.objects.filter(
+                target=instance
+            ).order_by("-fecha_accion")[:5]
+            return [
+                {
+                    "fecha": seg.fecha_accion.isoformat(),
+                    "transicion": f"{seg.estado_anterior.nombre if seg.estado_anterior else 'Nuevo'} → {seg.estado_nuevo.nombre}",
+                    "usuario": seg.usuario_accion.username if seg.usuario_accion else None,
+                    "comentarios": seg.comentarios,
+                }
+                for seg in seguimientos
+            ]
+        except Exception:
+            return []
 
     def puede_cambiar_estado(
         self,
@@ -59,56 +259,9 @@ class WorkflowEngine:
         Returns:
             (puede: bool, mensaje: str | None)
         """
-        config = self._get_config(instance)
-        estado_actual = getattr(instance, config.state_field, None)
-        if estado_actual is None:
-            return False, "Instance has no current state"
-
-        # 1. Validar que el Estado destino existe (S13.1: cache helper, D6)
-        estado_destino = get_estado_by_name(target_state_name)
-        if estado_destino is None:
-            return False, f"Estado destino '{target_state_name}' no existe"
-
-        # 2. Resolver flujo activo (puede ser None)
-        flujo = self._resolve_flujo(instance, config)
-
-        # 3. Validar transición contra ConfiguracionTransicion
-        qs = ConfiguracionTransicion.objects.filter(
-            estado_origen=estado_actual,
-            estado_destino=estado_destino,
-        )
-        if flujo is not None:
-            qs = qs.filter(flujo=flujo)
-
-        config_transicion = qs.first()
-        if config_transicion is None:
-            return False, (
-                f"No se puede cambiar de '{estado_actual.nombre}' a "
-                f"'{target_state_name}'"
-            )
-
-        # 4. Superuser bypass
-        if user.is_superuser:
-            return True, "OK"
-
-        # 5. Gate de expediente_obligatorio (si el modelo tiene .expedientes GenericRelation)
-        if estado_actual.expediente_obligatorio:
-            expedientes = getattr(instance, "expedientes", None)
-            if expedientes is not None and not expedientes.exists():
-                return False, (
-                    f"Se requiere adjuntar al menos un documento antes de "
-                    f"avanzar desde '{estado_actual.nombre}'."
-                )
-
-        # 6. Validar grupos permitidos (vacío = cualquier grupo puede)
-        grupos_requeridos = list(
-            config_transicion.grupos_permitidos.values_list("name", flat=True)
-        )
-        if grupos_requeridos:
-            grupos_user = list(user.groups.values_list("name", flat=True))
-            if not any(g in grupos_requeridos for g in grupos_user):
-                return False, "No tiene permisos para realizar esta acción"
-
+        preview = self.preview_transition(instance, target_state_name, user)
+        if not preview["permitido"]:
+            return False, preview["razones_bloqueo"][0]["mensaje"]
         return True, "OK"
 
     def available_transitions(

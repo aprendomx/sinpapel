@@ -8,43 +8,55 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from simple_history.models import HistoricalRecords
-from trazable.models import Catalogo, Trazable
+from sinpapel.mixins import Catalogo, Trazable
+
+
+class Etapa(Catalogo):
+    """Grupo de estados que representa una etapa del trámite."""
+
+    class Meta:
+        db_table = "sinpapel_etapa"
+        app_label = "sinpapel"
+        verbose_name = _("Etapa")
+        verbose_name_plural = _("Etapas")
+        ordering = ["orden"]
 
 
 class Estado(Catalogo):
     etapa = models.ForeignKey(
-        "creditos.EtapaTramite",  # cross-app: EtapaTramite vive en creditos
+        "sinpapel.Etapa",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
         related_name="estados",
-        verbose_name="Etapa",
+        verbose_name=_("Etapa"),
     )
     permite_expediente: models.BooleanField = models.BooleanField(
         default=False,
-        verbose_name="Permite expediente adjunto",
-        help_text="Indica si se pueden adjuntar documentos mientras el trámite está en este estado.",
+        verbose_name=_("Permite expediente adjunto"),
+        help_text=_("Indica si se pueden adjuntar documentos mientras el trámite está en este estado."),
     )
     expediente_obligatorio: models.BooleanField = models.BooleanField(
         default=False,
-        verbose_name="Expediente obligatorio",
-        help_text="Si es True, debe adjuntarse al menos un expediente antes de avanzar al siguiente estado.",
+        verbose_name=_("Expediente obligatorio"),
+        help_text=_("Si es True, debe adjuntarse al menos un expediente antes de avanzar al siguiente estado."),
     )
     icono: models.CharField = models.CharField(
         max_length=80,
         blank=True,
         default="circle",
-        verbose_name="Ícono (Material Design)",
-        help_text="Nombre del ícono de Material Design / Quasar (ej. check_circle, cancel).",
+        verbose_name=_("Ícono (Material Design)"),
+        help_text=_("Nombre del ícono de Material Design / Quasar (ej. check_circle, cancel)."),
     )
 
     class Meta:
-        db_table = "creditos_estado"
+        db_table = "sinpapel_estado"
         app_label = "sinpapel"
-        verbose_name = "Estado"
-        verbose_name_plural = "Estados"
+        verbose_name = _("Estado")
+        verbose_name_plural = _("Estados")
         ordering = ["orden"]
 
 
@@ -56,36 +68,36 @@ class VersionFlujo(models.Model):
     pueden ejecutarlas. Puede activarse o desactivarse globalmente (ADR-007).
     """
 
-    nombre: models.CharField = models.CharField(max_length=100, verbose_name="Nombre")
-    descripcion: models.TextField = models.TextField(blank=True, verbose_name="Descripción")
+    nombre: models.CharField = models.CharField(max_length=100, verbose_name=_("Nombre"))
+    descripcion: models.TextField = models.TextField(blank=True, verbose_name=_("Descripción"))
     activo: models.BooleanField = models.BooleanField(
         default=False,
-        verbose_name="Activo",
-        help_text="Desactivar retira el flujo de todos los productos asignados (fallback al dict).",
+        verbose_name=_("Activo"),
+        help_text=_("Desactivar retira el flujo de todos los productos asignados (fallback al dict)."),
     )
     metadatos: models.JSONField = models.JSONField(
         null=True,
         blank=True,
-        verbose_name="Metadatos",
-        help_text="Posiciones de nodos en el canvas: {positions: {estado_id: {x, y}}}",
+        verbose_name=_("Metadatos"),
+        help_text=_("Posiciones de nodos en el canvas: {positions: {estado_id: {x, y}}}"),
     )
-    creado: models.DateTimeField = models.DateTimeField(auto_now_add=True, verbose_name="Creado en")
+    creado: models.DateTimeField = models.DateTimeField(auto_now_add=True, verbose_name=_("Creado en"))
     creado_por: models.ForeignKey = models.ForeignKey(
         "auth.User",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
         related_name="+",
-        verbose_name="Creado por",
+        verbose_name=_("Creado por"),
     )
 
     history = HistoricalRecords()
 
     class Meta:
-        db_table = "creditos_versionflujo"
+        db_table = "sinpapel_versionflujo"
         app_label = "sinpapel"
-        verbose_name = "Versión de Flujo"
-        verbose_name_plural = "Versiones de Flujo"
+        verbose_name = _("Versión de Flujo")
+        verbose_name_plural = _("Versiones de Flujo")
 
     def __str__(self) -> str:
         estado = "activo" if self.activo else "inactivo"
@@ -105,35 +117,35 @@ class ConfiguracionTransicion(models.Model):
         VersionFlujo,
         on_delete=models.CASCADE,
         related_name="transiciones",
-        verbose_name="Versión de Flujo",
+        verbose_name=_("Versión de Flujo"),
     )
     estado_origen: models.ForeignKey = models.ForeignKey(
         Estado,
         on_delete=models.CASCADE,
         related_name="+",
-        verbose_name="Estado origen",
+        verbose_name=_("Estado origen"),
     )
     estado_destino: models.ForeignKey = models.ForeignKey(
         Estado,
         on_delete=models.CASCADE,
         related_name="+",
-        verbose_name="Estado destino",
+        verbose_name=_("Estado destino"),
     )
     grupos_permitidos: models.ManyToManyField = models.ManyToManyField(
         "auth.Group",
         blank=True,
-        verbose_name="Grupos permitidos",
-        help_text="Vacío = cualquier grupo puede ejecutar la transición.",
+        verbose_name=_("Grupos permitidos"),
+        help_text=_("Vacío = cualquier grupo puede ejecutar la transición."),
     )
 
     history = HistoricalRecords(m2m_fields=[grupos_permitidos])
 
     class Meta:
-        db_table = "creditos_configuraciontransicion"
+        db_table = "sinpapel_configuraciontransicion"
         app_label = "sinpapel"
         unique_together = [("flujo", "estado_origen", "estado_destino")]
-        verbose_name = "Transición"
-        verbose_name_plural = "Transiciones"
+        verbose_name = _("Transición")
+        verbose_name_plural = _("Transiciones")
 
     def __str__(self) -> str:
         return f"{self.estado_origen} → {self.estado_destino}"
@@ -152,9 +164,9 @@ class SeguimientoWorkflow(Trazable):
         ContentType,
         on_delete=models.CASCADE,
         related_name="+",
-        verbose_name="Tipo de entidad",
+        verbose_name=_("Tipo de entidad"),
     )
-    target_object_id = models.PositiveIntegerField(verbose_name="ID de entidad")
+    target_object_id = models.PositiveIntegerField(verbose_name=_("ID de entidad"))
     target = GenericForeignKey("target_content_type", "target_object_id")
 
     # Reverse access para ExpedienteAdjunto.event que apunta a SeguimientoWorkflow
@@ -168,7 +180,7 @@ class SeguimientoWorkflow(Trazable):
         Estado,
         on_delete=models.PROTECT,
         related_name="seguimientos_desde",
-        verbose_name="Estado Anterior",
+        verbose_name=_("Estado Anterior"),
         null=True,
         blank=True,
     )
@@ -177,29 +189,29 @@ class SeguimientoWorkflow(Trazable):
         Estado,
         on_delete=models.PROTECT,
         related_name="seguimientos_hacia",
-        verbose_name="Estado Nuevo",
+        verbose_name=_("Estado Nuevo"),
     )
 
     usuario_accion = models.ForeignKey(
         "auth.User",
         on_delete=models.PROTECT,
         related_name="acciones_solicitud",
-        verbose_name="Usuario que realizó la acción",
+        verbose_name=_("Usuario que realizó la acción"),
     )
 
-    fecha_accion = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Acción")
+    fecha_accion = models.DateTimeField(auto_now_add=True, verbose_name=_("Fecha de Acción"))
 
     comentarios = models.TextField(
-        verbose_name="Comentarios/Justificación",
-        help_text="Justificación de la decisión tomada",
+        verbose_name=_("Comentarios/Justificación"),
+        help_text=_("Justificación de la decisión tomada"),
     )
 
     documentos_adjuntos = models.JSONField(
         blank=True,
         null=True,
         default=list,
-        verbose_name="Documentos Adjuntos",
-        help_text="Lista de documentos asociados a esta acción",
+        verbose_name=_("Documentos Adjuntos"),
+        help_text=_("Lista de documentos asociados a esta acción"),
     )
 
     monto_aprobado = models.DecimalField(
@@ -207,18 +219,18 @@ class SeguimientoWorkflow(Trazable):
         decimal_places=2,
         null=True,
         blank=True,
-        verbose_name="Monto Aprobado",
-        help_text="Monto aprobado (puede diferir del solicitado)",
+        verbose_name=_("Monto Aprobado"),
+        help_text=_("Monto aprobado (puede diferir del solicitado)"),
     )
 
     condiciones = models.TextField(
         blank=True,
         null=True,
-        verbose_name="Condiciones",
-        help_text="Condiciones para la aprobación (si aplica)",
+        verbose_name=_("Condiciones"),
+        help_text=_("Condiciones para la aprobación (si aplica)"),
     )
 
-    ip_address = models.GenericIPAddressField(verbose_name="Dirección IP", null=True, blank=True)
+    ip_address = models.GenericIPAddressField(verbose_name=_("Dirección IP"), null=True, blank=True)
 
     firma_registro = models.OneToOneField(
         "sinpapel.RegistroFirma",
@@ -226,15 +238,15 @@ class SeguimientoWorkflow(Trazable):
         null=True,
         blank=True,
         related_name="seguimiento",
-        verbose_name="Registro de Firma",
-        help_text="Evidencia criptográfica de la firma electrónica (si se firmó)",
+        verbose_name=_("Registro de Firma"),
+        help_text=_("Evidencia criptográfica de la firma electrónica (si se firmó)"),
     )
 
     class Meta:
-        db_table = "creditos_seguimientoworkflow"
+        db_table = "sinpapel_seguimientoworkflow"
         app_label = "sinpapel"
-        verbose_name = "Seguimiento de Workflow"
-        verbose_name_plural = "Seguimientos de Workflow"
+        verbose_name = _("Seguimiento de Workflow")
+        verbose_name_plural = _("Seguimientos de Workflow")
         ordering = ["-fecha_accion"]
         indexes = [
             models.Index(
@@ -267,7 +279,7 @@ class RequisitoEstadoDocumento(Trazable):
     )
     porcentaje: models.IntegerField = models.IntegerField(
         default=100,
-        help_text="Porcentaje mínimo requerido (0-100)",
+        help_text=_("Porcentaje mínimo requerido (0-100)"),
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
     auto_carga: models.BooleanField = models.BooleanField(default=False)
@@ -275,11 +287,11 @@ class RequisitoEstadoDocumento(Trazable):
     history = HistoricalRecords()
 
     class Meta:
-        db_table = "creditos_requisitoestadodocumento"
+        db_table = "sinpapel_requisitoestadodocumento"
         app_label = "sinpapel"
         unique_together = [["estado", "tipo_documento"]]
-        verbose_name = "Requisito Estado-Documento"
-        verbose_name_plural = "Requisitos Estado-Documento"
+        verbose_name = _("Requisito Estado-Documento")
+        verbose_name_plural = _("Requisitos Estado-Documento")
 
     def __str__(self) -> str:
         return f"{self.estado.nombre} → {self.tipo_documento.nombre} ({self.porcentaje}%)"

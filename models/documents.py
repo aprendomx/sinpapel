@@ -6,18 +6,19 @@ extraídos desde creditos en S12.2/T2 preservando tablas SQL existentes.
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from django.db.models import TextField
 
 from simple_history.models import HistoricalRecords
-from trazable.models import Catalogo, Trazable
+from sinpapel.mixins import Catalogo, Trazable
 
 
 class TipoDocumento(Catalogo):
     class Meta:
-        db_table = "creditos_tipodocumento"
+        db_table = "sinpapel_tipodocumento"
         app_label = "sinpapel"
-        verbose_name = "Tipo de Documento"
-        verbose_name_plural = "Tipos de Documento"
+        verbose_name = _("Tipo de Documento")
+        verbose_name_plural = _("Tipos de Documento")
         ordering = ["id"]
 
 
@@ -34,21 +35,21 @@ class Documento(Catalogo):
         max_length=10,
         choices=[("DOCX", "Word"), ("PDF", "PDF")],
         default="DOCX",
-        verbose_name="Tipo de Plantilla",
+        verbose_name=_("Tipo de Plantilla"),
     )
     configuracion_overlay = models.JSONField(
         blank=True,
         null=True,
         default=dict,
-        verbose_name="Configuración de Overlay PDF",
-        help_text="Configuración de campos visibles y posiciones en el overlay PDF",
+        verbose_name=_("Configuración de Overlay PDF"),
+        help_text=_("Configuración de campos visibles y posiciones en el overlay PDF"),
     )
 
     class Meta:
-        db_table = "creditos_documento"
+        db_table = "sinpapel_documento"
         app_label = "sinpapel"
-        verbose_name = "Documento"
-        verbose_name_plural = "Documentos"
+        verbose_name = _("Documento")
+        verbose_name_plural = _("Documentos")
 
 
 class InstanciaDocumento(Trazable):
@@ -60,10 +61,10 @@ class InstanciaDocumento(Trazable):
         null=True,
         blank=True,
         related_name="+",
-        verbose_name="Tipo de entidad",
+        verbose_name=_("Tipo de entidad"),
     )
     target_object_id = models.PositiveIntegerField(
-        null=True, blank=True, verbose_name="ID de entidad"
+        null=True, blank=True, verbose_name=_("ID de entidad")
     )
     target = GenericForeignKey("target_content_type", "target_object_id")
 
@@ -77,10 +78,10 @@ class InstanciaDocumento(Trazable):
         null=True,
         blank=True,
         related_name="+",
-        verbose_name="Tipo de actor",
+        verbose_name=_("Tipo de actor"),
     )
     actor_object_id = models.PositiveIntegerField(
-        null=True, blank=True, verbose_name="ID de actor"
+        null=True, blank=True, verbose_name=_("ID de actor")
     )
     actor = GenericForeignKey("actor_content_type", "actor_object_id")
 
@@ -89,10 +90,10 @@ class InstanciaDocumento(Trazable):
     history = HistoricalRecords()
 
     class Meta:
-        db_table = "creditos_instanciadocumento"
+        db_table = "sinpapel_instanciadocumento"
         app_label = "sinpapel"
-        verbose_name = "Instancia de Documento"
-        verbose_name_plural = "Instancias de Documentos"
+        verbose_name = _("Instancia de Documento")
+        verbose_name_plural = _("Instancias de Documentos")
         indexes = [
             models.Index(fields=["target_content_type", "target_object_id"], name="inst_doc_target_idx"),
             models.Index(fields=["actor_content_type", "actor_object_id"], name="inst_doc_actor_idx"),
@@ -107,10 +108,10 @@ class RazonRechazoDocumento(Trazable):
     activa: models.BooleanField = models.BooleanField(default=True)
 
     class Meta:
-        db_table = "creditos_razonrechazodocumento"
+        db_table = "sinpapel_razonrechazodocumento"
         app_label = "sinpapel"
-        verbose_name = "Razón de Rechazo de Documento"
-        verbose_name_plural = "Razones de Rechazo de Documento"
+        verbose_name = _("Razón de Rechazo de Documento")
+        verbose_name_plural = _("Razones de Rechazo de Documento")
         ordering = ["clave"]
 
     def __str__(self) -> str:

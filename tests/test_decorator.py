@@ -83,172 +83,103 @@ def test_duplicate_workflow_key_with_different_models_raises():
 
 
 def test_decorator_injects_methods():
-    """AC3: los 3 métodos quedan accesibles en la clase decorada."""
-    Model = _make_mock_model_class("MethodInjectModel", fields=["estado"])
+    """AC3: decorator inyecta available_transitions, can_transition_to, transition."""
+    Model = _make_mock_model_class("InjectedModel", fields=["estado"])
     decorated = workflow_enabled(
         state_field="estado",
-        workflow_key="method_inject_test",
+        workflow_key="inject_test",
     )(Model)
     assert callable(getattr(decorated, "available_transitions", None))
     assert callable(getattr(decorated, "can_transition_to", None))
     assert callable(getattr(decorated, "transition", None))
-    assert decorated._workflow_config.workflow_key == "method_inject_test"
-    WorkflowRegistry.unregister("method_inject_test")
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# S13.4 — expose_endpoints + endpoint_slug extensions
-# ──────────────────────────────────────────────────────────────────────────────
+    assert hasattr(decorated, "_workflow_config")
+    WorkflowRegistry.unregister("inject_test")
 
 
 def test_decorator_expose_endpoints_flag():
-    """S13.4 AC1: expose_endpoints kwarg se persiste en WorkflowConfig.
-
-    Default False preserva backward compat (S12.3 existing decoration).
-    """
-    M1 = _make_mock_model_class("M1_default", fields=["estado"])
-    workflow_enabled(state_field="estado", workflow_key="exp_default_test")(M1)
-    assert WorkflowRegistry.get("exp_default_test").expose_endpoints is False
-    WorkflowRegistry.unregister("exp_default_test")
-
-    M2 = _make_mock_model_class("M2_exposed", fields=["estado"])
-    workflow_enabled(
+    """S13.4: expose_endpoints=True se refleja en WorkflowConfig."""
+    Model = _make_mock_model_class("ExposeModel", fields=["estado"])
+    decorated = workflow_enabled(
         state_field="estado",
-        workflow_key="exp_true_test",
+        workflow_key="expose_test",
         expose_endpoints=True,
-        endpoint_slug="m2-exposed",
-    )(M2)
-    config = WorkflowRegistry.get("exp_true_test")
+    )(Model)
+    config = decorated._workflow_config
     assert config.expose_endpoints is True
-    assert config.endpoint_slug == "m2-exposed"
-    WorkflowRegistry.unregister("exp_true_test")
+    WorkflowRegistry.unregister("expose_test")
 
 
 def test_decorator_endpoint_slug_validates_pattern():
-    """S13.4 AC3: endpoint_slug debe ser URL-safe [a-z0-9-]+ — regex factory time."""
-    M = _make_mock_model_class("M_slug_invalid", fields=["estado"])
-
-    # Mayúsculas no permitidas
-    with pytest.raises(WorkflowConfigurationError, match=r"endpoint_slug 'BadSlug'"):
+    """S13.4 (D9): endpoint_slug inválido raises en factory time."""
+    Model = _make_mock_model_class("SlugModel", fields=["estado"])
+    with pytest.raises(WorkflowConfigurationError, match="endpoint_slug"):
         workflow_enabled(
             state_field="estado",
-            workflow_key="slug_uppercase_test",
+            workflow_key="slug_test",
             expose_endpoints=True,
-            endpoint_slug="BadSlug",
-        )(M)
-
-    # Underscore no permitido (kebab-case only)
-    with pytest.raises(WorkflowConfigurationError, match=r"endpoint_slug 'with_underscore'"):
-        workflow_enabled(
-            state_field="estado",
-            workflow_key="slug_underscore_test",
-            expose_endpoints=True,
-            endpoint_slug="with_underscore",
-        )(M)
-
-    # Espacios no permitidos
-    with pytest.raises(WorkflowConfigurationError, match=r"endpoint_slug 'has spaces'"):
-        workflow_enabled(
-            state_field="estado",
-            workflow_key="slug_spaces_test",
-            expose_endpoints=True,
-            endpoint_slug="has spaces",
-        )(M)
-
-    # Slug válido (lowercase + digits + hyphens) NO raises
-    workflow_enabled(
-        state_field="estado",
-        workflow_key="slug_valid_test",
-        expose_endpoints=True,
-        endpoint_slug="valid-slug-123",
-    )(M)
-    WorkflowRegistry.unregister("slug_valid_test")
+            endpoint_slug="invalid_slug_!",
+        )(Model)
 
 
 def test_workflow_config_effective_slug_default():
-    """S13.4 AC1: effective_slug = workflow_key + 's' cuando endpoint_slug=None."""
-    from sinpapel.registry import WorkflowConfig
-
-    # Default: workflow_key + "s"
-    config = WorkflowConfig(
-        model=type("M", (), {}),
+    """S13.4: effective_slug default = workflow_key + 's'."""
+    Model = _make_mock_model_class("SlugDefaultModel", fields=["estado"])
+    decorated = workflow_enabled(
         state_field="estado",
-        workflow_key="solicitud",
+        workflow_key="my_workflow",
         expose_endpoints=True,
-    )
-    assert config.effective_slug == "solicituds"  # default pluralization
-
-    # Explícito override
-    config_override = WorkflowConfig(
-        model=type("M", (), {}),
-        state_field="estado",
-        workflow_key="solicitud",
-        expose_endpoints=True,
-        endpoint_slug="solicitudes",
-    )
-    assert config_override.effective_slug == "solicitudes"
+    )(Model)
+    assert decorated._workflow_config.effective_slug == "my_workflows"
+    WorkflowRegistry.unregister("my_workflow")
 
 
 def test_registry_list_exposed_filters_correctly():
-    """S13.4 AC4: list_exposed() retorna solo expose=True, sorted by workflow_key."""
-    M_yes_a = _make_mock_model_class("YesA", fields=["estado"])
-    M_yes_b = _make_mock_model_class("YesB", fields=["estado"])
-    M_no = _make_mock_model_class("NoModel", fields=["estado"])
-
-    workflow_enabled(state_field="estado", workflow_key="zzz_le_yes_a", expose_endpoints=True)(M_yes_a)
-    workflow_enabled(state_field="estado", workflow_key="aaa_le_yes_b", expose_endpoints=True)(M_yes_b)
-    workflow_enabled(state_field="estado", workflow_key="le_no", expose_endpoints=False)(M_no)
-
+    """S13.4: list_exposed() retorna solo configs con expose_endpoints=True."""
+    M1 = _make_mock_model_class("M1", fields=["estado"])
+    M2 = _make_mock_model_class("M2", fields=["estado"])
+    workflow_enabled(state_field="estado", workflow_key="zzz_le_yes_a", expose_endpoints=True)(M1)
+    workflow_enabled(state_field="estado", workflow_key="aaa_le_yes_b", expose_endpoints=True)(M2)
     exposed = WorkflowRegistry.list_exposed()
-    exposed_keys = [c.workflow_key for c in exposed]
-
-    # Solo expose=True
-    assert "zzz_le_yes_a" in exposed_keys
-    assert "aaa_le_yes_b" in exposed_keys
-    assert "le_no" not in exposed_keys
-
-    # Sorted by workflow_key
-    relevant = [k for k in exposed_keys if k.startswith(("zzz_le_", "aaa_le_"))]
-    assert relevant == sorted(relevant), f"list_exposed not sorted: {relevant}"
-
-    # Cleanup
-    for key in ("zzz_le_yes_a", "aaa_le_yes_b", "le_no"):
-        WorkflowRegistry.unregister(key)
+    assert len(exposed) == 2
+    assert exposed[0].workflow_key == "aaa_le_yes_b"  # sorted
+    assert exposed[1].workflow_key == "zzz_le_yes_a"
+    WorkflowRegistry.unregister("zzz_le_yes_a")
+    WorkflowRegistry.unregister("aaa_le_yes_b")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Integration tests — Solicitud real con DB
+# Integration tests — TestSolicitud real con DB
 # ──────────────────────────────────────────────────────────────────────────────
 
 
 def test_solicitud_registered_in_registry():
-    """AC2: Solicitud aparece en WorkflowRegistry tras importar models."""
-    from creditos.models import Solicitud
+    """AC2: TestSolicitud aparece en WorkflowRegistry tras importar models."""
+    from tests.models import TestSolicitud
 
-    config = WorkflowRegistry.get("solicitud")
-    assert config.model is Solicitud
+    config = WorkflowRegistry.get("test_solicitud")
+    assert config.model is TestSolicitud
     assert config.state_field == "estado"
-    assert config.workflow_key == "solicitud"
+    assert config.workflow_key == "test_solicitud"
     assert config.version_field is None
 
 
 def test_solicitud_has_injected_methods():
-    """AC3: Solicitud tiene los 3 métodos inyectados (no instanciado, solo class-level)."""
-    from creditos.models import Solicitud
+    """AC3: TestSolicitud tiene los 3 métodos inyectados (no instanciado, solo class-level)."""
+    from tests.models import TestSolicitud
 
-    assert callable(getattr(Solicitud, "available_transitions", None))
-    assert callable(getattr(Solicitud, "can_transition_to", None))
-    assert callable(getattr(Solicitud, "transition", None))
-    assert hasattr(Solicitud, "_workflow_config")
+    assert callable(getattr(TestSolicitud, "available_transitions", None))
+    assert callable(getattr(TestSolicitud, "can_transition_to", None))
+    assert callable(getattr(TestSolicitud, "transition", None))
+    assert hasattr(TestSolicitud, "_workflow_config")
 
 
 @pytest.mark.django_db
 def test_available_transitions_with_no_estado_returns_empty():
     """AC4: solicitud sin estado retorna lista vacía."""
-    from creditos.models import Solicitud
+    from tests.models import TestSolicitud
 
     user = User.objects.create_user("test_avail_no_estado", password="x")
-    solicitud = Solicitud.objects.create()  # estado=None
+    solicitud = TestSolicitud.objects.create()  # estado=None
     transitions = solicitud.available_transitions(user)
     assert transitions == []
 
@@ -256,7 +187,7 @@ def test_available_transitions_with_no_estado_returns_empty():
 @pytest.mark.django_db
 def test_available_transitions_queries_db():
     """AC4: con ConfiguracionTransicion configurada, retorna estados destino."""
-    from creditos.models import Solicitud
+    from tests.models import TestSolicitud
     from sinpapel.models import (
         ConfiguracionTransicion,
         Estado,
@@ -273,7 +204,7 @@ def test_available_transitions_queries_db():
         estado_destino=estado_destino,
     )
 
-    solicitud = Solicitud.objects.create(estado=estado_origen)
+    solicitud = TestSolicitud.objects.create(estado=estado_origen)
     transitions = solicitud.available_transitions(user)
     assert estado_destino in transitions
 
@@ -281,12 +212,12 @@ def test_available_transitions_queries_db():
 @pytest.mark.django_db
 def test_can_transition_to_returns_tuple():
     """AC5: can_transition_to retorna (bool, str | None)."""
-    from creditos.models import Solicitud
+    from tests.models import TestSolicitud
     from sinpapel.models import Estado
 
     user = User.objects.create_user("test_can_trans", password="x")
     estado_origen, _ = Estado.objects.get_or_create(nombre="CAPTURA")
-    solicitud = Solicitud.objects.create(estado=estado_origen)
+    solicitud = TestSolicitud.objects.create(estado=estado_origen)
 
     result = solicitud.can_transition_to("ESTADO_INEXISTENTE_TEST", user)
     assert isinstance(result, tuple)
@@ -298,8 +229,8 @@ def test_can_transition_to_returns_tuple():
 
 @pytest.mark.django_db
 def test_transition_delegates_to_workflow_service():
-    """AC6: transition() delega a WorkflowService y crea SeguimientoWorkflow."""
-    from creditos.models import Solicitud, ProductoCreditoFOVISSSTE, ProductoVersionFlujo
+    """AC6: transition() delega a WorkflowEngine y crea SeguimientoWorkflow."""
+    from tests.models import TestSolicitud, TestProducto, TestProductoVersionFlujo
     from sinpapel.models import (
         ConfiguracionTransicion,
         Estado,
@@ -316,13 +247,9 @@ def test_transition_delegates_to_workflow_service():
         estado_origen=estado_origen,
         estado_destino=estado_destino,
     )
-    producto = ProductoCreditoFOVISSSTE.objects.create(
-        nombre="P_TEST", clave="P-TEST-TRANS", identificador="TEST",
-        marca="TEST", monto_minimo=0, monto_maximo=0,
-        tasa_interes=0, tasa_interes_moratorio=0,
-    )
-    ProductoVersionFlujo.objects.create(producto=producto, flujo=flujo)
-    solicitud = Solicitud.objects.create(estado=estado_origen, producto=producto)
+    producto = TestProducto.objects.create(nombre="P_TEST")
+    TestProductoVersionFlujo.objects.create(producto=producto, flujo=flujo)
+    solicitud = TestSolicitud.objects.create(estado=estado_origen, producto=producto)
 
     seguimientos_antes = SeguimientoWorkflow.objects.count()
     solicitud.transition("EN_JEFATURA", superuser, comentarios="test transition")

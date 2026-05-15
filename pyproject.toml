@@ -1,9 +1,9 @@
 [project]
 name = "sinpapel"
-version = "0.1.1"
+version = "0.2.0"
 description = "Workflow + audit trail + digital signature engine for Django (extraído desde creditos/E12)"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [
     { name = "Julio Adrián", email = "jadrian.s@gmail.com" },
@@ -17,6 +17,9 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -24,8 +27,6 @@ dependencies = [
     "Django>=5.0",
     "django-simple-history>=3.5",
     "cryptography>=42.0",
-    # trazable: instalar separadamente vía git URL hasta que se publique a PyPI
-    # Ejemplo: pip install git+ssh://git@github.com/<owner>/trazable.git@v0.1.0
 ]
 
 [project.optional-dependencies]
@@ -51,6 +52,7 @@ packages = [
     "sinpapel.management",
     "sinpapel.management.commands",
     "sinpapel.migrations",
+    "sinpapel.mixins",
     "sinpapel.models",
     "sinpapel.schemas",
     "sinpapel.services",
@@ -63,6 +65,7 @@ sinpapel = "."
 "sinpapel.management" = "management"
 "sinpapel.management.commands" = "management/commands"
 "sinpapel.migrations" = "migrations"
+"sinpapel.mixins" = "."
 "sinpapel.models" = "models"
 "sinpapel.schemas" = "schemas"
 "sinpapel.services" = "services"

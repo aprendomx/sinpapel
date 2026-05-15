@@ -1,4 +1,4 @@
-"""Tests integration para WorkflowEngine con Solicitud real + DB."""
+"""Tests integration para WorkflowEngine con modelos de prueba + DB."""
 from __future__ import annotations
 
 import pytest
@@ -7,19 +7,20 @@ from django.contrib.auth.models import Group, User
 from sinpapel.services.workflow_engine import WorkflowEngine
 
 
+def test_preview_transition_exists():
+    """WorkflowEngine has preview_transition method."""
+    assert hasattr(WorkflowEngine, "preview_transition")
+
+
 @pytest.fixture
 def setup_engine_basico(db):
-    """Crea Estado, VersionFlujo, ConfiguracionTransicion, Producto, Solicitud."""
-    from creditos.models import (
-        ProductoCreditoFOVISSSTE,
-        ProductoVersionFlujo,
-        Solicitud,
-    )
+    """Crea Estado, VersionFlujo, ConfiguracionTransicion, TestProducto, TestSolicitud."""
     from sinpapel.models import (
         ConfiguracionTransicion,
         Estado,
         VersionFlujo,
     )
+    from tests.models import TestProducto, TestProductoVersionFlujo, TestSolicitud
 
     estado_origen, _ = Estado.objects.get_or_create(nombre="ENG_ORIGEN")
     estado_destino, _ = Estado.objects.get_or_create(nombre="ENG_DESTINO")
@@ -29,18 +30,9 @@ def setup_engine_basico(db):
         estado_origen=estado_origen,
         estado_destino=estado_destino,
     )
-    producto = ProductoCreditoFOVISSSTE.objects.create(
-        nombre="ENG_P",
-        clave="ENG-P",
-        identificador="X",
-        marca="X",
-        monto_minimo=0,
-        monto_maximo=0,
-        tasa_interes=0,
-        tasa_interes_moratorio=0,
-    )
-    ProductoVersionFlujo.objects.create(producto=producto, flujo=flujo)
-    solicitud = Solicitud.objects.create(estado=estado_origen, producto=producto)
+    producto = TestProducto.objects.create(nombre="ENG_P", flujo=flujo)
+    TestProductoVersionFlujo.objects.create(producto=producto, flujo=flujo)
+    solicitud = TestSolicitud.objects.create(estado=estado_origen, producto=producto, folio="ENG-001")
     return {
         "solicitud": solicitud,
         "estado_origen": estado_origen,
@@ -53,7 +45,6 @@ def setup_engine_basico(db):
 
 @pytest.mark.django_db
 def test_engine_puede_cambiar_estado_valid_transition(setup_engine_basico):
-    """AC2: superuser bypass + transición válida retorna (True, 'OK')."""
     superuser = User.objects.create_superuser("eng_super_valid", password="x")
     puede, msg = WorkflowEngine().puede_cambiar_estado(
         setup_engine_basico["solicitud"],
@@ -66,7 +57,6 @@ def test_engine_puede_cambiar_estado_valid_transition(setup_engine_basico):
 
 @pytest.mark.django_db
 def test_engine_puede_cambiar_estado_invalid_transition(setup_engine_basico):
-    """Transición no configurada en DB retorna (False, mensaje)."""
     superuser = User.objects.create_superuser("eng_super_invalid", password="x")
     puede, msg = WorkflowEngine().puede_cambiar_estado(
         setup_engine_basico["solicitud"],
@@ -79,7 +69,6 @@ def test_engine_puede_cambiar_estado_invalid_transition(setup_engine_basico):
 
 @pytest.mark.django_db
 def test_engine_cambiar_estado_creates_seguimiento(setup_engine_basico):
-    """AC1: cambiar_estado crea SeguimientoWorkflow + actualiza estado."""
     from sinpapel.models import SeguimientoWorkflow
 
     superuser = User.objects.create_superuser("eng_super_change", password="x")
@@ -103,7 +92,6 @@ def test_engine_cambiar_estado_creates_seguimiento(setup_engine_basico):
 
 @pytest.mark.django_db
 def test_engine_available_transitions_returns_list(setup_engine_basico):
-    """AC3: available_transitions retorna lista de Estado destino válidos."""
     user = User.objects.create_user("eng_avail", password="x")
     transitions = WorkflowEngine().available_transitions(
         setup_engine_basico["solicitud"],
@@ -114,7 +102,6 @@ def test_engine_available_transitions_returns_list(setup_engine_basico):
 
 @pytest.mark.django_db
 def test_engine_invalid_transition_raises_permission_error(setup_engine_basico):
-    """cambiar_estado a estado no permitido raises PermissionError."""
     superuser = User.objects.create_superuser("eng_super_raise", password="x")
     with pytest.raises(PermissionError):
         WorkflowEngine().cambiar_estado(
@@ -127,7 +114,6 @@ def test_engine_invalid_transition_raises_permission_error(setup_engine_basico):
 
 @pytest.mark.django_db
 def test_engine_resolves_flujo_via_resolve_workflow_version(setup_engine_basico):
-    """AC5: cuando version_field is None, engine usa instance.resolve_workflow_version()."""
     flujo = setup_engine_basico["solicitud"].resolve_workflow_version()
     assert flujo is not None
     assert flujo.nombre == "ENG_FLUJO"
@@ -135,7 +121,6 @@ def test_engine_resolves_flujo_via_resolve_workflow_version(setup_engine_basico)
 
 @pytest.mark.django_db
 def test_engine_validates_grupos_permitidos(setup_engine_basico):
-    """User sin grupo permitido es rechazado."""
     grupo_test = Group.objects.create(name="grupo_eng_test")
     setup_engine_basico["transicion"].grupos_permitidos.add(grupo_test)
 
@@ -151,7 +136,6 @@ def test_engine_validates_grupos_permitidos(setup_engine_basico):
 
 @pytest.mark.django_db
 def test_engine_grupos_permitidos_user_in_group_passes(setup_engine_basico):
-    """User con grupo permitido pasa la validación."""
     grupo_ok = Group.objects.create(name="grupo_eng_ok")
     setup_engine_basico["transicion"].grupos_permitidos.add(grupo_ok)
 
@@ -168,7 +152,6 @@ def test_engine_grupos_permitidos_user_in_group_passes(setup_engine_basico):
 
 @pytest.mark.django_db
 def test_engine_dispatches_side_effects(setup_engine_basico):
-    """AC4 + side_effects: dispatch se llama tras el cambio de estado."""
     from sinpapel.services.side_effects import SIDE_EFFECTS
 
     invocations: list[dict] = []
@@ -201,7 +184,6 @@ def test_engine_dispatches_side_effects(setup_engine_basico):
 
 @pytest.mark.django_db
 def test_engine_atomic_transaction(setup_engine_basico):
-    """cambiar_estado es atómico — si side_effect falla, transición ya commiteó (ADR-004)."""
     from sinpapel.models import SeguimientoWorkflow
     from sinpapel.services.side_effects import SIDE_EFFECTS
 
@@ -213,7 +195,6 @@ def test_engine_atomic_transaction(setup_engine_basico):
         superuser = User.objects.create_superuser("eng_atom", password="x")
         seguimientos_antes = SeguimientoWorkflow.objects.count()
 
-        # No debe levantar — ADR-004: errors loggeados, no re-raised
         result = WorkflowEngine().cambiar_estado(
             instance=setup_engine_basico["solicitud"],
             target_state_name="ENG_DESTINO",
@@ -221,24 +202,16 @@ def test_engine_atomic_transaction(setup_engine_basico):
             comentarios="atomic test",
         )
 
-        # Estado SI cambió + Seguimiento creado (transición commitea antes del side_effect)
         setup_engine_basico["solicitud"].refresh_from_db()
         assert setup_engine_basico["solicitud"].estado.nombre == "ENG_DESTINO"
         assert SeguimientoWorkflow.objects.count() == seguimientos_antes + 1
-        # side_effect reportó error
         assert result.get("error") is True
     finally:
         del SIDE_EFFECTS["ENG_DESTINO"]
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# S13.6 T1 — firma_payload dual shape (modo A verify-fields O modo B registro_firma_id)
-# ─────────────────────────────────────────────────────────────────────────────
-
-
 @pytest.mark.django_db
 def test_engine_accepts_pre_created_registro_firma(setup_engine_basico):
-    """S13.6 T1 — modo B: viewset firma antes y pasa registro_firma_id pre-creado."""
     from sinpapel.models import RegistroFirma, SeguimientoWorkflow
     import datetime
 
@@ -270,10 +243,6 @@ def test_engine_accepts_pre_created_registro_firma(setup_engine_basico):
 
 @pytest.mark.django_db
 def test_engine_modo_a_verify_fields_uses_fiel_backend(setup_engine_basico, monkeypatch):
-    """S13.6 T1 — modo A: dict con verify-fields invoca FielBackend.request_signature.
-
-    No re-implementa el broken FirmaService import — usa FielBackend directamente.
-    """
     from sinpapel.models import RegistroFirma
     from sinpapel.signing.backends import fiel as fiel_module
 
@@ -313,3 +282,60 @@ def test_engine_modo_a_verify_fields_uses_fiel_backend(setup_engine_basico, monk
     assert captured["certificado_cer_b64"] == "ZmFrZWNlcnQ="
     assert captured["content"] == b"canonical content"
     assert captured["signer"] == superuser
+
+
+@pytest.mark.django_db
+def test_preview_transition_permitido():
+    """Preview returns permitido=True when all validations pass."""
+    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
+    from tests.models import TestSolicitud
+
+    estado = Estado.objects.create(nombre="PREV_OK", activo=True)
+    flujo = VersionFlujo.objects.create(nombre="PREV_F", activo=True)
+    ConfiguracionTransicion.objects.create(
+        flujo=flujo, estado_origen=estado, estado_destino=estado
+    )
+    solicitud = TestSolicitud.objects.create(folio="PREV-001", estado=estado)
+    user = User.objects.create_superuser("prev_ok", password="x")
+
+    preview = WorkflowEngine().preview_transition(solicitud, "PREV_OK", user)
+    assert preview["permitido"] is True
+    assert preview["razones_bloqueo"] == []
+
+
+@pytest.mark.django_db
+def test_preview_transition_bloqueado_permiso():
+    """Preview returns permitido=False with permission error."""
+    from django.contrib.auth.models import Group
+    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
+    from tests.models import TestSolicitud
+
+    estado_origen = Estado.objects.create(nombre="PREV_ORIG", activo=True)
+    estado_destino = Estado.objects.create(nombre="PREV_DEST", activo=True)
+    flujo = VersionFlujo.objects.create(nombre="PREV_F2", activo=True)
+    ct = ConfiguracionTransicion.objects.create(
+        flujo=flujo, estado_origen=estado_origen, estado_destino=estado_destino
+    )
+    g_req = Group.objects.create(name="PREV_REQ")
+    ct.grupos_permitidos.add(g_req)
+    solicitud = TestSolicitud.objects.create(folio="PREV-002", estado=estado_origen)
+    user = User.objects.create_user("prev_no", password="x")
+
+    preview = WorkflowEngine().preview_transition(solicitud, "PREV_DEST", user)
+    assert preview["permitido"] is False
+    assert any(r["tipo"] == "permiso" for r in preview["razones_bloqueo"])
+
+
+@pytest.mark.django_db
+def test_preview_no_muta_instancia():
+    """Preview does not change instance state."""
+    from sinpapel.models import Estado
+    from tests.models import TestSolicitud
+
+    estado = Estado.objects.create(nombre="PREV_MUTA", activo=True)
+    solicitud = TestSolicitud.objects.create(folio="PREV-003", estado=estado)
+    user = User.objects.create_superuser("prev_muta", password="x")
+
+    estado_before = solicitud.estado
+    WorkflowEngine().preview_transition(solicitud, "PREV_MUTA", user)
+    assert solicitud.estado == estado_before

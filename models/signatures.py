@@ -7,6 +7,7 @@ backend (backend_name + backend_metadata JSON) fue establecido en S12.1/T6.
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 
@@ -28,14 +29,14 @@ class RegistroFirma(models.Model):
     backend_name = models.CharField(
         max_length=50,
         default="fiel",
-        verbose_name="Backend",
-        help_text="Identificador del backend de firma (fiel, pades, docusign, manual, etc.)",
+        verbose_name=_("Backend"),
+        help_text=_("Identificador del backend de firma (fiel, pades, docusign, manual, etc.)"),
     )
     backend_metadata = models.JSONField(
         default=dict,
         blank=True,
-        verbose_name="Metadata del Backend",
-        help_text="Datos específicos del backend (FIEL: pkcs7, cert, rfc, serie; etc.)",
+        verbose_name=_("Metadata del Backend"),
+        help_text=_("Datos específicos del backend (FIEL: pkcs7, cert, rfc, serie; etc.)"),
     )
 
     signer = models.ForeignKey(
@@ -44,13 +45,13 @@ class RegistroFirma(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name="firmas",
-        verbose_name="Firmante (User)",
-        help_text="Usuario interno que firmó. NULL si la firma es externa.",
+        verbose_name=_("Firmante (User)"),
+        help_text=_("Usuario interno que firmó. NULL si la firma es externa."),
     )
     signer_display_name = models.CharField(
         max_length=255,
-        verbose_name="Nombre del Firmante",
-        help_text="Nombre del firmante para visualización (puede no coincidir con User.get_full_name).",
+        verbose_name=_("Nombre del Firmante"),
+        help_text=_("Nombre del firmante para visualización (puede no coincidir con User.get_full_name)."),
     )
 
     # Target opcional — algunos backends/casos vinculan la firma a una entidad específica
@@ -60,42 +61,42 @@ class RegistroFirma(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name="+",
-        verbose_name="Tipo de entidad firmada",
+        verbose_name=_("Tipo de entidad firmada"),
     )
     target_object_id = models.PositiveIntegerField(
-        null=True, blank=True, verbose_name="ID de entidad firmada"
+        null=True, blank=True, verbose_name=_("ID de entidad firmada")
     )
     target = GenericForeignKey("target_content_type", "target_object_id")
 
     content_hash = models.CharField(
         max_length=128,
-        verbose_name="Hash del contenido firmado",
-        help_text="SHA-256 hex del payload canónico firmado",
+        verbose_name=_("Hash del contenido firmado"),
+        help_text=_("SHA-256 hex del payload canónico firmado"),
     )
     is_required = models.BooleanField(
         default=False,
-        verbose_name="¿Firma requerida?",
-        help_text="True si la transición exigía firma obligatoria",
+        verbose_name=_("¿Firma requerida?"),
+        help_text=_("True si la transición exigía firma obligatoria"),
     )
     verification_result = models.CharField(
         max_length=10,
         choices=RESULTADO_CHOICES,
         default="PENDIENTE",
-        verbose_name="Resultado de validación",
+        verbose_name=_("Resultado de validación"),
     )
     signed_at = models.DateTimeField(
-        verbose_name="Timestamp de firma",
-        help_text="Momento en que se realizó la firma (según el cliente)",
+        verbose_name=_("Timestamp de firma"),
+        help_text=_("Momento en que se realizó la firma (según el cliente)"),
     )
 
     history = HistoricalRecords()
 
     class Meta:
         # Preserva tabla SQL existente — extracción a sinpapel sin data migration
-        db_table = "creditos_registrofirma"
+        db_table = "sinpapel_registrofirma"
         app_label = "sinpapel"
-        verbose_name = "Registro de Firma"
-        verbose_name_plural = "Registros de Firma"
+        verbose_name = _("Registro de Firma")
+        verbose_name_plural = _("Registros de Firma")
         indexes = [
             models.Index(fields=["target_content_type", "target_object_id"]),
             models.Index(fields=["signer", "-signed_at"]),
