@@ -8,6 +8,7 @@ from sinpapel.models.documents import (
 )
 from sinpapel.models.predicates import CondicionTransicion
 from sinpapel.models.signatures import RegistroFirma
+from sinpapel.models.sla import SLAConfiguracion
 from sinpapel.models.workflow import (
     ConfiguracionTransicion,
     Estado,
@@ -36,4 +37,6 @@ __all__ = [
     "ExpedienteAdjunto",
     # signatures
     "RegistroFirma",
+    # sla
+    "SLAConfiguracion",
 ]
