@@ -25,7 +25,7 @@ from django.db.models.signals import (
     post_save,
     pre_save,
 )
-from django.dispatch import receiver
+from django.dispatch import Signal, receiver
 
 from sinpapel.cache import _KEY_PREFIX, _cache_alias
 
@@ -185,3 +185,32 @@ def _connect_m2m_handler():
 
 
 _connect_m2m_handler()  # Conecta m2m post-import sinpapel.models
+
+
+# ─── Custom domain Signals (loose coupling for sinpapel-webhooks v0.2.0+) ─
+
+predicate_failed = Signal()
+"""Fired when a CondicionTransicion blocks a workflow transition.
+
+kwargs: target, condicion, user, target_state
+"""
+
+sla_breached = Signal()
+"""Fired when SLAEngine detects an instance exceeded dias_maximos.
+
+kwargs: target, sla, dias_transcurridos
+"""
+
+sla_action_executed = Signal()
+"""Fired after SLAEngine dispatches a configured _accion_* handler.
+
+kwargs: target, sla, accion, resultado
+"""
+
+transition_preview_requested = Signal()
+"""Fired at the end of WorkflowEngine.preview_transition.
+
+Opt-in via Django setting SINPAPEL_EMIT_PREVIEW_EVENTS=True (default False).
+
+kwargs: target, target_state, user, reporte
+"""
