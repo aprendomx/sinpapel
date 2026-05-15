@@ -1,8 +1,14 @@
-"""Sinpapel — Flow portability schema (S13.8).
+"""Sinpapel — Flow portability schema (S13.8 + v0.4 extensions).
 
 Schema v0.1: VersionFlujo + ConfiguracionTransicion + RequisitoEstadoDocumento
 serializados con FK externos por nombre (Estado/TipoDocumento/Group). PKs
 auto-regenerated en import — no preservación cross-environment.
+
+Schema v0.2 (S27.2): + inline catalogos (Estado, Etapa, Group, TipoDocumento)
+con metadatos.positions name-keyed.
+
+Schema v0.4 extensions: + CondicionTransicion en transitions, + SLAConfiguracion
+en estados. Ambos omitidos cuando están vacíos para backward-compat.
 
 Decisiones (ver s13.8-design.md §3):
 - D-schema-fields: solo fields que existen actualmente. firma_requerida,
@@ -38,7 +44,7 @@ SUPPORTED_SCHEMA_VERSIONS = frozenset({"0.1", "0.2"})
 
 
 def serialize_flujo(flujo: "VersionFlujo", *, inline_catalogs: bool = False) -> dict:
-    """Serializa VersionFlujo + transitions + requisitos.
+    """Serializa VersionFlujo + transitions + requisitos + condiciones + slas.
 
     Args:
         flujo: VersionFlujo a serializar.
@@ -52,6 +58,10 @@ def serialize_flujo(flujo: "VersionFlujo", *, inline_catalogs: bool = False) -> 
         dict serializable a JSON:
         - v0.1: {schema_version, exported_at, flujo: {...}}
         - v0.2: {schema_version, exported_at, catalogos: {...}, flujo: {...}}
+
+    v0.4 extensions (backward-compat):
+    - transitions incluyen 'condiciones' cuando existen (CondicionTransicion)
+    - estados en catalogos incluyen 'slas' cuando existen (SLAConfiguracion)
     """
     from sinpapel.models import RequisitoEstadoDocumento
 
@@ -312,7 +322,7 @@ def deserialize_flujo(
     activo: bool = False,
     create_catalogs: bool = True,
 ) -> "VersionFlujo | None":
-    """Crea VersionFlujo + transitions + requisitos atomicamente.
+    """Crea VersionFlujo + transitions + requisitos + condiciones + slas atomicamente.
 
     Args:
         data: dict en schema v0.1 o v0.2 (validate_schema_version).
@@ -328,6 +338,10 @@ def deserialize_flujo(
        Else: find_missing_entities → raise si algo missing
     3. ambiguity check (Catalogo.nombre NOT unique → reject si >1 match)
     4. duplicate flujo check (mismo nombre existing → reject)
+
+    v0.4 extensions:
+    - transitions con 'condiciones' crean CondicionTransicion vinculadas
+    - estados en catalogos con 'slas' crean SLAConfiguracion vinculadas
 
     Si dry_run=True → retorna None sin persistir.
     Si dry_run=False → crea entities y retorna VersionFlujo.
