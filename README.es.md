@@ -1,6 +1,6 @@
 # sinpapel
 
-> **v0.3.0-alpha** — Motor de workflow + auditoría + firma digital + captura de metadatos estructurados + predicados de transición + forms dinámicos para Django.
+> **v0.4.0-alpha** — Motor de workflow + auditoría + firma digital + captura de metadatos estructurados + predicados de transición + forms dinámicos + timers de estado / SLA + preview de transiciones para Django.
 >
 > Extraído de [creditos](https://github.com/jadrians/creditos) (E12). Diseñado para SEP, FONDESO, y cualquier proyecto Django que necesite **transiciones versionadas + auditoría inmutable + firmas electrónicas plugables + metadatos basados en schema** sin reinventar la rueda.
 >
@@ -23,11 +23,13 @@
 11. [Factory de Forms/Serializers](#11-factory-de-formsserializers)
 12. [Backends de Firma](#12-backends-de-firma)
 13. [Auditoría (Audit Trail)](#13-auditoría-audit-trail)
-14. [Efectos Secundarios (Side Effects)](#14-efectos-secundarios-side-effects)
-15. [Testing](#15-testing)
-16. [Referencia de API](#16-referencia-de-api)
-17. [Contribuir](#17-contribuir)
-18. [Licencia y Versionado](#18-licencia-y-versionado)
+14. [Timers de Estado / SLA](#14-timers-de-estado--sla)
+15. [Preview de Transición](#15-preview-de-transición)
+16. [Efectos Secundarios (Side Effects)](#16-efectos-secundarios-side-effects)
+17. [Testing](#17-testing)
+18. [Referencia de API](#18-referencia-de-api)
+19. [Contribuir](#19-contribuir)
+20. [Licencia y Versionado](#20-licencia-y-versionado)
 
 ---
 
@@ -61,6 +63,9 @@ Las transiciones, requisitos documentales, auditoría, firmas y metadatos son **
 | `MetaFormFactory` | Generación dinámica de Django Forms / DRF Serializers desde `SCHEMA_METADATOS` |
 | `CondicionTransicion` | Predicados configurables por transición con backends plugables (Python, JSON Logic, ORM) |
 | `PredicateEngine` | Motor extensible para evaluar reglas de negocio antes de transiciones de estado |
+| `SLAConfiguracion` | Límites de tiempo por estado con acciones configurables al vencer (notificar, escalar, rechazar, alertar) |
+| `SLAEngine` | Evalúa SLAs activos y ejecuta acciones para instancias vencidas |
+| `preview_transition()` | Simula una transición sin ejecutarla, retornando un reporte detallado de impacto |
 | `Trazable` / `Catalogo` | Mixins reutilizables para tracking de creación/actualización y modelos catálogo |
 | `RegistroFirma` | Registros de firma criptográfica con verificación agnóstica al backend |
 | `ExpedienteAdjunto` | Adjuntos de archivos genéricos con vinculación por content-type |
@@ -494,7 +499,7 @@ registro = backend.request_signature(
 
 ---
 
-## 11. Auditoría (Audit Trail)
+## 13. Auditoría (Audit Trail)
 
 Todos los cambios sobre 5 modelos clave (`RegistroFirma`, `InstanciaDocumento`, `ConfiguracionTransicion`, `VersionFlujo`, `RequisitoEstadoDocumento`) generan entradas automáticas en tablas `historical_*`.
 
@@ -526,7 +531,99 @@ for change in delta.changes:
 
 ---
 
-## 12. Efectos Secundarios (Side Effects)
+## 14. Timers de Estado / SLA
+
+Configura límites de tiempo por estado y acciones automáticas cuando las instancias los exceden. `SLAConfiguracion` se vincula a `Estado` y define `dias_maximos` más una acción a ejecutar al vencer.
+
+**Acciones:**
+
+| Acción | `accion_vencimiento` | Comportamiento |
+|--------|---------------------|---------------|
+| **Notificar** | `notificar` | Retorna destino de notificación (grupo, template) para que el caller la despache |
+| **Escalar** | `escalar` | Retorna estado destino para escalamiento automático |
+| **Rechazar** | `rechazar` | Retorna estado destino de rechazo |
+| **Alertar** | `alertar` | Activa un campo booleano en la instancia (ej. `alerta_sla=True`) |
+
+**Ejemplo:**
+
+```python
+from sinpapel.models import Estado
+from sinpapel.models.sla import SLAConfiguracion
+
+revision = Estado.objects.get(nombre="EN_REVISION")
+SLAConfiguracion.objects.create(
+    estado=revision,
+    dias_maximos=5,
+    accion_vencimiento="notificar",
+    configuracion_accion={"grupo_id": grupo_revisores.id, "template": "sla_vencido"},
+)
+```
+
+Evaluar SLAs para una instancia:
+
+```python
+from sinpapel.services.sla_engine import SLAEngine
+
+acciones = SLAEngine.evaluar_instancia(solicitud)
+# → [{"accion": "notificar", "grupo": "Revisores", "template": "sla_vencido"}]
+```
+
+Ejecutar el management command para verificar todos los SLAs activos:
+
+```bash
+python manage.py sinpapel_verificar_slas
+
+# Dry run (solo reporta, sin ejecutar acciones)
+python manage.py sinpapel_verificar_slas --dry-run
+```
+
+SLAs inactivos (`activo=False`) se omiten. El motor usa `instance.creado` como referencia de tiempo; si la instancia no tiene este campo, el SLA nunca se considera vencido.
+
+---
+
+## 15. Preview de Transición
+
+Simula una transición sin ejecutarla. `preview_transition()` retorna un reporte detallado de impacto que las capas de UI pueden usar para mostrar al usuario por qué una transición está bloqueada (o qué ocurrirá si procede).
+
+```python
+from sinpapel.services.workflow_engine import WorkflowEngine
+
+reporte = WorkflowEngine().preview_transition(
+    solicitud, "APROBADA", request.user
+)
+```
+
+**Estructura del reporte:**
+
+```python
+{
+    "permitido": False,
+    "razones_bloqueo": [
+        {"tipo": "permiso", "mensaje": "No tiene permisos para realizar esta acción"},
+        {"tipo": "predicado", "mensaje": "El monto debe ser al menos $100,000"},
+    ],
+    "documentos_faltantes": [],
+    "predicados_fallidos": [
+        {"condicion_id": 3, "tipo": "json_logic", "mensaje": "El monto debe ser al menos $100,000"},
+    ],
+    "side_effects": ["APROBADA"],  # efectos secundarios registrados para el estado destino
+    "aprobadores_requeridos": [],
+    "historial_reciente": [
+        {
+            "fecha": "2026-05-15T10:30:00+00:00",
+            "transicion": "CAPTURA → EN_REVISION",
+            "usuario": "analista1",
+            "comentarios": "Documentos completos",
+        },
+    ],
+}
+```
+
+El preview **nunca muta** la instancia. `puede_cambiar_estado()` delega internamente a `preview_transition()`, por lo que ambos métodos comparten la misma lógica de validación.
+
+---
+
+## 16. Efectos Secundarios (Side Effects)
 
 Asocia handlers a transiciones específicas via decorador. Los handlers se ejecutan **dentro** de la transacción atómica de `transition()`, después de persistir el `SeguimientoWorkflow`:
 
@@ -570,7 +667,7 @@ class TuAppConfig(AppConfig):
 
 ---
 
-## 13. Testing
+## 17. Testing
 
 ### Ejecutar el test suite de sinpapel
 
@@ -646,7 +743,7 @@ def test_history_user_populated(user):
 
 ---
 
-## 14. Referencia de API
+## 18. Referencia de API
 
 ### `@workflow_enabled(state_field, workflow_key, expose_endpoints=False)`
 
@@ -667,6 +764,7 @@ Servicio core para validación y ejecución de transiciones.
 - `puede_cambiar_estado(instance, nombre_estado_destino, user) → (bool, str | None)`
 - `cambiar_estado(instance, nombre_estado_destino, user, comentarios="", firma_payload=None) → dict`
 - `available_transitions(instance, user) → list[Estado]`
+- `preview_transition(instance, nombre_estado_destino, user) → dict` — simula transición, retorna reporte de impacto
 
 ### `CondicionTransicion`
 
@@ -695,6 +793,34 @@ Motor extensible para evaluar condiciones de transición.
 
 **Settings:**
 - `SINPAPEL_PREDICATE_MODULES: list[str]` — whitelist de módulos para el backend `python_path`
+
+### `SLAConfiguracion`
+
+Modelo de configuración SLA por estado.
+
+**Campos:**
+- `estado: ForeignKey[Estado]` — el estado al que aplica este SLA
+- `dias_maximos: int` — días máximos permitidos en este estado antes de ejecutar acción
+- `accion_vencimiento: str` — acción al vencer: `notificar`, `escalar`, `rechazar`, `alertar`
+- `configuracion_accion: JSONField` — parámetros específicos de la acción (ID de grupo, campo destino, etc.)
+- `activo: bool` — si este SLA es evaluado
+
+**Constraints:**
+- `unique_together = ("estado", "accion_vencimiento")`
+
+### `SLAEngine`
+
+Evalúa reglas SLA y ejecuta acciones configuradas.
+
+**Métodos de clase:**
+- `evaluar_instancia(instance) → list[dict]` — evalúa todos los SLAs activos para la instancia, retorna acciones ejecutadas
+- `verificar_todos() → dict[str, int]` — stub para evaluación batch sobre todos los modelos workflow-enabled
+
+**Acciones:**
+- `_accion_notificar` — retorna `{"accion": "notificar", "grupo": "...", "template": "..."}`
+- `_accion_escalar` — retorna `{"accion": "escalar", "estado_destino": "..."}`
+- `_accion_rechazar` — retorna `{"accion": "rechazar", "estado_destino": "..."}`
+- `_accion_alertar` — setea campo de instancia vía `setattr`, retorna `{"accion": "alertar", "campo": "...", "valor": ...}`
 
 ### `MetaFormFactory`
 
@@ -741,7 +867,7 @@ Proxy en runtime adjunto a `instance.meta`.
 
 ---
 
-## 15. Contribuir
+## 19. Contribuir
 
 Las contribuciones son bienvenidas. Por favor abre un issue antes de cambios grandes.
 
@@ -763,7 +889,7 @@ pytest tests/ -q
 
 ---
 
-## 16. Licencia y Versionado
+## 20. Licencia y Versionado
 
 **Licencia:** MIT (ver `LICENSE`). Uso comercial e institucional permitido. Sin garantía.
 
@@ -782,7 +908,8 @@ Cuando la API se estabilice (v1.0.0), el contrato será:
 
 - v0.2 — i18n vía `gettext_lazy`, `py.typed`, tablas `sinpapel_*`, modelo `Etapa`, tests standalone, mixin `MetadatosCapturables`. **(DONE)**
 - v0.3 — Predicados de Transición (`CondicionTransicion` + `PredicateEngine`), Factory de Forms/Serializers (`MetaFormFactory`), evaluador JSON Logic, backends de predicados plugables. **(DONE)**
-- v0.4 — Soporte para PAdES (firma PDF universal vía endesive) como adapter adicional.
+- v0.4 — Timers de Estado / SLA (`SLAConfiguracion` + `SLAEngine`), Preview de Transición (`preview_transition()`), export/import de SLA en schema v0.2+. **(DONE)**
+- v0.5 — Soporte para PAdES (firma PDF universal vía endesive) como adapter adicional.
 - v1.0 — API estable + publicación a PyPI pública (decisión final de nombre + licencia).
 
 **Reportar issues / proponer cambios:** [github.com/aprendomx/sinpapel/issues](https://github.com/aprendomx/sinpapel/issues)
