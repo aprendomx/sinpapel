@@ -114,7 +114,7 @@ class WorkflowEngine:
                 fallidas.append({
                     "condicion_id": condicion.id,
                     "tipo": condicion.tipo,
-                    "mensaje": msg or condicion.mensaje_error,
+                    "mensaje": condicion.mensaje_error or msg,
                 })
         return fallidas
 
