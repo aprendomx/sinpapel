@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from io import StringIO
 
 import pytest
 from django.contrib.auth.models import Group, User
+from django.core.management import call_command
 from django.utils import timezone
 
 from sinpapel.models import Estado, VersionFlujo
@@ -102,3 +104,35 @@ def test_sla_engine_inactive_ignored():
     instance = _crear_instancia_workflow(estado)
     result = SLAEngine.evaluar_instancia(instance)
     assert result == []
+
+
+@pytest.mark.django_db
+def test_management_command_verificar_slas():
+    """Command runs without errors and reports counts."""
+    estado = Estado.objects.create(nombre="CMD", activo=True)
+    SLAConfiguracion.objects.create(
+        estado=estado,
+        dias_maximos=0,
+        accion_vencimiento="alertar",
+        configuracion_accion={"campo": "alerta_sla", "valor": True},
+    )
+    out = StringIO()
+    call_command("sinpapel_verificar_slas", stdout=out)
+    output = out.getvalue()
+    assert "SLAs verificados" in output
+
+
+@pytest.mark.django_db
+def test_management_command_dry_run():
+    """Dry run reports but does not execute actions."""
+    estado = Estado.objects.create(nombre="DRY", activo=True)
+    SLAConfiguracion.objects.create(
+        estado=estado,
+        dias_maximos=0,
+        accion_vencimiento="alertar",
+        configuracion_accion={"campo": "alerta_sla", "valor": True},
+    )
+    out = StringIO()
+    call_command("sinpapel_verificar_slas", "--dry-run", stdout=out)
+    output = out.getvalue()
+    assert "DRY RUN" in output
