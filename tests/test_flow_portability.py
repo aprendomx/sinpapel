@@ -935,3 +935,134 @@ def test_ambiguous_estado_lookup_raises(catalog_setup, tmp_path):
     file_path = _export_to_tmp(catalog_setup, tmp_path, rename_to="FP_AMBIGUITY_TEST")
     with pytest.raises(CommandError, match="AMBIGUOUS"):
         call_command("sinpapel_import_flujo", str(file_path), stdout=StringIO())
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# T5 — Schema v0.2+ condiciones + slas (predicates + SLA)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_serialize_flujo_includes_condiciones(catalog_setup):
+    """Transiciones exportan condiciones cuando existen."""
+    from sinpapel.models.predicates import CondicionTransicion
+    from sinpapel.schemas.flujo_export import serialize_flujo
+
+    t1 = catalog_setup["flujo"].transiciones.first()
+    CondicionTransicion.objects.create(
+        transicion=t1,
+        tipo="json_logic",
+        configuracion={"rule": {"==": [{"var": "meta.monto"}, 1000]}},
+        mensaje_error="Monto debe ser 1000",
+        orden=1,
+        activo=True,
+    )
+
+    data = serialize_flujo(catalog_setup["flujo"])
+    transitions = data["flujo"]["transiciones"]
+    t_data = next(t for t in transitions if t["estado_origen"] == "FP_CAPTURA")
+    assert "condiciones" in t_data
+    assert len(t_data["condiciones"]) == 1
+    assert t_data["condiciones"][0]["tipo"] == "json_logic"
+    assert t_data["condiciones"][0]["mensaje_error"] == "Monto debe ser 1000"
+
+
+@pytest.mark.django_db
+def test_serialize_flujo_condiciones_empty_omitted(catalog_setup):
+    """Transiciones sin condiciones no incluyen key 'condiciones'."""
+    from sinpapel.schemas.flujo_export import serialize_flujo
+
+    data = serialize_flujo(catalog_setup["flujo"])
+    transitions = data["flujo"]["transiciones"]
+    for t in transitions:
+        assert "condiciones" not in t
+
+
+@pytest.mark.django_db
+def test_serialize_flujo_inline_catalogos_includes_slas(catalog_setup):
+    """v0.2 inline catalogos incluye SLAs en estados."""
+    from sinpapel.models.sla import SLAConfiguracion
+    from sinpapel.schemas.flujo_export import serialize_flujo
+
+    estado = catalog_setup["estados"]["orig"]
+    SLAConfiguracion.objects.create(
+        estado=estado,
+        dias_maximos=5,
+        accion_vencimiento="notificar",
+        configuracion_accion={"grupo_id": 1},
+        activo=True,
+    )
+
+    data = serialize_flujo(catalog_setup["flujo"], inline_catalogs=True)
+    estado_data = next(
+        e for e in data["catalogos"]["estados"] if e["nombre"] == "FP_CAPTURA"
+    )
+    assert "slas" in estado_data
+    assert len(estado_data["slas"]) == 1
+    assert estado_data["slas"][0]["dias_maximos"] == 5
+    assert estado_data["slas"][0]["accion_vencimiento"] == "notificar"
+
+
+@pytest.mark.django_db
+def test_serialize_flujo_slas_empty_omitted(catalog_setup):
+    """Estados sin SLAs no incluyen key 'slas'."""
+    from sinpapel.schemas.flujo_export import serialize_flujo
+
+    data = serialize_flujo(catalog_setup["flujo"], inline_catalogs=True)
+    for estado_data in data["catalogos"]["estados"]:
+        assert "slas" not in estado_data
+
+
+@pytest.mark.django_db
+def test_deserialize_flujo_creates_condiciones(catalog_setup, tmp_path):
+    """Import crea CondicionTransicion vinculadas a transitions."""
+    from sinpapel.models.predicates import CondicionTransicion
+    from sinpapel.schemas.flujo_export import deserialize_flujo, serialize_flujo
+
+    data = serialize_flujo(catalog_setup["flujo"])
+    # Add condiciones to a transition
+    for t in data["flujo"]["transiciones"]:
+        if t["estado_origen"] == "FP_CAPTURA":
+            t["condiciones"] = [{
+                "tipo": "python_path",
+                "configuracion": {"module": "tests.test_predicates", "callable": "dummy"},
+                "mensaje_error": "Test error",
+                "orden": 0,
+                "activo": True,
+            }]
+
+    data["flujo"]["nombre"] = "FP_CONDICIONES_TEST"
+    flujo = deserialize_flujo(data, dry_run=False, activo=False)
+
+    ct = flujo.transiciones.get(estado_origen__nombre="FP_CAPTURA")
+    assert ct.condiciones.count() == 1
+    cond = ct.condiciones.first()
+    assert cond.tipo == "python_path"
+    assert cond.mensaje_error == "Test error"
+
+
+@pytest.mark.django_db
+def test_deserialize_flujo_creates_slas_via_inline_catalogs(db, tmp_path):
+    """v0.2 import con inline catalogos crea SLAConfiguracion."""
+    from sinpapel.models import Estado
+    from sinpapel.models.sla import SLAConfiguracion
+    from sinpapel.schemas.flujo_export import deserialize_flujo
+
+    data = _v0_2_minimal_data(flujo_nombre="FP_SLA_TEST")
+    # Add SLA to estado in catalogos
+    for estado_data in data["catalogos"]["estados"]:
+        if estado_data["nombre"] == "EST_NUEVO_A":
+            estado_data["slas"] = [{
+                "dias_maximos": 3,
+                "accion_vencimiento": "alertar",
+                "configuracion_accion": {"campo": "alerta_sla"},
+                "activo": True,
+            }]
+
+    deserialize_flujo(data)
+
+    estado_a = Estado.objects.get(nombre="EST_NUEVO_A")
+    assert estado_a.slas.count() == 1
+    sla = estado_a.slas.first()
+    assert sla.dias_maximos == 3
+    assert sla.accion_vencimiento == "alertar"

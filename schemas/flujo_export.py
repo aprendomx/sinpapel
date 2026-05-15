@@ -55,19 +55,33 @@ def serialize_flujo(flujo: "VersionFlujo", *, inline_catalogs: bool = False) -> 
     """
     from sinpapel.models import RequisitoEstadoDocumento
 
-    transitions = [
-        {
+    transitions = []
+    for t in (
+        flujo.transiciones.all()
+        .select_related("estado_origen", "estado_destino")
+        .prefetch_related("grupos_permitidos", "condiciones")
+        .order_by("estado_origen__nombre", "estado_destino__nombre")
+    ):
+        t_data = {
             "estado_origen": t.estado_origen.nombre,
             "estado_destino": t.estado_destino.nombre,
             "grupos_permitidos": sorted(
                 t.grupos_permitidos.values_list("name", flat=True)
             ),
         }
-        for t in flujo.transiciones.all()
-        .select_related("estado_origen", "estado_destino")
-        .prefetch_related("grupos_permitidos")
-        .order_by("estado_origen__nombre", "estado_destino__nombre")
-    ]
+        condiciones = [
+            {
+                "tipo": c.tipo,
+                "configuracion": c.configuracion,
+                "mensaje_error": c.mensaje_error,
+                "orden": c.orden,
+                "activo": c.activo,
+            }
+            for c in t.condiciones.all().order_by("orden")
+        ]
+        if condiciones:
+            t_data["condiciones"] = condiciones
+        transitions.append(t_data)
 
     estados_ids = set()
     for t in flujo.transiciones.all().values("estado_origen_id", "estado_destino_id"):
@@ -172,11 +186,11 @@ def _serialize_catalogos(flujo: "VersionFlujo") -> dict:
 
     estados_data = []
     etapa_names: set[str] = set()
-    for e in estados_qs.order_by("nombre"):
+    for e in estados_qs.order_by("nombre").prefetch_related("slas"):
         etapa_nombre = e.etapa.nombre if e.etapa else None
         if etapa_nombre:
             etapa_names.add(etapa_nombre)
-        estados_data.append({
+        estado_data: dict = {
             "nombre": e.nombre,
             "color": e.color,
             "icono": e.icono,
@@ -186,7 +200,19 @@ def _serialize_catalogos(flujo: "VersionFlujo") -> dict:
             "etapa": etapa_nombre,
             "permite_expediente": e.permite_expediente,
             "expediente_obligatorio": e.expediente_obligatorio,
-        })
+        }
+        slas = [
+            {
+                "dias_maximos": s.dias_maximos,
+                "accion_vencimiento": s.accion_vencimiento,
+                "configuracion_accion": s.configuracion_accion,
+                "activo": s.activo,
+            }
+            for s in e.slas.all().order_by("accion_vencimiento")
+        ]
+        if slas:
+            estado_data["slas"] = slas
+        estados_data.append(estado_data)
 
     etapas_data = [
         {
@@ -308,6 +334,7 @@ def deserialize_flujo(
     """
     from django.contrib.auth.models import Group
     from sinpapel.models import (
+        CondicionTransicion,
         ConfiguracionTransicion,
         Estado,
         RequisitoEstadoDocumento,
@@ -391,6 +418,15 @@ def deserialize_flujo(
         )
         for group_name in t_data["grupos_permitidos"]:
             ct.grupos_permitidos.add(Group.objects.get(name=group_name))
+        for c_data in t_data.get("condiciones", []):
+            CondicionTransicion.objects.create(
+                transicion=ct,
+                tipo=c_data["tipo"],
+                configuracion=c_data.get("configuracion", {}),
+                mensaje_error=c_data.get("mensaje_error", "No cumple con las condiciones requeridas."),
+                orden=c_data.get("orden", 0),
+                activo=c_data.get("activo", True),
+            )
 
     # D-requisitos-shared-catalog: RequisitoEstadoDocumento tiene
     # unique_together (estado, tipo_documento) — shared catalog state, NOT
@@ -509,16 +545,30 @@ def _upsert_estado(data: dict) -> None:
         "expediente_obligatorio": data.get("expediente_obligatorio", False),
     }
     if existing is None:
-        Estado.objects.create(nombre=data["nombre"], **fields)
-        return
-    changed = {
-        f: (getattr(existing, f), v) for f, v in fields.items() if getattr(existing, f) != v
-    }
-    if changed:
-        logger.warning(f"Updating Estado '{data['nombre']}' inline: {list(changed.keys())}")
-        for f, (_, new) in changed.items():
-            setattr(existing, f, new)
-        existing.save()
+        estado = Estado.objects.create(nombre=data["nombre"], **fields)
+    else:
+        changed = {
+            f: (getattr(existing, f), v) for f, v in fields.items() if getattr(existing, f) != v
+        }
+        if changed:
+            logger.warning(f"Updating Estado '{data['nombre']}' inline: {list(changed.keys())}")
+            for f, (_, new) in changed.items():
+                setattr(existing, f, new)
+            existing.save()
+        estado = existing
+
+    # Upsert SLAs (unique together: estado + accion_vencimiento)
+    from sinpapel.models.sla import SLAConfiguracion
+    for sla_data in data.get("slas", []):
+        SLAConfiguracion.objects.update_or_create(
+            estado=estado,
+            accion_vencimiento=sla_data["accion_vencimiento"],
+            defaults={
+                "dias_maximos": sla_data.get("dias_maximos", 0),
+                "configuracion_accion": sla_data.get("configuracion_accion", {}),
+                "activo": sla_data.get("activo", True),
+            },
+        )
 
 
 def _upsert_tipo_documento(data: dict) -> None:
