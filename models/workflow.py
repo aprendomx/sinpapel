@@ -251,7 +251,7 @@ class SeguimientoWorkflow(Trazable):
         indexes = [
             models.Index(
                 fields=["target_content_type", "target_object_id", "-fecha_accion"],
-                name="seg_workflow_target_idx",
+                name="sin_seg_workflow_target_idx",
             ),
             models.Index(fields=["estado_nuevo", "fecha_accion"]),
             models.Index(fields=["usuario_accion", "-fecha_accion"]),

@@ -61,7 +61,7 @@ class ExpedienteAdjunto(Trazable):
         verbose_name_plural = _("Expedientes Adjuntos")
         ordering = ["-creado"]
         indexes = [
-            models.Index(fields=["target_content_type", "target_object_id"], name="exp_target_idx"),
+            models.Index(fields=["target_content_type", "target_object_id"], name="sin_exp_target_idx"),
         ]
 
     def __str__(self) -> str:

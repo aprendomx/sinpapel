@@ -95,8 +95,8 @@ class InstanciaDocumento(Trazable):
         verbose_name = _("Instancia de Documento")
         verbose_name_plural = _("Instancias de Documentos")
         indexes = [
-            models.Index(fields=["target_content_type", "target_object_id"], name="inst_doc_target_idx"),
-            models.Index(fields=["actor_content_type", "actor_object_id"], name="inst_doc_actor_idx"),
+            models.Index(fields=["target_content_type", "target_object_id"], name="sin_inst_doc_target_idx"),
+            models.Index(fields=["actor_content_type", "actor_object_id"], name="sin_inst_doc_actor_idx"),
         ]
 
 

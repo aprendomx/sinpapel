@@ -426,7 +426,7 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Expedientes Adjuntos',
                 'db_table': 'sinpapel_expedienteadjunto',
                 'ordering': ['-creado'],
-                'indexes': [models.Index(fields=['target_content_type', 'target_object_id'], name='exp_target_idx')],
+                'indexes': [models.Index(fields=['target_content_type', 'target_object_id'], name='sin_exp_target_idx')],
             },
         ),
         migrations.CreateModel(
@@ -450,7 +450,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Instancia de Documento',
                 'verbose_name_plural': 'Instancias de Documentos',
                 'db_table': 'sinpapel_instanciadocumento',
-                'indexes': [models.Index(fields=['target_content_type', 'target_object_id'], name='inst_doc_target_idx'), models.Index(fields=['actor_content_type', 'actor_object_id'], name='inst_doc_actor_idx')],
+                'indexes': [models.Index(fields=['target_content_type', 'target_object_id'], name='sin_inst_doc_target_idx'), models.Index(fields=['actor_content_type', 'actor_object_id'], name='sin_inst_doc_actor_idx')],
             },
         ),
         migrations.AddIndex(
@@ -463,7 +463,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name='seguimientoworkflow',
-            index=models.Index(fields=['target_content_type', 'target_object_id', '-fecha_accion'], name='seg_workflow_target_idx'),
+            index=models.Index(fields=['target_content_type', 'target_object_id', '-fecha_accion'], name='sin_seg_workflow_target_idx'),
         ),
         migrations.AddIndex(
             model_name='seguimientoworkflow',

@@ -1,6 +1,6 @@
 [project]
 name = "sinpapel"
-version = "0.2.0"
+version = "0.2.1"
 description = "Workflow + audit trail + digital signature engine for Django (extraído desde creditos/E12)"
 readme = "README.md"
 requires-python = ">=3.10"
