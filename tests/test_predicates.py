@@ -469,3 +469,48 @@ def test_workflow_engine_fallback_error_message():
     )
     assert puede is False
     assert "Condición rechazada" in msg
+
+
+# ─── Custom Signal: predicate_failed (Task A2) ────────────────────────────
+
+
+@pytest.mark.django_db
+def test_predicate_failure_fires_predicate_failed_signal(django_user_model):
+    """Predicate rejection → sinpapel.signals.predicate_failed is sent."""
+    from sinpapel.signals import predicate_failed
+    from tests.models import TestSolicitud
+
+    setup = _crear_transicion_con_usuario()
+    CondicionTransicion.objects.create(
+        transicion=setup["transicion"],
+        tipo="json_logic",
+        configuracion={"rule": {"==": [1, 2]}},  # always false
+        mensaje_error="bloqueo de prueba",
+        activo=True,
+    )
+
+    instance = TestSolicitud.objects.create(
+        folio="PREDFAIL-SIGNAL-1",
+        estado=setup["estado_origen"],
+    )
+
+    captured = []
+
+    def receiver(sender, **kwargs):
+        captured.append(kwargs)
+
+    predicate_failed.connect(receiver, weak=False)
+    try:
+        engine = WorkflowEngine()
+        permitido, msg = engine.puede_cambiar_estado(
+            instance, "SETUP_DEST", setup["user"]
+        )
+    finally:
+        predicate_failed.disconnect(receiver)
+
+    assert permitido is False
+    assert len(captured) == 1
+    assert captured[0]["target_state"] == "SETUP_DEST"
+    assert captured[0]["condicion"].mensaje_error == "bloqueo de prueba"
+    assert captured[0]["target"] is instance
+    assert captured[0]["user"] == setup["user"]

@@ -98,9 +98,15 @@ class WorkflowEngine:
         return faltantes
 
     def _validar_predicados(self, config_transicion, instance, user):
-        """Evalúa condiciones de transición. Retorna lista de fallidas."""
+        """Evalúa condiciones de transición. Retorna lista de fallidas.
+
+        Fires `sinpapel.signals.predicate_failed` (send_robust) for each
+        condition that rejects. Receivers run after the engine returns;
+        errors in receivers do not abort the workflow.
+        """
         from sinpapel.models.predicates import CondicionTransicion
         from sinpapel.services.predicate_engine import PredicateEngine
+        from sinpapel.signals import predicate_failed
 
         fallidas = []
         condiciones = CondicionTransicion.objects.filter(
@@ -116,6 +122,13 @@ class WorkflowEngine:
                     "tipo": condicion.tipo,
                     "mensaje": condicion.mensaje_error or msg,
                 })
+                predicate_failed.send_robust(
+                    sender=type(instance),
+                    target=instance,
+                    condicion=condicion,
+                    user=user,
+                    target_state=config_transicion.estado_destino.nombre,
+                )
         return fallidas
 
     def preview_transition(
