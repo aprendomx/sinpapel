@@ -339,3 +339,64 @@ def test_preview_no_muta_instancia():
     estado_before = solicitud.estado
     WorkflowEngine().preview_transition(solicitud, "PREV_MUTA", user)
     assert solicitud.estado == estado_before
+
+
+@pytest.mark.django_db
+def test_preview_transition_does_not_emit_signal_by_default(django_user_model):
+    """SINPAPEL_EMIT_PREVIEW_EVENTS unset → preview does NOT send signal."""
+    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
+    from sinpapel.signals import transition_preview_requested
+    from tests.models import TestSolicitud
+
+    captured = []
+
+    def receiver(sender, **kwargs):
+        captured.append(kwargs)
+
+    transition_preview_requested.connect(receiver, weak=False)
+    try:
+        estado_a = Estado.objects.create(nombre="PREV_A", activo=True)
+        estado_b = Estado.objects.create(nombre="PREV_B", activo=True)
+        flujo = VersionFlujo.objects.create(nombre="PREV_F_A", activo=True)
+        ConfiguracionTransicion.objects.create(
+            flujo=flujo, estado_origen=estado_a, estado_destino=estado_b
+        )
+        user = django_user_model.objects.create_user(username="u-prev1", password="x")
+        instance = TestSolicitud.objects.create(folio="PREV-SIG-1", estado=estado_a)
+        WorkflowEngine().preview_transition(instance, "PREV_B", user)
+    finally:
+        transition_preview_requested.disconnect(receiver)
+
+    assert captured == []
+
+
+@pytest.mark.django_db
+def test_preview_transition_emits_signal_when_setting_enabled(django_user_model, settings):
+    """SINPAPEL_EMIT_PREVIEW_EVENTS=True → preview sends signal exactly once."""
+    from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
+    from sinpapel.signals import transition_preview_requested
+    from tests.models import TestSolicitud
+
+    settings.SINPAPEL_EMIT_PREVIEW_EVENTS = True
+    captured = []
+
+    def receiver(sender, **kwargs):
+        captured.append(kwargs)
+
+    transition_preview_requested.connect(receiver, weak=False)
+    try:
+        estado_x = Estado.objects.create(nombre="PREV_X", activo=True)
+        estado_y = Estado.objects.create(nombre="PREV_Y", activo=True)
+        flujo = VersionFlujo.objects.create(nombre="PREV_F_B", activo=True)
+        ConfiguracionTransicion.objects.create(
+            flujo=flujo, estado_origen=estado_x, estado_destino=estado_y
+        )
+        user = django_user_model.objects.create_user(username="u-prev2", password="x")
+        instance = TestSolicitud.objects.create(folio="PREV-SIG-2", estado=estado_x)
+        reporte = WorkflowEngine().preview_transition(instance, "PREV_Y", user)
+    finally:
+        transition_preview_requested.disconnect(receiver)
+
+    assert len(captured) == 1
+    assert captured[0]["target_state"] == "PREV_Y"
+    assert captured[0]["reporte"] is reporte

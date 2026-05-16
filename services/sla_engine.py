@@ -61,20 +61,48 @@ class SLAEngine:
 
         Usa el campo `creado` de la instancia como referencia de tiempo.
         Si la instancia no tiene `creado`, asume que no está vencida.
+
+        Emite la señal `sinpapel.signals.sla_breached` cuando detecta una
+        instancia vencida (antes de ejecutar la acción asociada).
         """
+        from sinpapel.signals import sla_breached
         creado = getattr(instance, "creado", None)
         if creado is None:
             return False
         limite = creado + timedelta(days=sla.dias_maximos)
-        return timezone.now() > limite
+        ahora = timezone.now()
+        if ahora <= limite:
+            return False
+        dias_transcurridos = (ahora - creado).days
+        sla_breached.send_robust(
+            sender=type(instance),
+            target=instance,
+            sla=sla,
+            dias_transcurridos=dias_transcurridos,
+        )
+        return True
 
     @classmethod
     def _ejecutar_accion(cls, instance: "models.Model", sla: SLAConfiguracion) -> dict[str, Any] | None:
-        """Ejecuta la acción configurada del SLA."""
+        """Ejecuta la acción configurada del SLA.
+
+        Emite la señal `sinpapel.signals.sla_action_executed` después de
+        ejecutar exitosamente un handler `_accion_*`.
+        """
+        from sinpapel.signals import sla_action_executed
         handler = getattr(cls, f"_accion_{sla.accion_vencimiento}", None)
         if handler is None:
             return None
-        return handler(instance, sla.configuracion_accion)
+        resultado = handler(instance, sla.configuracion_accion)
+        if resultado is not None:
+            sla_action_executed.send_robust(
+                sender=type(instance),
+                target=instance,
+                sla=sla,
+                accion=sla.accion_vencimiento,
+                resultado=resultado,
+            )
+        return resultado
 
     @classmethod
     def _accion_notificar(cls, instance: "models.Model", config: dict) -> dict[str, Any]:

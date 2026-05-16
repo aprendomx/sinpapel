@@ -136,3 +136,74 @@ def test_management_command_dry_run():
     call_command("sinpapel_verificar_slas", "--dry-run", stdout=out)
     output = out.getvalue()
     assert "DRY RUN" in output
+
+
+@pytest.mark.django_db
+def test_sla_breach_fires_sla_breached_signal():
+    """SLA vencida → sinpapel.signals.sla_breached is sent before action."""
+    from sinpapel.signals import sla_breached
+    from tests.models import TestSolicitud
+
+    captured = []
+
+    def receiver(sender, **kwargs):
+        captured.append(kwargs)
+
+    sla_breached.connect(receiver, weak=False)
+    try:
+        estado = Estado.objects.create(nombre="SLA_EN_REVISION", activo=True)
+        sla = SLAConfiguracion.objects.create(
+            estado=estado,
+            dias_maximos=1,
+            accion_vencimiento="alertar",
+            configuracion_accion={"campo": "alerta", "valor": True},
+            activo=True,
+        )
+        instance = TestSolicitud.objects.create(folio="SLA-B1", estado=estado)
+        # Force creado backwards in time so SLA evaluates as vencida.
+        TestSolicitud.objects.filter(pk=instance.pk).update(
+            creado=timezone.now() - timedelta(days=5)
+        )
+        instance.refresh_from_db()
+        SLAEngine.evaluar_instancia(instance)
+    finally:
+        sla_breached.disconnect(receiver)
+
+    assert len(captured) == 1
+    assert captured[0]["sla"].pk == sla.pk
+    assert captured[0]["dias_transcurridos"] >= 5
+
+
+@pytest.mark.django_db
+def test_sla_action_dispatch_fires_sla_action_executed_signal():
+    """SLAEngine._ejecutar_accion → sinpapel.signals.sla_action_executed is sent."""
+    from sinpapel.signals import sla_action_executed
+    from tests.models import TestSolicitud
+
+    captured = []
+
+    def receiver(sender, **kwargs):
+        captured.append(kwargs)
+
+    sla_action_executed.connect(receiver, weak=False)
+    try:
+        estado = Estado.objects.create(nombre="SLA_EN_REVISION_2", activo=True)
+        SLAConfiguracion.objects.create(
+            estado=estado,
+            dias_maximos=1,
+            accion_vencimiento="alertar",
+            configuracion_accion={"campo": "alerta", "valor": True},
+            activo=True,
+        )
+        instance = TestSolicitud.objects.create(folio="SLA-A1", estado=estado)
+        TestSolicitud.objects.filter(pk=instance.pk).update(
+            creado=timezone.now() - timedelta(days=5)
+        )
+        instance.refresh_from_db()
+        SLAEngine.evaluar_instancia(instance)
+    finally:
+        sla_action_executed.disconnect(receiver)
+
+    assert len(captured) == 1
+    assert captured[0]["accion"] == "alertar"
+    assert captured[0]["resultado"]["accion"] == "alertar"
