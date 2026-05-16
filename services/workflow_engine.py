@@ -235,6 +235,18 @@ class WorkflowEngine:
         # 8. Historial reciente
         reporte["historial_reciente"] = self._obtener_historial_reciente(instance)
 
+        # Opt-in audit signal (default OFF — avoids noise from frequent previews).
+        from django.conf import settings as _settings
+        if getattr(_settings, "SINPAPEL_EMIT_PREVIEW_EVENTS", False):
+            from sinpapel.signals import transition_preview_requested
+            transition_preview_requested.send_robust(
+                sender=type(instance),
+                target=instance,
+                target_state=target_state_name,
+                user=user,
+                reporte=reporte,
+            )
+
         return reporte
 
     def _obtener_historial_reciente(self, instance: "models.Model") -> list[dict]:
