@@ -1,11 +1,17 @@
 """Minimal Django settings for sinpapel test suite."""
+import os
+
 SECRET_KEY = "test-secret-key-not-for-production"
 DEBUG = True
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
+        "ENGINE": os.getenv("TEST_DB_ENGINE", "django.db.backends.sqlite3"),
+        "NAME": os.getenv("TEST_DB_NAME", ":memory:"),
+        "USER": os.getenv("TEST_DB_USER", ""),
+        "PASSWORD": os.getenv("TEST_DB_PASSWORD", ""),
+        "HOST": os.getenv("TEST_DB_HOST", ""),
+        "PORT": os.getenv("TEST_DB_PORT", ""),
     }
 }
 
