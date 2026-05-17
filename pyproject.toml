@@ -46,6 +46,11 @@ dev = [
     "build>=1.2",
     "twine>=5.0",
 ]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.25",
+]
 
 # URLs intentionally omitted until a public repo URL is decided.
 # Before the first PyPI publish, uncomment and fill in:
