@@ -2,14 +2,16 @@ name: CI
 
 on:
   push:
-    branches: [main, master, develop, "story/**"]
+    branches: [main, master, develop, "story/**", "feat/**", "fix/**"]
   pull_request:
     branches: [main, master, develop]
 
 jobs:
-  test:
+  test-sqlite:
+    name: Test (SQLite) — Python ${{ matrix.python-version }} / Django ${{ matrix.django-version }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
         django-version: ["5.0", "5.1"]
@@ -34,4 +36,43 @@ jobs:
         run: |
           pip install pyright
           pyright sinpapel/
-        continue-on-error: true
+
+  test-postgres:
+    name: Test (PostgreSQL) — Python 3.12 / Django 5.1
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sinpapel_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install Pillow "Django~=5.1.0" psycopg2-binary
+          pip install -e ".[dev]"
+
+      - name: Run tests with PostgreSQL
+        env:
+          TEST_DB_ENGINE: django.db.backends.postgresql
+          TEST_DB_NAME: sinpapel_test
+          TEST_DB_USER: postgres
+          TEST_DB_PASSWORD: postgres
+          TEST_DB_HOST: localhost
+          TEST_DB_PORT: 5432
+        run: python -m pytest tests/ -v
