@@ -12,7 +12,7 @@ from sinpapel.exceptions import (
 )
 from sinpapel.registry import WorkflowConfig, WorkflowRegistry
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 __all__ = [
     "SinpapelError",

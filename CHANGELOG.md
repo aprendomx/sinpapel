@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] — 2026-05-17
+
+### Fixed
+- Packaging: drop the legacy `License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)` classifier. Per PEP 639, it cannot coexist with the SPDX `license = "GPL-3.0-or-later"` expression introduced in 0.5.0; `python -m build` failed with `InvalidConfigError` under `setuptools >= 77`.
+
+### Changed
+- Relicensed from MIT to **GPL-3.0-or-later** (SPDX, PEP 639). `LICENSE` now contains the canonical GPL-3.0 text prefixed with the project copyright notice.
+- Public-facing materials rewritten and stripped of institutional references. `README.md` and `README.es.md` reduced to ~170 lines each; long-form manuals moved to `docs/USAGE.md` and `docs/USAGE.es.md`.
+
+### Added
+- `CHANGELOG.md` (Keep a Changelog 1.1.0) reconstructed back to v0.1.1.
+- `CONTRIBUTING.md` with Conventional Commits guidance and DCO sign-off requirement.
+- `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1).
+- `build` and `twine` added to the `dev` extras so contributors can produce PyPI artifacts locally.
+
 ## [0.5.0] — 2026-05-14
 
 ### Added
@@ -86,7 +101,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `django-simple-history` integration for full change history.
 - PEP 561 `py.typed` marker for type-checker downstream consumers.
 
-[Unreleased]: ../../compare/v0.5.0...HEAD
+[Unreleased]: ../../compare/v0.5.1...HEAD
+[0.5.1]: ../../compare/v0.5.0...v0.5.1
 [0.5.0]: ../../compare/v0.4.2...v0.5.0
 [0.4.2]: ../../compare/v0.4.1...v0.4.2
 [0.4.1]: ../../compare/v0.4.0...v0.4.1
