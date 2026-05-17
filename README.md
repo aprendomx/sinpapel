@@ -104,21 +104,21 @@ def on_sla_breach(sender, instance, sla, **kwargs):
     notify_team(instance, sla)
 ```
 
-Full end-to-end examples, schema seeding, predicate cookbook, signing backend setup, and admin integration live in [`docs/USAGE.md`](docs/USAGE.md).
+Full end-to-end examples, schema seeding, predicate cookbook, signing backend setup, and admin integration live in [`docs/usage/en.md`](docs/usage/en.md).
 
 ## What's Inside
 
 | Subsystem | Module | Docs |
 |---|---|---|
-| Workflow Engine | `sinpapel.services.workflow_engine` | [USAGE §State Transitions](docs/USAGE.md#8-state-transitions) |
-| Predicates | `sinpapel.services.predicate_engine` | [USAGE §Transition Predicates](docs/USAGE.md#9-transition-predicates) |
-| Metadata | `sinpapel.mixins` | [USAGE §Metadata](docs/USAGE.md#10-structured-metadata-capture) |
-| Forms Factory | `sinpapel.forms` | [USAGE §Forms](docs/USAGE.md#11-formserializer-factory) |
-| Signing | `sinpapel.signing` | [USAGE §Signing](docs/USAGE.md#12-signing-backends) |
-| Audit Trail | `sinpapel.models` + `sinpapel.mixins.Trazable` | [USAGE §Audit](docs/USAGE.md#13-audit-trail) |
-| SLA Engine | `sinpapel.services.sla_engine` | [USAGE §SLA](docs/USAGE.md) |
-| Custom Signals | `sinpapel.signals` | [USAGE §Signals](docs/USAGE.md) |
-| Schema Export/Import | `sinpapel.schemas` + management commands | [USAGE §Schema](docs/USAGE.md) |
+| Workflow Engine | `sinpapel.services.workflow_engine` | [USAGE §State Transitions](docs/usage/en.md#8-state-transitions) |
+| Predicates | `sinpapel.services.predicate_engine` | [USAGE §Transition Predicates](docs/usage/en.md#9-transition-predicates) |
+| Metadata | `sinpapel.mixins` | [USAGE §Metadata](docs/usage/en.md#10-structured-metadata-capture) |
+| Forms Factory | `sinpapel.forms` | [USAGE §Forms](docs/usage/en.md#11-formserializer-factory) |
+| Signing | `sinpapel.signing` | [USAGE §Signing](docs/usage/en.md#12-signing-backends) |
+| Audit Trail | `sinpapel.models` + `sinpapel.mixins.Trazable` | [USAGE §Audit](docs/usage/en.md#13-audit-trail) |
+| SLA Engine | `sinpapel.services.sla_engine` | [USAGE §SLA](docs/usage/en.md) |
+| Custom Signals | `sinpapel.signals` | [USAGE §Signals](docs/usage/en.md) |
+| Schema Export/Import | `sinpapel.schemas` + management commands | [USAGE §Schema](docs/usage/en.md) |
 
 ## Configuration
 
@@ -132,7 +132,7 @@ SINPAPEL_RSA_PUBLIC_KEY_PATH = "/run/secrets/sinpapel.pub"
 SINPAPEL_EMIT_PREVIEW_EVENTS = False  # set True to fire transition_preview_requested signal
 ```
 
-See [USAGE §Settings](docs/USAGE.md#4-settings) for the full reference.
+See [USAGE §Settings](docs/usage/en.md#4-settings) for the full reference.
 
 ## Compatibility
 
@@ -144,19 +144,19 @@ CI runs the test suite across the full matrix.
 
 ## Documentation
 
-- [Usage Guide](docs/USAGE.md) — full reference (EN)
-- [Guía de Uso](docs/USAGE.es.md) — full reference (ES)
-- [Changelog](CHANGELOG.md)
-- [Contributing](CONTRIBUTING.md)
+- [Usage Guide](docs/usage/en.md) — full reference (EN)
+- [Guía de Uso](docs/usage/es.md) — full reference (ES)
+- [Changelog](docs/development/changelog.md)
+- [Contributing](docs/development/contributing.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Versioning & Stability
 
-sinpapel follows [Semantic Versioning](https://semver.org/). The current release is **v0.5.0 (Beta)**. Public APIs (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, model fields, schema JSON v0.2) are stable in the 0.x series; breaking changes will bump the minor version and be flagged in `CHANGELOG.md` until 1.0.0.
+sinpapel follows [Semantic Versioning](https://semver.org/). The current release is **v0.5.0 (Beta)**. Public APIs (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, model fields, schema JSON v0.2) are stable in the 0.x series; breaking changes will bump the minor version and be flagged in `docs/development/changelog.md` until 1.0.0.
 
 ## Contributing
 
-Pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, commit conventions, and the Developer Certificate of Origin (DCO) sign-off requirement.
+Pull requests are welcome. Please read [docs/development/contributing.md](docs/development/contributing.md) for development setup, commit conventions, and the Developer Certificate of Origin (DCO) sign-off requirement.
 
 ## License
 

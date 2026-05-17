@@ -104,21 +104,21 @@ def on_sla_breach(sender, instance, sla, **kwargs):
     notify_team(instance, sla)
 ```
 
-Ejemplos end-to-end completos, seeding de schema, cookbook de predicados, setup de backends de firma e integración con admin viven en [`docs/USAGE.es.md`](docs/USAGE.es.md).
+Ejemplos end-to-end completos, seeding de schema, cookbook de predicados, setup de backends de firma e integración con admin viven en [`docs/usage/es.md`](docs/usage/es.md).
 
 ## Qué Incluye
 
 | Subsistema | Módulo | Docs |
 |---|---|---|
-| Motor de Workflow | `sinpapel.services.workflow_engine` | [USAGE §Transiciones](docs/USAGE.es.md#8-transiciones-de-estado) |
-| Predicados | `sinpapel.services.predicate_engine` | [USAGE §Predicados](docs/USAGE.es.md#9-predicados-de-transición) |
-| Metadatos | `sinpapel.mixins` | [USAGE §Metadatos](docs/USAGE.es.md#10-captura-estructurada-de-metadatos) |
-| Forms Factory | `sinpapel.forms` | [USAGE §Forms](docs/USAGE.es.md#11-formserializer-factory) |
-| Firmas | `sinpapel.signing` | [USAGE §Firmas](docs/USAGE.es.md#12-backends-de-firma) |
-| Auditoría | `sinpapel.models` + `sinpapel.mixins.Trazable` | [USAGE §Auditoría](docs/USAGE.es.md#13-pista-de-auditoría) |
-| Motor SLA | `sinpapel.services.sla_engine` | [USAGE §SLA](docs/USAGE.es.md) |
-| Signals Personalizados | `sinpapel.signals` | [USAGE §Signals](docs/USAGE.es.md) |
-| Export/Import de Schema | `sinpapel.schemas` + management commands | [USAGE §Schema](docs/USAGE.es.md) |
+| Motor de Workflow | `sinpapel.services.workflow_engine` | [USAGE §Transiciones](docs/usage/es.md#8-transiciones-de-estado) |
+| Predicados | `sinpapel.services.predicate_engine` | [USAGE §Predicados](docs/usage/es.md#9-predicados-de-transición) |
+| Metadatos | `sinpapel.mixins` | [USAGE §Metadatos](docs/usage/es.md#10-captura-estructurada-de-metadatos) |
+| Forms Factory | `sinpapel.forms` | [USAGE §Forms](docs/usage/es.md#11-formserializer-factory) |
+| Firmas | `sinpapel.signing` | [USAGE §Firmas](docs/usage/es.md#12-backends-de-firma) |
+| Auditoría | `sinpapel.models` + `sinpapel.mixins.Trazable` | [USAGE §Auditoría](docs/usage/es.md#13-pista-de-auditoría) |
+| Motor SLA | `sinpapel.services.sla_engine` | [USAGE §SLA](docs/usage/es.md) |
+| Signals Personalizados | `sinpapel.signals` | [USAGE §Signals](docs/usage/es.md) |
+| Export/Import de Schema | `sinpapel.schemas` + management commands | [USAGE §Schema](docs/usage/es.md) |
 
 ## Configuración
 
@@ -132,7 +132,7 @@ SINPAPEL_RSA_PUBLIC_KEY_PATH = "/run/secrets/sinpapel.pub"
 SINPAPEL_EMIT_PREVIEW_EVENTS = False  # poner True para disparar el signal transition_preview_requested
 ```
 
-Ver [USAGE §Settings](docs/USAGE.es.md#4-settings) para la referencia completa.
+Ver [USAGE §Settings](docs/usage/es.md#4-settings) para la referencia completa.
 
 ## Compatibilidad
 
@@ -144,19 +144,19 @@ CI corre el suite de tests contra la matriz completa.
 
 ## Documentación
 
-- [Guía de Uso](docs/USAGE.es.md) — referencia completa (ES)
-- [Usage Guide](docs/USAGE.md) — referencia completa (EN)
-- [Changelog](CHANGELOG.md)
-- [Contributing](CONTRIBUTING.md)
+- [Guía de Uso](docs/usage/es.md) — referencia completa (ES)
+- [Usage Guide](docs/usage/en.md) — referencia completa (EN)
+- [Changelog](docs/development/changelog.md)
+- [Contributing](docs/development/contributing.md)
 - [Código de Conducta](CODE_OF_CONDUCT.md)
 
 ## Versionado y Estabilidad
 
-sinpapel sigue [Semantic Versioning](https://semver.org/). La release actual es **v0.5.0 (Beta)**. Las APIs públicas (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, campos de modelos, schema JSON v0.2) son estables en la serie 0.x; los breaking changes incrementarán el minor y serán marcados en `CHANGELOG.md` hasta 1.0.0.
+sinpapel sigue [Semantic Versioning](https://semver.org/). La release actual es **v0.5.0 (Beta)**. Las APIs públicas (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, campos de modelos, schema JSON v0.2) son estables en la serie 0.x; los breaking changes incrementarán el minor y serán marcados en `docs/development/changelog.md` hasta 1.0.0.
 
 ## Contribuir
 
-Los pull requests son bienvenidos. Por favor lee [CONTRIBUTING.md](CONTRIBUTING.md) para setup de desarrollo, convenciones de commits y el requisito de sign-off DCO (Developer Certificate of Origin).
+Los pull requests son bienvenidos. Por favor lee [docs/development/contributing.md](docs/development/contributing.md) para setup de desarrollo, convenciones de commits y el requisito de sign-off DCO (Developer Certificate of Origin).
 
 ## Licencia
 
