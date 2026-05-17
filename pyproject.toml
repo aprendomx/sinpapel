@@ -1,26 +1,37 @@
 [project]
 name = "sinpapel"
 version = "0.5.0"
-description = "Workflow + audit trail + digital signature engine for Django (extraído desde creditos/E12)"
+description = "Versioned workflows, immutable audit, and pluggable e-signatures for Django."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 authors = [
     { name = "Julio Adrián", email = "jadrian.s@gmail.com" },
 ]
-keywords = ["django", "workflow", "audit", "signature", "fiel", "tramites"]
+keywords = [
+    "django",
+    "workflow",
+    "state-machine",
+    "audit-trail",
+    "electronic-signature",
+    "compliance",
+    "paperless",
+]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Framework :: Django",
     "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Groupware",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
@@ -33,19 +44,25 @@ dependencies = [
 dev = [
     "pytest>=9.0",
     "pytest-django>=4.12",
+    "build>=1.2",
+    "twine>=5.0",
 ]
 
-[project.urls]
-Homepage = "https://github.com/jadrians/creditos"
-Issues = "https://github.com/jadrians/creditos/issues"
+# URLs intentionally omitted until a public repo URL is decided.
+# Before the first PyPI publish, uncomment and fill in:
+# [project.urls]
+# Homepage  = "https://example.com/sinpapel"
+# Source    = "https://example.com/sinpapel"
+# Issues    = "https://example.com/sinpapel/issues"
+# Changelog = "https://example.com/sinpapel/blob/main/CHANGELOG.md"
 
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
-# Layout: flat — pyproject.toml + package files at repo root (post split E16).
-# package_dir mapea el package "sinpapel" a la cwd actual (.).
-# Subpackages declarados explícitamente (mantiene determinismo + visibilidad).
+# Layout: flat — pyproject.toml + package files at repo root.
+# package_dir maps the package "sinpapel" to the current working directory (.).
+# Subpackages are declared explicitly (deterministic + visible).
 [tool.setuptools]
 packages = [
     "sinpapel",
