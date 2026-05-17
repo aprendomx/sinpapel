@@ -39,3 +39,4 @@ Thumbs.db
 
 # Tox
 .tox/
+site/

@@ -48,6 +48,7 @@ nav:
   - API Reference:
       - api/index.md
   - Development:
+      - development/index.md
       - development/contributing.md
       - development/changelog.md
       - development/security.md
@@ -67,4 +68,4 @@ markdown_extensions:
       permalink: true
 
 watch:
-  - sinpapel
+  - .

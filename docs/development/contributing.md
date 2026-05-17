@@ -5,7 +5,7 @@ workflow and the expectations for pull requests.
 
 ## Code of Conduct
 
-This project adopts the [Contributor Covenant 2.1](CODE_OF_CONDUCT.md). By
+This project adopts the Contributor Covenant 2.1. By
 participating you agree to abide by its terms.
 
 ## Development Setup
@@ -67,7 +67,7 @@ contribute the change under the project license (GPL-3.0-or-later).
 - [ ] `CHANGELOG.md` updated under `## [Unreleased]` when the change is
       user-visible.
 - [ ] Commits follow Conventional Commits and are signed off (`-s`).
-- [ ] Documentation (`docs/USAGE.md` and `docs/USAGE.es.md`) updated when
+- [ ] Documentation (`docs/usage/en.md` and `docs/usage/es.md`) updated when
       public APIs or settings change.
 - [ ] No institutional or third-party trademark references introduced
       anywhere in the codebase, README, or docs.

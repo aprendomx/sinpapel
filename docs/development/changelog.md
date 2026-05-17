@@ -101,12 +101,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `django-simple-history` integration for full change history.
 - PEP 561 `py.typed` marker for type-checker downstream consumers.
 
-[Unreleased]: ../../compare/v0.5.1...HEAD
-[0.5.1]: ../../compare/v0.5.0...v0.5.1
-[0.5.0]: ../../compare/v0.4.2...v0.5.0
-[0.4.2]: ../../compare/v0.4.1...v0.4.2
-[0.4.1]: ../../compare/v0.4.0...v0.4.1
-[0.4.0]: ../../compare/v0.1.1...v0.4.0
-[0.3.0]: ../../releases/tag/v0.3.0
-[0.2.0]: ../../releases/tag/v0.2.0
-[0.1.1]: ../../releases/tag/v0.1.1
+[Unreleased]: https://github.com/OWNER/REPO/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/OWNER/REPO/compare/v0.5.0...v0.5.1
+[0.5.0]: https://github.com/OWNER/REPO/compare/v0.4.2...v0.5.0
+[0.4.2]: https://github.com/OWNER/REPO/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/OWNER/REPO/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/OWNER/REPO/compare/v0.1.1...v0.4.0
+[0.3.0]: https://github.com/OWNER/REPO/releases/tag/v0.3.0
+[0.2.0]: https://github.com/OWNER/REPO/releases/tag/v0.2.0
+[0.1.1]: https://github.com/OWNER/REPO/releases/tag/v0.1.1

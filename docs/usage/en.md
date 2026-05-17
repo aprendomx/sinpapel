@@ -1,6 +1,6 @@
 # sinpapel — Usage Guide
 
-> Comprehensive usage guide for sinpapel. For the high-level overview, see the [README](../README.md). Spanish version: [USAGE.es.md](USAGE.es.md).
+> Comprehensive usage guide for sinpapel. For the high-level overview, see the [README](/). Spanish version: [es.md](es.md).
 
 ---
 
@@ -27,7 +27,7 @@
 19. [Contributing](#19-contributing)
 20. [License & Versioning](#20-license--versioning)
 
-> **Navigation:** [README (overview)](../README.md) · [CHANGELOG](../CHANGELOG.md) · [CONTRIBUTING](../CONTRIBUTING.md) · [Spanish version](USAGE.es.md)
+> **Navigation:** [README (overview)](/) · [CHANGELOG](../development/changelog.md) · [CONTRIBUTING](../development/contributing.md) · [Spanish version](es.md)
 
 ---
 

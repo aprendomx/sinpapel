@@ -1,6 +1,6 @@
 # sinpapel — Guía de Uso
 
-> Guía completa de uso de sinpapel. Para el panorama general, ver el [README](../README.es.md). English version: [USAGE.md](USAGE.md).
+> Guía completa de uso de sinpapel. Para el panorama general, ver el [README](/). English version: [en.md](en.md).
 
 ---
 
@@ -27,7 +27,7 @@
 19. [Contribuir](#19-contribuir)
 20. [Licencia y Versionado](#20-licencia-y-versionado)
 
-> **Navegación:** [README (panorama)](../README.es.md) · [CHANGELOG](../CHANGELOG.md) · [CONTRIBUTING](../CONTRIBUTING.md) · [English version](USAGE.md)
+> **Navegación:** [README (panorama)](/) · [CHANGELOG](../development/changelog.md) · [CONTRIBUTING](../development/contributing.md) · [English version](en.md)
 
 ---
 
