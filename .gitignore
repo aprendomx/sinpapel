@@ -6,3 +6,36 @@ __pycache__/
 dist/
 build/
 .pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Type checking / linting caches
+.mypy_cache/
+.dmypy.json
+.ruff_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local env files
+.env
+.env.local
+
+# Tox
+.tox/
