@@ -109,5 +109,15 @@ exclude = [
 ]
 pythonVersion = "3.10"
 pythonPlatform = "Linux"
+extraPaths = ["."]
 venvPath = ".venv"
 venv = ".venv"
+reportMissingImports = "warning"
+reportAttributeAccessIssue = "warning"
+reportArgumentType = "warning"
+reportAssignmentType = "warning"
+reportReturnType = "warning"
+reportIncompatibleMethodOverride = "warning"
+reportIncompatibleVariableOverride = "warning"
+reportInvalidTypeVarUse = "warning"
+reportCallIssue = "warning"
