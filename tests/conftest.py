@@ -17,3 +17,15 @@ def _clear_sinpapel_cache_each_test():
     clear_all()
     yield
     clear_all()
+
+
+@pytest.fixture
+def sinpapel_migrated(transactional_db):
+    """Ensure sinpapel migrations are applied for tests that need the schema.
+
+    Some tests use @pytest.mark.django_db(transaction=True) which skips
+    automatic migration in some backends (PostgreSQL). This fixture forces
+    migrations to run once per test function that requests it.
+    """
+    from django.core.management import call_command
+    call_command("migrate", verbosity=0)

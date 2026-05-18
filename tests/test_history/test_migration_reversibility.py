@@ -9,7 +9,13 @@ import pytest
 from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 
+skip_if_not_sqlite = pytest.mark.skipif(
+    connection.vendor != "sqlite",
+    reason="SQLite-specific introspection query",
+)
 
+
+@skip_if_not_sqlite
 @pytest.mark.django_db(transaction=True)
 def test_migration_0001_is_reversible():
     """0001_initial puede aplicarse forward → reverse → forward."""

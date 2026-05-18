@@ -16,6 +16,7 @@ from django.test import override_settings
 # ─────────────────────────────────────────────────────────────────────────────
 
 
+@pytest.mark.usefixtures("sinpapel_migrated")
 @pytest.mark.django_db(transaction=True)
 @override_settings(DEBUG=True)
 def test_post_save_estado_invalidates_cache():
@@ -53,6 +54,7 @@ def test_post_save_estado_invalidates_cache():
     assert result_new.id == estado.id
 
 
+@pytest.mark.usefixtures("sinpapel_migrated")
 @pytest.mark.django_db(transaction=True)
 def test_post_save_flujo_invalidates_cache():
     """S13.2 AC1+AC2: post_save VersionFlujo invalida sinpapel:flujo:active:<X>."""
@@ -77,6 +79,7 @@ def test_post_save_flujo_invalidates_cache():
     assert f2 is None, "Cache invalidated; flujo inactivo no debe retornar"
 
 
+@pytest.mark.usefixtures("sinpapel_migrated")
 @pytest.mark.django_db(transaction=True)
 def test_post_save_configuracion_transicion_invalidates_cache():
     """S13.2 AC1+AC2: post_save ConfiguracionTransicion invalida sinpapel:transitions:<flujo>:<estado>."""
@@ -109,6 +112,7 @@ def test_post_save_configuracion_transicion_invalidates_cache():
     assert len(t2) == 2, f"Expected 2 transitions post-add, got {len(t2)}"
 
 
+@pytest.mark.usefixtures("sinpapel_migrated")
 @pytest.mark.django_db(transaction=True)
 def test_post_save_requisito_invalidates_cache():
     """S13.2 AC1+AC2: post_save RequisitoEstadoDocumento invalida sinpapel:requisitos:<estado_id>."""
@@ -149,6 +153,7 @@ def test_post_save_requisito_invalidates_cache():
 # ─────────────────────────────────────────────────────────────────────────────
 
 
+@pytest.mark.usefixtures("sinpapel_migrated")
 @pytest.mark.django_db(transaction=True)
 @override_settings(DEBUG=True)
 def test_transaction_rollback_does_not_invalidate_cache():
@@ -192,6 +197,7 @@ def test_transaction_rollback_does_not_invalidate_cache():
     assert s_post is not None
 
 
+@pytest.mark.usefixtures("sinpapel_migrated")
 @pytest.mark.django_db(transaction=True)
 def test_m2m_grupos_permitidos_invalidates_transitions_cache():
     """S13.2 AC1 (D3): m2m_changed via through accessor invalida transitions.
@@ -252,6 +258,7 @@ def test_m2m_grupos_permitidos_invalidates_transitions_cache():
     assert grupo_names == []
 
 
+@pytest.mark.usefixtures("sinpapel_migrated")
 @pytest.mark.django_db(transaction=True)
 def test_estado_save_bumps_version_invalidating_transitions_cascade():
     """S13.2 D1: cascada Estado→transitions vía version bump.
