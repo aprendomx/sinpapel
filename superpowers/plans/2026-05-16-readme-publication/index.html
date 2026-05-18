@@ -1,0 +1,2175 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Versioned workflows, immutable audit, and pluggable e-signatures for Django">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>README Rewrite + GPL-3.0 Publication Materials — Implementation Plan - sinpapel</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#readme-rewrite-gpl-30-publication-materials-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="sinpapel" class="md-header__button md-logo" aria-label="sinpapel" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sinpapel
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              README Rewrite + GPL-3.0 Publication Materials — Implementation Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../usage/" class="md-tabs__link">
+          
+  
+  
+  Usage
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../api/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../development/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="sinpapel" class="md-nav__button md-logo" aria-label="sinpapel" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    sinpapel
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage Guides
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../usage/en/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    English
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../usage/es/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Español
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing to sinpapel
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#file-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-1-replace-license-with-gpl-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: Replace LICENSE with GPL-3.0
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-2-move-long-form-english-manual-to-docsusagemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: Move long-form English manual to docs/USAGE.md
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-3-move-long-form-spanish-manual-to-docsusageesmd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: Move long-form Spanish manual to docs/USAGE.es.md
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-4-rewrite-readmemd-en-concise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: Rewrite README.md (EN, concise)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-5-rewrite-readmeesmd-es-mirror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 5: Rewrite README.es.md (ES mirror)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-6-create-changelogmd-reconstructed-from-git-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 6: Create CHANGELOG.md reconstructed from git log
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-7-create-contributingmd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 7: Create CONTRIBUTING.md
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-8-create-code_of_conductmd-contributor-covenant-21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 8: Create CODE_OF_CONDUCT.md (Contributor Covenant 2.1)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-9-update-pyprojecttoml-for-gpl-30-pypi-readiness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 9: Update pyproject.toml for GPL-3.0 + PyPI readiness
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-10-verification-final-cleanup-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 10: Verification + final cleanup commit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#self-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Self-Review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execution-handoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution Handoff
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="readme-rewrite-gpl-30-publication-materials-implementation-plan">README Rewrite + GPL-3.0 Publication Materials — Implementation Plan<a class="headerlink" href="#readme-rewrite-gpl-30-publication-materials-implementation-plan" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p>
+</blockquote>
+<p><strong>Goal:</strong> Rewrite sinpapel's public-facing materials (README EN+ES, LICENSE, CHANGELOG, CONTRIBUTING, CODE_OF_CONDUCT, pyproject.toml) to ship under GPL-3.0-or-later, ready for PyPI publication, with all institutional references removed.</p>
+<p><strong>Architecture:</strong> Move the existing 900-line manual READMEs to <code>docs/USAGE.md</code> (+ ES mirror), then write fresh ~350-line READMEs focused on positioning, install, quick start, and feature map. Replace MIT LICENSE with the full GPL-3.0 text. Update <code>pyproject.toml</code> to SPDX license expression (PEP 639), GPL classifier, Beta status, and <code>setuptools&gt;=77</code>. Reconstruct <code>CHANGELOG.md</code> from <code>git log</code> between version tags. Create <code>CONTRIBUTING.md</code> (Conventional Commits + DCO) and the verbatim Contributor Covenant 2.1 <code>CODE_OF_CONDUCT.md</code>.</p>
+<p><strong>Tech Stack:</strong> Markdown, TOML, Python packaging (<code>setuptools</code>, <code>build</code>, <code>twine</code>), git.</p>
+<hr />
+<h2 id="file-map">File Map<a class="headerlink" href="#file-map" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Action</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LICENSE</code></td>
+<td>Replace</td>
+<td>GPL-3.0 canonical full text + copyright header</td>
+</tr>
+<tr>
+<td><code>README.md</code></td>
+<td>Rewrite</td>
+<td>EN positioning + quick start + feature map (~350 lines)</td>
+</tr>
+<tr>
+<td><code>README.es.md</code></td>
+<td>Rewrite</td>
+<td>ES mirror of README.md</td>
+</tr>
+<tr>
+<td><code>docs/USAGE.md</code></td>
+<td>Create</td>
+<td>Long-form EN manual (migrated from old README.md)</td>
+</tr>
+<tr>
+<td><code>docs/USAGE.es.md</code></td>
+<td>Create</td>
+<td>Long-form ES manual (migrated from old README.es.md)</td>
+</tr>
+<tr>
+<td><code>CHANGELOG.md</code></td>
+<td>Create</td>
+<td>Keep a Changelog 1.1.0, reconstructed v0.1.x → v0.5.0</td>
+</tr>
+<tr>
+<td><code>CONTRIBUTING.md</code></td>
+<td>Create</td>
+<td>Dev setup, Conventional Commits, DCO, PR flow</td>
+</tr>
+<tr>
+<td><code>CODE_OF_CONDUCT.md</code></td>
+<td>Create</td>
+<td>Contributor Covenant v2.1 verbatim</td>
+</tr>
+<tr>
+<td><code>pyproject.toml</code></td>
+<td>Edit</td>
+<td>License → GPL-3.0-or-later (SPDX), classifiers, deps, URLs template</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Order of execution:</strong> Tasks 1–9 below produce one commit each. Task 10 is verification + push. Each task is self-contained and can be reviewed independently.</p>
+<hr />
+<h2 id="task-1-replace-license-with-gpl-30">Task 1: Replace <code>LICENSE</code> with GPL-3.0<a class="headerlink" href="#task-1-replace-license-with-gpl-30" title="Permanent link">&para;</a></h2>
+<p><strong>Files:</strong>
+- Replace: <code>LICENSE</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Download canonical GPL-3.0 text</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://www.gnu.org/licenses/gpl-3.0.txt<span class="w"> </span>-o<span class="w"> </span>LICENSE.tmp
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>wc<span class="w"> </span>-l<span class="w"> </span>LICENSE.tmp<span class="w">  </span><span class="c1"># expect ~675 lines</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>head<span class="w"> </span>-3<span class="w"> </span>LICENSE.tmp<span class="w">  </span><span class="c1"># expect: GNU GENERAL PUBLIC LICENSE / Version 3, 29 June 2007 / Copyright (C) 2007 Free Software Foundation, Inc.</span>
+</code></pre></div></p>
+<p>If <code>curl</code> is unavailable, fall back to: <code>wget https://www.gnu.org/licenses/gpl-3.0.txt -O LICENSE.tmp</code>.</p>
+<ul>
+<li>[ ] <strong>Step 2: Prepend copyright header and replace LICENSE</strong></li>
+</ul>
+<p>Prepend the project copyright notice <strong>before</strong> the canonical GPL header. The final <code>LICENSE</code> file must start with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>sinpapel — versioned workflows, immutable audit, and pluggable e-signatures for Django.
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Copyright (C) 2024-2026 Julio Adrián &lt;jadrian.s@gmail.com&gt;
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>This program is free software: you can redistribute it and/or modify
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>it under the terms of the GNU General Public License as published by
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>the Free Software Foundation, either version 3 of the License, or
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>(at your option) any later version.
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>This program is distributed in the hope that it will be useful,
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>but WITHOUT ANY WARRANTY; without even the implied warranty of
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>GNU General Public License for more details.
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>You should have received a copy of the GNU General Public License
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>================================================================================
+</code></pre></div>
+<p>…immediately followed by the full canonical GPL-3.0 text from <code>LICENSE.tmp</code>.</p>
+<p>Run:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cat<span class="w"> </span>&gt;<span class="w"> </span>LICENSE<span class="w"> </span><span class="s">&lt;&lt;&#39;HEADER&#39;</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="s">sinpapel — versioned workflows, immutable audit, and pluggable e-signatures for Django.</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="s">Copyright (C) 2024-2026 Julio Adrián &lt;jadrian.s@gmail.com&gt;</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="s">This program is free software: you can redistribute it and/or modify</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="s">it under the terms of the GNU General Public License as published by</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="s">the Free Software Foundation, either version 3 of the License, or</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="s">(at your option) any later version.</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="s">This program is distributed in the hope that it will be useful,</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="s">but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="s">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="s">GNU General Public License for more details.</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="s">You should have received a copy of the GNU General Public License</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="s">along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="s">================================================================================</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="s">HEADER</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>cat<span class="w"> </span>LICENSE.tmp<span class="w"> </span>&gt;&gt;<span class="w"> </span>LICENSE
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>rm<span class="w"> </span>LICENSE.tmp
+</code></pre></div></p>
+<ul>
+<li>[ ] <strong>Step 3: Verify</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>head<span class="w"> </span>-3<span class="w"> </span>LICENSE
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="c1"># Expected line 1: &quot;sinpapel — versioned workflows, immutable audit, and pluggable e-signatures for Django.&quot;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>grep<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;GNU GENERAL PUBLIC LICENSE&quot;</span><span class="w"> </span>LICENSE
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Expected: 2 (one in the copyright header reference, one in the canonical body)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>wc<span class="w"> </span>-l<span class="w"> </span>LICENSE
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># Expected: ~695 lines (header + GPL body)</span>
+</code></pre></div></p>
+<ul>
+<li>[ ] <strong>Step 4: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>git<span class="w"> </span>add<span class="w"> </span>LICENSE
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;license: switch from MIT to GPL-3.0-or-later&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="task-2-move-long-form-english-manual-to-docsusagemd">Task 2: Move long-form English manual to <code>docs/USAGE.md</code><a class="headerlink" href="#task-2-move-long-form-english-manual-to-docsusagemd" title="Permanent link">&para;</a></h2>
+<p><strong>Files:</strong>
+- Create: <code>docs/USAGE.md</code> (from current <code>README.md</code>)</p>
+<ul>
+<li>[ ] <strong>Step 1: Copy the current README content as the starting point</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>docs
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>cp<span class="w"> </span>README.md<span class="w"> </span>docs/USAGE.md
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Strip institutional references from <code>docs/USAGE.md</code></strong></li>
+</ul>
+<p>Open <code>docs/USAGE.md</code> and apply these edits exactly:</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Before</th>
+<th>After</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Line 1 (title)</td>
+<td><code># sinpapel</code></td>
+<td><code># sinpapel — Usage Guide</code></td>
+</tr>
+<tr>
+<td>Subtitle blockquote (top)</td>
+<td>The entire <code>&gt; **v0.4.0-alpha** — …</code> and <code>&gt; Extracted from [creditos]…</code> and <code>&gt; [🇪🇸 Leer en Español]</code> lines</td>
+<td>Replace the three blockquote lines with a single line: <code>&gt; Comprehensive usage guide for sinpapel. For the high-level overview, see the [README](../README.md). Spanish version: [USAGE.es.md](USAGE.es.md).</code></td>
+</tr>
+<tr>
+<td>Any line containing <code>SEP, FONDESO, and any Django project</code></td>
+<td>Whole sentence</td>
+<td>Replace with: <code>Designed for any Django project that needs versioned state transitions, immutable audit, pluggable electronic signatures, and schema-based metadata without reinventing the wheel.</code></td>
+</tr>
+<tr>
+<td>Any block referencing <code>sinpapel-designer</code> with the GitHub URL <code>aprendomx/sinpapel-designer</code></td>
+<td>Whole blockquote</td>
+<td>Replace with a one-line note: <code>&gt; **Tip:** An optional visual workflow designer can round-trip JSON via the \</code>sinpapel_export_flujo` / `sinpapel_import_flujo` management commands.`</td>
+</tr>
+<tr>
+<td><code>pip install "git+ssh://git@github.com/aprendomx/sinpapel.git@…"</code> examples</td>
+<td>Both lines</td>
+<td>Replace with: <code>pip install sinpapel</code> and <code>pip install "sinpapel==0.5.0"</code></td>
+</tr>
+<tr>
+<td>Comment <code># e.g. "creditos", "sep", "fondeso"</code> or similar</td>
+<td>Whole comment</td>
+<td>Replace with: <code># e.g. "my_app", "requests"</code></td>
+</tr>
+<tr>
+<td>Line containing <code>git clone git@github.com:aprendomx/sinpapel.git</code></td>
+<td>Whole line</td>
+<td>Replace with: <code>git clone &lt;repository-url&gt;</code></td>
+</tr>
+<tr>
+<td>Any "Report issues" footer pointing to <code>github.com/aprendomx/sinpapel/issues</code></td>
+<td>Whole line</td>
+<td>Replace with: <code>**Report issues / propose changes:** see the project repository.</code></td>
+</tr>
+<tr>
+<td>Version badge / header text <code>v0.4.0-alpha</code></td>
+<td>All occurrences</td>
+<td>Replace with: <code>v0.5.0</code></td>
+</tr>
+</tbody>
+</table>
+<p>Use this command to verify zero institutional matches remain:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>grep<span class="w"> </span>-nE<span class="w"> </span><span class="s2">&quot;SEP|FONDESO|aprendomx|creditos|E12|github\.com/jadrians&quot;</span><span class="w"> </span>docs/USAGE.md
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1"># Expected: no output</span>
+</code></pre></div></p>
+<p>If any matches remain, edit them out manually.</p>
+<ul>
+<li>[ ] <strong>Step 3: Add a navigation header to <code>docs/USAGE.md</code></strong></li>
+</ul>
+<p>Insert immediately after the existing Table of Contents block:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">&gt; </span><span class="ge">**Navigation:** [README (overview)](../README.md) · [CHANGELOG](../CHANGELOG.md) · [CONTRIBUTING](../CONTRIBUTING.md) · [Spanish version](USAGE.es.md)</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 4: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>git<span class="w"> </span>add<span class="w"> </span>docs/USAGE.md
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;docs: move long-form EN manual to docs/USAGE.md&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="task-3-move-long-form-spanish-manual-to-docsusageesmd">Task 3: Move long-form Spanish manual to <code>docs/USAGE.es.md</code><a class="headerlink" href="#task-3-move-long-form-spanish-manual-to-docsusageesmd" title="Permanent link">&para;</a></h2>
+<p><strong>Files:</strong>
+- Create: <code>docs/USAGE.es.md</code> (from current <code>README.es.md</code>)</p>
+<ul>
+<li>[ ] <strong>Step 1: Copy current Spanish README as the starting point</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>cp<span class="w"> </span>README.es.md<span class="w"> </span>docs/USAGE.es.md
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Strip institutional references from <code>docs/USAGE.es.md</code></strong></li>
+</ul>
+<p>Apply the same edits as Task 2 Step 2, translated to Spanish where the text is Spanish:</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Before</th>
+<th>After</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Line 1</td>
+<td><code># sinpapel</code></td>
+<td><code># sinpapel — Guía de Uso</code></td>
+</tr>
+<tr>
+<td>Subtitle blockquote (top)</td>
+<td>The <code>&gt; **v0.4.0-alpha** — …</code> / <code>&gt; Extraído desde [creditos]…</code> / <code>&gt; [🇺🇸 Read in English]</code> lines</td>
+<td>Single line: <code>&gt; Guía completa de uso de sinpapel. Para el panorama general, ver el [README](../README.es.md). English version: [USAGE.md](USAGE.md).</code></td>
+</tr>
+<tr>
+<td>Line containing <code>Diseñado para SEP, FONDESO, y cualquier proyecto Django</code></td>
+<td>Whole sentence</td>
+<td><code>Diseñado para cualquier proyecto Django que necesite transiciones de estado versionadas, auditoría inmutable, firmas electrónicas plugables y metadatos basados en schema sin reinventar la rueda.</code></td>
+</tr>
+<tr>
+<td><code>sinpapel-designer</code> blockquote (with <code>aprendomx</code> URL)</td>
+<td>Whole blockquote</td>
+<td><code>&gt; **Tip:** Existe un diseñador visual de flujos opcional que intercambia JSON vía los management commands \</code>sinpapel_export_flujo` / `sinpapel_import_flujo`.`</td>
+</tr>
+<tr>
+<td><code>pip install "git+ssh://git@github.com/aprendomx/sinpapel.git@…"</code></td>
+<td>Both lines</td>
+<td><code>pip install sinpapel</code> and <code>pip install "sinpapel==0.5.0"</code></td>
+</tr>
+<tr>
+<td>Comment <code># ej. "creditos", "sep", "fondeso"</code></td>
+<td>Whole comment</td>
+<td><code># ej. "mi_app", "solicitudes"</code></td>
+</tr>
+<tr>
+<td><code>git clone git@github.com:aprendomx/sinpapel.git</code></td>
+<td>Whole line</td>
+<td><code>git clone &lt;repository-url&gt;</code></td>
+</tr>
+<tr>
+<td>Línea licencia footer mencionando <code>MIT</code> o <code>uso institucional</code></td>
+<td>Whole line</td>
+<td><code>**Licencia:** GPL-3.0-or-later (ver \</code>LICENSE`). Sin garantía.`</td>
+</tr>
+<tr>
+<td><code>v0.4.0-alpha</code></td>
+<td>All occurrences</td>
+<td><code>v0.5.0</code></td>
+</tr>
+</tbody>
+</table>
+<p>Verify:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>grep<span class="w"> </span>-nE<span class="w"> </span><span class="s2">&quot;SEP|FONDESO|aprendomx|creditos|E12|github\.com/jadrians&quot;</span><span class="w"> </span>docs/USAGE.es.md
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="c1"># Expected: no output</span>
+</code></pre></div></p>
+<ul>
+<li>[ ] <strong>Step 3: Add navigation header</strong></li>
+</ul>
+<p>Insert after the Tabla de Contenidos block:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">&gt; </span><span class="ge">**Navegación:** [README (panorama)](../README.es.md) · [CHANGELOG](../CHANGELOG.md) · [CONTRIBUTING](../CONTRIBUTING.md) · [English version](USAGE.md)</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 4: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>git<span class="w"> </span>add<span class="w"> </span>docs/USAGE.es.md
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;docs: move long-form ES manual to docs/USAGE.es.md&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="task-4-rewrite-readmemd-en-concise">Task 4: Rewrite <code>README.md</code> (EN, concise)<a class="headerlink" href="#task-4-rewrite-readmemd-en-concise" title="Permanent link">&para;</a></h2>
+<p><strong>Files:</strong>
+- Replace: <code>README.md</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Replace <code>README.md</code> with the concise version</strong></li>
+</ul>
+<p>Overwrite <code>README.md</code> with the following content <strong>exactly</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="gh"># sinpapel</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="k">&gt; </span><span class="ge">**v0.5.0** — Versioned state machines, immutable audit trail, and pluggable electronic signatures for Django.</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>[<span class="nt">![PyPI</span>](<span class="na">https://img.shields.io/pypi/v/sinpapel.svg</span>)](https://pypi.org/project/sinpapel/)
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>[<span class="nt">![Python</span>](<span class="na">https://img.shields.io/pypi/pyversions/sinpapel.svg</span>)](https://pypi.org/project/sinpapel/)
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>[<span class="nt">![Django</span>](<span class="na">https://img.shields.io/badge/django-5.0%20%7C%205.1-blue</span>)](https://www.djangoproject.com/)
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>[<span class="nt">![License: GPL v3</span>](<span class="na">https://img.shields.io/badge/License-GPLv3-blue.svg</span>)](LICENSE)
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>[<span class="nt">![Tests</span>](<span class="na">https://img.shields.io/badge/tests-272%20passing-brightgreen</span>)](#)
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>🇪🇸 [<span class="nt">Leer en Español</span>](<span class="na">README.es.md</span>)
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>---
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="gu">## Why sinpapel?</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a>
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>Building paperless processes in Django usually means stitching together a state-machine library, an audit framework, a signing layer, and a forms toolkit. <span class="gs">**sinpapel**</span> ships them as one coherent package: declarative versioned workflows, immutable history, pluggable e-signature backends, schema-based metadata capture, transition predicates, SLA timers, and custom domain signals — designed to be adopted incrementally in any Django 5+ project.
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="gu">## Features</span>
+<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>
+<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Workflow Engine**</span> — versioned state machines via <span class="sb">`VersionFlujo`</span> + <span class="sb">`ConfiguracionTransicion`</span>, with permission groups, mandatory-document gates, and a <span class="sb">`WorkflowEngine`</span> service.
+<a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Transition Predicates**</span> — Python paths, restricted JSON Logic, and Django-ORM-backed predicates, ordered per transition.
+<a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Structured Metadata Capture**</span> — <span class="sb">`MetadatosCapturables`</span> mixin with schema-declared <span class="sb">`CampoMetadato`</span> fields, validated at save.
+<a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Dynamic Forms &amp; Serializers**</span> — <span class="sb">`MetaFormFactory`</span> builds Django Forms from metadata schema; DRF Serializer mode also supported.
+<a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Pluggable Signing Backends**</span> — strategy interface plus reference backends: <span class="sb">`SimuladoBackend`</span>, <span class="sb">`RSAFileBackend`</span>, and <span class="sb">`FielBackend`</span> (RSA-SHA256 + X.509).
+<a id="__codelineno-13-26" name="__codelineno-13-26" href="#__codelineno-13-26"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Immutable Audit Trail**</span> — <span class="sb">`Trazable`</span> mixin, <span class="sb">`SeguimientoWorkflow`</span> history, <span class="sb">`RegistroFirma`</span>, plus <span class="sb">`django-simple-history`</span> integration.
+<a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a><span class="k">-</span><span class="w"> </span><span class="gs">**SLA Timers &amp; Preview Transitions**</span> — <span class="sb">`SLAEngine`</span> with notify / escalate / reject / flag actions; <span class="sb">`WorkflowEngine.preview_transition()`</span> returns an impact report without mutating state.
+<a id="__codelineno-13-28" name="__codelineno-13-28" href="#__codelineno-13-28"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Custom Domain Signals**</span> — <span class="sb">`predicate_failed`</span>, <span class="sb">`sla_breached`</span>, <span class="sb">`sla_action_executed`</span>, <span class="sb">`transition_preview_requested`</span> for observability and side-effect wiring.
+<a id="__codelineno-13-29" name="__codelineno-13-29" href="#__codelineno-13-29"></a>
+<a id="__codelineno-13-30" name="__codelineno-13-30" href="#__codelineno-13-30"></a><span class="gu">## Installation</span>
+<a id="__codelineno-13-31" name="__codelineno-13-31" href="#__codelineno-13-31"></a>
+<a id="__codelineno-13-32" name="__codelineno-13-32" href="#__codelineno-13-32"></a><span class="sb">```bash</span>
+<a id="__codelineno-13-33" name="__codelineno-13-33" href="#__codelineno-13-33"></a>pip<span class="w"> </span>install<span class="w"> </span>sinpapel
+<a id="__codelineno-13-34" name="__codelineno-13-34" href="#__codelineno-13-34"></a><span class="sb">```</span>
+<a id="__codelineno-13-35" name="__codelineno-13-35" href="#__codelineno-13-35"></a>
+<a id="__codelineno-13-36" name="__codelineno-13-36" href="#__codelineno-13-36"></a>Requires Python 3.10+ and Django 5.0+.
+<a id="__codelineno-13-37" name="__codelineno-13-37" href="#__codelineno-13-37"></a>
+<a id="__codelineno-13-38" name="__codelineno-13-38" href="#__codelineno-13-38"></a>Add to <span class="sb">`INSTALLED_APPS`</span>:
+<a id="__codelineno-13-39" name="__codelineno-13-39" href="#__codelineno-13-39"></a>
+<a id="__codelineno-13-40" name="__codelineno-13-40" href="#__codelineno-13-40"></a><span class="sb">```python</span>
+<a id="__codelineno-13-41" name="__codelineno-13-41" href="#__codelineno-13-41"></a><span class="n">INSTALLED_APPS</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-13-42" name="__codelineno-13-42" href="#__codelineno-13-42"></a>    <span class="c1"># ...</span>
+<a id="__codelineno-13-43" name="__codelineno-13-43" href="#__codelineno-13-43"></a>    <span class="s2">&quot;simple_history&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-44" name="__codelineno-13-44" href="#__codelineno-13-44"></a>    <span class="s2">&quot;sinpapel&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-45" name="__codelineno-13-45" href="#__codelineno-13-45"></a>    <span class="s2">&quot;my_app&quot;</span><span class="p">,</span>  <span class="c1"># your app that defines workflow-enabled models</span>
+<a id="__codelineno-13-46" name="__codelineno-13-46" href="#__codelineno-13-46"></a><span class="p">]</span>
+<a id="__codelineno-13-47" name="__codelineno-13-47" href="#__codelineno-13-47"></a><span class="sb">```</span>
+<a id="__codelineno-13-48" name="__codelineno-13-48" href="#__codelineno-13-48"></a>
+<a id="__codelineno-13-49" name="__codelineno-13-49" href="#__codelineno-13-49"></a>Run migrations:
+<a id="__codelineno-13-50" name="__codelineno-13-50" href="#__codelineno-13-50"></a>
+<a id="__codelineno-13-51" name="__codelineno-13-51" href="#__codelineno-13-51"></a><span class="sb">```bash</span>
+<a id="__codelineno-13-52" name="__codelineno-13-52" href="#__codelineno-13-52"></a>python<span class="w"> </span>manage.py<span class="w"> </span>migrate<span class="w"> </span>sinpapel
+<a id="__codelineno-13-53" name="__codelineno-13-53" href="#__codelineno-13-53"></a><span class="sb">```</span>
+<a id="__codelineno-13-54" name="__codelineno-13-54" href="#__codelineno-13-54"></a>
+<a id="__codelineno-13-55" name="__codelineno-13-55" href="#__codelineno-13-55"></a><span class="gu">## Quick Start</span>
+<a id="__codelineno-13-56" name="__codelineno-13-56" href="#__codelineno-13-56"></a>
+<a id="__codelineno-13-57" name="__codelineno-13-57" href="#__codelineno-13-57"></a>Declare a workflow-enabled model:
+<a id="__codelineno-13-58" name="__codelineno-13-58" href="#__codelineno-13-58"></a>
+<a id="__codelineno-13-59" name="__codelineno-13-59" href="#__codelineno-13-59"></a><span class="sb">```python</span>
+<a id="__codelineno-13-60" name="__codelineno-13-60" href="#__codelineno-13-60"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
+<a id="__codelineno-13-61" name="__codelineno-13-61" href="#__codelineno-13-61"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel</span><span class="w"> </span><span class="kn">import</span> <span class="n">workflow_enabled</span>
+<a id="__codelineno-13-62" name="__codelineno-13-62" href="#__codelineno-13-62"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">CampoMetadato</span><span class="p">,</span> <span class="n">MetadatosCapturables</span><span class="p">,</span> <span class="n">Trazable</span>
+<a id="__codelineno-13-63" name="__codelineno-13-63" href="#__codelineno-13-63"></a>
+<a id="__codelineno-13-64" name="__codelineno-13-64" href="#__codelineno-13-64"></a>
+<a id="__codelineno-13-65" name="__codelineno-13-65" href="#__codelineno-13-65"></a><span class="nd">@workflow_enabled</span>
+<a id="__codelineno-13-66" name="__codelineno-13-66" href="#__codelineno-13-66"></a><span class="k">class</span><span class="w"> </span><span class="nc">Solicitud</span><span class="p">(</span><span class="n">MetadatosCapturables</span><span class="p">,</span> <span class="n">Trazable</span><span class="p">):</span>
+<a id="__codelineno-13-67" name="__codelineno-13-67" href="#__codelineno-13-67"></a>    <span class="n">folio</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-13-68" name="__codelineno-13-68" href="#__codelineno-13-68"></a>    <span class="n">estado</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;sinpapel.Estado&quot;</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">PROTECT</span><span class="p">)</span>
+<a id="__codelineno-13-69" name="__codelineno-13-69" href="#__codelineno-13-69"></a>
+<a id="__codelineno-13-70" name="__codelineno-13-70" href="#__codelineno-13-70"></a>    <span class="n">SCHEMA_METADATOS</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-13-71" name="__codelineno-13-71" href="#__codelineno-13-71"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;monto&quot;</span><span class="p">,</span> <span class="n">tipo</span><span class="o">=</span><span class="s2">&quot;decimal&quot;</span><span class="p">,</span> <span class="n">requerido</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+<a id="__codelineno-13-72" name="__codelineno-13-72" href="#__codelineno-13-72"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;rfc&quot;</span><span class="p">,</span> <span class="n">tipo</span><span class="o">=</span><span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">requerido</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+<a id="__codelineno-13-73" name="__codelineno-13-73" href="#__codelineno-13-73"></a>    <span class="p">]</span>
+<a id="__codelineno-13-74" name="__codelineno-13-74" href="#__codelineno-13-74"></a>
+<a id="__codelineno-13-75" name="__codelineno-13-75" href="#__codelineno-13-75"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">resolve_workflow_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-13-76" name="__codelineno-13-76" href="#__codelineno-13-76"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">VersionFlujo</span>
+<a id="__codelineno-13-77" name="__codelineno-13-77" href="#__codelineno-13-77"></a>        <span class="k">return</span> <span class="n">VersionFlujo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nombre</span><span class="o">=</span><span class="s2">&quot;solicitudes&quot;</span><span class="p">,</span> <span class="n">activo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-13-78" name="__codelineno-13-78" href="#__codelineno-13-78"></a><span class="sb">```</span>
+<a id="__codelineno-13-79" name="__codelineno-13-79" href="#__codelineno-13-79"></a>
+<a id="__codelineno-13-80" name="__codelineno-13-80" href="#__codelineno-13-80"></a>Drive a state transition through the engine:
+<a id="__codelineno-13-81" name="__codelineno-13-81" href="#__codelineno-13-81"></a>
+<a id="__codelineno-13-82" name="__codelineno-13-82" href="#__codelineno-13-82"></a><span class="sb">```python</span>
+<a id="__codelineno-13-83" name="__codelineno-13-83" href="#__codelineno-13-83"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.services.workflow_engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorkflowEngine</span>
+<a id="__codelineno-13-84" name="__codelineno-13-84" href="#__codelineno-13-84"></a>
+<a id="__codelineno-13-85" name="__codelineno-13-85" href="#__codelineno-13-85"></a><span class="n">engine</span> <span class="o">=</span> <span class="n">WorkflowEngine</span><span class="p">()</span>
+<a id="__codelineno-13-86" name="__codelineno-13-86" href="#__codelineno-13-86"></a>
+<a id="__codelineno-13-87" name="__codelineno-13-87" href="#__codelineno-13-87"></a><span class="c1"># Preview before committing (no mutation, returns impact report)</span>
+<a id="__codelineno-13-88" name="__codelineno-13-88" href="#__codelineno-13-88"></a><span class="n">preview</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">preview_transition</span><span class="p">(</span><span class="n">solicitud</span><span class="p">,</span> <span class="s2">&quot;APROBADA&quot;</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+<a id="__codelineno-13-89" name="__codelineno-13-89" href="#__codelineno-13-89"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">preview</span><span class="p">[</span><span class="s2">&quot;permitido&quot;</span><span class="p">]:</span>
+<a id="__codelineno-13-90" name="__codelineno-13-90" href="#__codelineno-13-90"></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">preview</span><span class="p">[</span><span class="s2">&quot;razones_bloqueo&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;mensaje&quot;</span><span class="p">])</span>
+<a id="__codelineno-13-91" name="__codelineno-13-91" href="#__codelineno-13-91"></a>
+<a id="__codelineno-13-92" name="__codelineno-13-92" href="#__codelineno-13-92"></a><span class="c1"># Execute the transition (creates audit row + fires signals)</span>
+<a id="__codelineno-13-93" name="__codelineno-13-93" href="#__codelineno-13-93"></a><span class="n">engine</span><span class="o">.</span><span class="n">cambiar_estado</span><span class="p">(</span><span class="n">solicitud</span><span class="p">,</span> <span class="s2">&quot;APROBADA&quot;</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">comentarios</span><span class="o">=</span><span class="s2">&quot;Cumple requisitos&quot;</span><span class="p">)</span>
+<a id="__codelineno-13-94" name="__codelineno-13-94" href="#__codelineno-13-94"></a><span class="sb">```</span>
+<a id="__codelineno-13-95" name="__codelineno-13-95" href="#__codelineno-13-95"></a>
+<a id="__codelineno-13-96" name="__codelineno-13-96" href="#__codelineno-13-96"></a>Subscribe to a custom signal:
+<a id="__codelineno-13-97" name="__codelineno-13-97" href="#__codelineno-13-97"></a>
+<a id="__codelineno-13-98" name="__codelineno-13-98" href="#__codelineno-13-98"></a><span class="sb">```python</span>
+<a id="__codelineno-13-99" name="__codelineno-13-99" href="#__codelineno-13-99"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.dispatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">receiver</span>
+<a id="__codelineno-13-100" name="__codelineno-13-100" href="#__codelineno-13-100"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.signals</span><span class="w"> </span><span class="kn">import</span> <span class="n">sla_breached</span>
+<a id="__codelineno-13-101" name="__codelineno-13-101" href="#__codelineno-13-101"></a>
+<a id="__codelineno-13-102" name="__codelineno-13-102" href="#__codelineno-13-102"></a><span class="nd">@receiver</span><span class="p">(</span><span class="n">sla_breached</span><span class="p">)</span>
+<a id="__codelineno-13-103" name="__codelineno-13-103" href="#__codelineno-13-103"></a><span class="k">def</span><span class="w"> </span><span class="nf">on_sla_breach</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">sla</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-13-104" name="__codelineno-13-104" href="#__codelineno-13-104"></a>    <span class="n">notify_team</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">sla</span><span class="p">)</span>
+<a id="__codelineno-13-105" name="__codelineno-13-105" href="#__codelineno-13-105"></a><span class="sb">```</span>
+<a id="__codelineno-13-106" name="__codelineno-13-106" href="#__codelineno-13-106"></a>
+<a id="__codelineno-13-107" name="__codelineno-13-107" href="#__codelineno-13-107"></a>Full end-to-end examples, schema seeding, predicate cookbook, signing backend setup, and admin integration live in [<span class="sb">`docs/USAGE.md`</span>](docs/USAGE.md).
+<a id="__codelineno-13-108" name="__codelineno-13-108" href="#__codelineno-13-108"></a>
+<a id="__codelineno-13-109" name="__codelineno-13-109" href="#__codelineno-13-109"></a><span class="gu">## What&#39;s Inside</span>
+<a id="__codelineno-13-110" name="__codelineno-13-110" href="#__codelineno-13-110"></a>
+<a id="__codelineno-13-111" name="__codelineno-13-111" href="#__codelineno-13-111"></a>| Subsystem | Module | Docs |
+<a id="__codelineno-13-112" name="__codelineno-13-112" href="#__codelineno-13-112"></a>|---|---|---|
+<a id="__codelineno-13-113" name="__codelineno-13-113" href="#__codelineno-13-113"></a>| Workflow Engine | <span class="sb">`sinpapel.services.workflow_engine`</span> | [<span class="nt">USAGE §State Transitions</span>](<span class="na">docs/USAGE.md#8-state-transitions</span>) |
+<a id="__codelineno-13-114" name="__codelineno-13-114" href="#__codelineno-13-114"></a>| Predicates | <span class="sb">`sinpapel.services.predicate_engine`</span> | [<span class="nt">USAGE §Transition Predicates</span>](<span class="na">docs/USAGE.md#9-transition-predicates</span>) |
+<a id="__codelineno-13-115" name="__codelineno-13-115" href="#__codelineno-13-115"></a>| Metadata | <span class="sb">`sinpapel.mixins`</span> | [<span class="nt">USAGE §Metadata</span>](<span class="na">docs/USAGE.md#10-structured-metadata-capture</span>) |
+<a id="__codelineno-13-116" name="__codelineno-13-116" href="#__codelineno-13-116"></a>| Forms Factory | <span class="sb">`sinpapel.forms`</span> | [<span class="nt">USAGE §Forms</span>](<span class="na">docs/USAGE.md#11-formserializer-factory</span>) |
+<a id="__codelineno-13-117" name="__codelineno-13-117" href="#__codelineno-13-117"></a>| Signing | <span class="sb">`sinpapel.signing`</span> | [<span class="nt">USAGE §Signing</span>](<span class="na">docs/USAGE.md#12-signing-backends</span>) |
+<a id="__codelineno-13-118" name="__codelineno-13-118" href="#__codelineno-13-118"></a>| Audit Trail | <span class="sb">`sinpapel.models`</span> + <span class="sb">`sinpapel.mixins.Trazable`</span> | [<span class="nt">USAGE §Audit</span>](<span class="na">docs/USAGE.md#13-audit-trail</span>) |
+<a id="__codelineno-13-119" name="__codelineno-13-119" href="#__codelineno-13-119"></a>| SLA Engine | <span class="sb">`sinpapel.services.sla_engine`</span> | [<span class="nt">USAGE §SLA</span>](<span class="na">docs/USAGE.md</span>) |
+<a id="__codelineno-13-120" name="__codelineno-13-120" href="#__codelineno-13-120"></a>| Custom Signals | <span class="sb">`sinpapel.signals`</span> | [<span class="nt">USAGE §Signals</span>](<span class="na">docs/USAGE.md</span>) |
+<a id="__codelineno-13-121" name="__codelineno-13-121" href="#__codelineno-13-121"></a>| Schema Export/Import | <span class="sb">`sinpapel.schemas`</span> + management commands | [<span class="nt">USAGE §Schema</span>](<span class="na">docs/USAGE.md</span>) |
+<a id="__codelineno-13-122" name="__codelineno-13-122" href="#__codelineno-13-122"></a>
+<a id="__codelineno-13-123" name="__codelineno-13-123" href="#__codelineno-13-123"></a><span class="gu">## Configuration</span>
+<a id="__codelineno-13-124" name="__codelineno-13-124" href="#__codelineno-13-124"></a>
+<a id="__codelineno-13-125" name="__codelineno-13-125" href="#__codelineno-13-125"></a>Optional Django settings:
+<a id="__codelineno-13-126" name="__codelineno-13-126" href="#__codelineno-13-126"></a>
+<a id="__codelineno-13-127" name="__codelineno-13-127" href="#__codelineno-13-127"></a><span class="sb">```python</span>
+<a id="__codelineno-13-128" name="__codelineno-13-128" href="#__codelineno-13-128"></a><span class="c1"># settings.py</span>
+<a id="__codelineno-13-129" name="__codelineno-13-129" href="#__codelineno-13-129"></a><span class="n">SINPAPEL_DEFAULT_SIGNATURE_BACKEND</span> <span class="o">=</span> <span class="s2">&quot;rsa_file&quot;</span>
+<a id="__codelineno-13-130" name="__codelineno-13-130" href="#__codelineno-13-130"></a><span class="n">SINPAPEL_RSA_PRIVATE_KEY_PATH</span> <span class="o">=</span> <span class="s2">&quot;/run/secrets/sinpapel.key&quot;</span>
+<a id="__codelineno-13-131" name="__codelineno-13-131" href="#__codelineno-13-131"></a><span class="n">SINPAPEL_RSA_PUBLIC_KEY_PATH</span> <span class="o">=</span> <span class="s2">&quot;/run/secrets/sinpapel.pub&quot;</span>
+<a id="__codelineno-13-132" name="__codelineno-13-132" href="#__codelineno-13-132"></a><span class="n">SINPAPEL_EMIT_PREVIEW_EVENTS</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># set True to fire transition_preview_requested signal</span>
+<a id="__codelineno-13-133" name="__codelineno-13-133" href="#__codelineno-13-133"></a><span class="sb">```</span>
+<a id="__codelineno-13-134" name="__codelineno-13-134" href="#__codelineno-13-134"></a>
+<a id="__codelineno-13-135" name="__codelineno-13-135" href="#__codelineno-13-135"></a>See [<span class="nt">USAGE §Settings</span>](<span class="na">docs/USAGE.md#4-settings</span>) for the full reference.
+<a id="__codelineno-13-136" name="__codelineno-13-136" href="#__codelineno-13-136"></a>
+<a id="__codelineno-13-137" name="__codelineno-13-137" href="#__codelineno-13-137"></a><span class="gu">## Compatibility</span>
+<a id="__codelineno-13-138" name="__codelineno-13-138" href="#__codelineno-13-138"></a>
+<a id="__codelineno-13-139" name="__codelineno-13-139" href="#__codelineno-13-139"></a>| Python | Django |
+<a id="__codelineno-13-140" name="__codelineno-13-140" href="#__codelineno-13-140"></a>|---|---|
+<a id="__codelineno-13-141" name="__codelineno-13-141" href="#__codelineno-13-141"></a>| 3.10, 3.11, 3.12, 3.13 | 5.0, 5.1 |
+<a id="__codelineno-13-142" name="__codelineno-13-142" href="#__codelineno-13-142"></a>
+<a id="__codelineno-13-143" name="__codelineno-13-143" href="#__codelineno-13-143"></a>CI runs the test suite across the full matrix.
+<a id="__codelineno-13-144" name="__codelineno-13-144" href="#__codelineno-13-144"></a>
+<a id="__codelineno-13-145" name="__codelineno-13-145" href="#__codelineno-13-145"></a><span class="gu">## Documentation</span>
+<a id="__codelineno-13-146" name="__codelineno-13-146" href="#__codelineno-13-146"></a>
+<a id="__codelineno-13-147" name="__codelineno-13-147" href="#__codelineno-13-147"></a><span class="k">-</span><span class="w"> </span>[<span class="nt">Usage Guide</span>](<span class="na">docs/USAGE.md</span>) — full reference (EN)
+<a id="__codelineno-13-148" name="__codelineno-13-148" href="#__codelineno-13-148"></a><span class="k">-</span><span class="w"> </span>[<span class="nt">Guía de Uso</span>](<span class="na">docs/USAGE.es.md</span>) — full reference (ES)
+<a id="__codelineno-13-149" name="__codelineno-13-149" href="#__codelineno-13-149"></a><span class="k">-</span><span class="w"> </span>[<span class="nt">Changelog</span>](<span class="na">CHANGELOG.md</span>)
+<a id="__codelineno-13-150" name="__codelineno-13-150" href="#__codelineno-13-150"></a><span class="k">-</span><span class="w"> </span>[<span class="nt">Contributing</span>](<span class="na">CONTRIBUTING.md</span>)
+<a id="__codelineno-13-151" name="__codelineno-13-151" href="#__codelineno-13-151"></a><span class="k">-</span><span class="w"> </span>[<span class="nt">Code of Conduct</span>](<span class="na">CODE_OF_CONDUCT.md</span>)
+<a id="__codelineno-13-152" name="__codelineno-13-152" href="#__codelineno-13-152"></a>
+<a id="__codelineno-13-153" name="__codelineno-13-153" href="#__codelineno-13-153"></a><span class="gu">## Versioning &amp; Stability</span>
+<a id="__codelineno-13-154" name="__codelineno-13-154" href="#__codelineno-13-154"></a>
+<a id="__codelineno-13-155" name="__codelineno-13-155" href="#__codelineno-13-155"></a>sinpapel follows [<span class="nt">Semantic Versioning</span>](<span class="na">https://semver.org/</span>). The current release is <span class="gs">**v0.5.0 (Beta)**</span>. Public APIs (<span class="sb">`WorkflowEngine`</span>, <span class="sb">`PredicateEngine`</span>, <span class="sb">`SLAEngine`</span>, signals, model fields, schema JSON v0.2) are stable in the 0.x series; breaking changes will bump the minor version and be flagged in <span class="sb">`CHANGELOG.md`</span> until 1.0.0.
+<a id="__codelineno-13-156" name="__codelineno-13-156" href="#__codelineno-13-156"></a>
+<a id="__codelineno-13-157" name="__codelineno-13-157" href="#__codelineno-13-157"></a><span class="gu">## Contributing</span>
+<a id="__codelineno-13-158" name="__codelineno-13-158" href="#__codelineno-13-158"></a>
+<a id="__codelineno-13-159" name="__codelineno-13-159" href="#__codelineno-13-159"></a>Pull requests are welcome. Please read [<span class="nt">CONTRIBUTING.md</span>](<span class="na">CONTRIBUTING.md</span>) for development setup, commit conventions, and the Developer Certificate of Origin (DCO) sign-off requirement.
+<a id="__codelineno-13-160" name="__codelineno-13-160" href="#__codelineno-13-160"></a>
+<a id="__codelineno-13-161" name="__codelineno-13-161" href="#__codelineno-13-161"></a><span class="gu">## License</span>
+<a id="__codelineno-13-162" name="__codelineno-13-162" href="#__codelineno-13-162"></a>
+<a id="__codelineno-13-163" name="__codelineno-13-163" href="#__codelineno-13-163"></a>Copyright (C) 2024-2026 Julio Adrián.
+<a id="__codelineno-13-164" name="__codelineno-13-164" href="#__codelineno-13-164"></a>
+<a id="__codelineno-13-165" name="__codelineno-13-165" href="#__codelineno-13-165"></a>sinpapel is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+<a id="__codelineno-13-166" name="__codelineno-13-166" href="#__codelineno-13-166"></a>
+<a id="__codelineno-13-167" name="__codelineno-13-167" href="#__codelineno-13-167"></a>sinpapel is distributed in the hope that it will be useful, but <span class="gs">**WITHOUT ANY WARRANTY**</span>; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [<span class="nt">GNU General Public License</span>](<span class="na">LICENSE</span>) for more details.
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Verify length and no institutional refs</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>wc<span class="w"> </span>-l<span class="w"> </span>README.md
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="c1"># Expected: ~180-220 lines</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>grep<span class="w"> </span>-nE<span class="w"> </span><span class="s2">&quot;SEP|FONDESO|aprendomx|creditos|E12|jadrians/creditos&quot;</span><span class="w"> </span>README.md
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># Expected: no output</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>git<span class="w"> </span>add<span class="w"> </span>README.md
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;docs: rewrite README.md (EN) — concise, GPL-3.0, no institutional refs&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="task-5-rewrite-readmeesmd-es-mirror">Task 5: Rewrite <code>README.es.md</code> (ES mirror)<a class="headerlink" href="#task-5-rewrite-readmeesmd-es-mirror" title="Permanent link">&para;</a></h2>
+<p><strong>Files:</strong>
+- Replace: <code>README.es.md</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Replace <code>README.es.md</code> with the Spanish mirror</strong></li>
+</ul>
+<p>Overwrite <code>README.es.md</code> with the following content <strong>exactly</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="gh"># sinpapel</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="k">&gt; </span><span class="ge">**v0.5.0** — Máquinas de estado versionadas, auditoría inmutable y firmas electrónicas plugables para Django.</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>[<span class="nt">![PyPI</span>](<span class="na">https://img.shields.io/pypi/v/sinpapel.svg</span>)](https://pypi.org/project/sinpapel/)
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>[<span class="nt">![Python</span>](<span class="na">https://img.shields.io/pypi/pyversions/sinpapel.svg</span>)](https://pypi.org/project/sinpapel/)
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>[<span class="nt">![Django</span>](<span class="na">https://img.shields.io/badge/django-5.0%20%7C%205.1-blue</span>)](https://www.djangoproject.com/)
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>[<span class="nt">![License: GPL v3</span>](<span class="na">https://img.shields.io/badge/License-GPLv3-blue.svg</span>)](LICENSE)
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>[<span class="nt">![Tests</span>](<span class="na">https://img.shields.io/badge/tests-272%20passing-brightgreen</span>)](#)
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>🇺🇸 [<span class="nt">Read in English</span>](<span class="na">README.md</span>)
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>---
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="gu">## ¿Por qué sinpapel?</span>
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>
+<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a>Construir procesos sin papel en Django suele significar pegar una librería de máquina de estados, un framework de auditoría, una capa de firma y un toolkit de formularios. <span class="gs">**sinpapel**</span> los entrega como un único paquete coherente: flujos versionados declarativos, historial inmutable, backends de firma plugables, captura de metadatos basada en schema, predicados de transición, timers SLA y signals de dominio personalizados — diseñado para adoptarse incrementalmente en cualquier proyecto Django 5+.
+<a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>
+<a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a><span class="gu">## Características</span>
+<a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a>
+<a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Motor de Workflow**</span> — máquinas de estado versionadas vía <span class="sb">`VersionFlujo`</span> + <span class="sb">`ConfiguracionTransicion`</span>, con grupos de permisos, gates de documentos obligatorios y un servicio <span class="sb">`WorkflowEngine`</span>.
+<a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Predicados de Transición**</span> — paths Python, JSON Logic restringido y predicados con backend ORM de Django, ordenados por transición.
+<a id="__codelineno-16-23" name="__codelineno-16-23" href="#__codelineno-16-23"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Captura Estructurada de Metadatos**</span> — mixin <span class="sb">`MetadatosCapturables`</span> con campos declarados por schema vía <span class="sb">`CampoMetadato`</span>, validados al guardar.
+<a id="__codelineno-16-24" name="__codelineno-16-24" href="#__codelineno-16-24"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Formularios y Serializers Dinámicos**</span> — <span class="sb">`MetaFormFactory`</span> construye Django Forms desde el schema de metadatos; modo DRF Serializer también soportado.
+<a id="__codelineno-16-25" name="__codelineno-16-25" href="#__codelineno-16-25"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Backends de Firma Plugables**</span> — interfaz strategy más backends de referencia: <span class="sb">`SimuladoBackend`</span>, <span class="sb">`RSAFileBackend`</span> y <span class="sb">`FielBackend`</span> (RSA-SHA256 + X.509).
+<a id="__codelineno-16-26" name="__codelineno-16-26" href="#__codelineno-16-26"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Pista de Auditoría Inmutable**</span> — mixin <span class="sb">`Trazable`</span>, historial <span class="sb">`SeguimientoWorkflow`</span>, <span class="sb">`RegistroFirma`</span>, más integración con <span class="sb">`django-simple-history`</span>.
+<a id="__codelineno-16-27" name="__codelineno-16-27" href="#__codelineno-16-27"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Timers SLA y Preview de Transiciones**</span> — <span class="sb">`SLAEngine`</span> con acciones notificar / escalar / rechazar / alertar; <span class="sb">`WorkflowEngine.preview_transition()`</span> retorna un reporte de impacto sin mutar el estado.
+<a id="__codelineno-16-28" name="__codelineno-16-28" href="#__codelineno-16-28"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Signals de Dominio Personalizados**</span> — <span class="sb">`predicate_failed`</span>, <span class="sb">`sla_breached`</span>, <span class="sb">`sla_action_executed`</span>, <span class="sb">`transition_preview_requested`</span> para observabilidad y cableado de side-effects.
+<a id="__codelineno-16-29" name="__codelineno-16-29" href="#__codelineno-16-29"></a>
+<a id="__codelineno-16-30" name="__codelineno-16-30" href="#__codelineno-16-30"></a><span class="gu">## Instalación</span>
+<a id="__codelineno-16-31" name="__codelineno-16-31" href="#__codelineno-16-31"></a>
+<a id="__codelineno-16-32" name="__codelineno-16-32" href="#__codelineno-16-32"></a><span class="sb">```bash</span>
+<a id="__codelineno-16-33" name="__codelineno-16-33" href="#__codelineno-16-33"></a>pip<span class="w"> </span>install<span class="w"> </span>sinpapel
+<a id="__codelineno-16-34" name="__codelineno-16-34" href="#__codelineno-16-34"></a><span class="sb">```</span>
+<a id="__codelineno-16-35" name="__codelineno-16-35" href="#__codelineno-16-35"></a>
+<a id="__codelineno-16-36" name="__codelineno-16-36" href="#__codelineno-16-36"></a>Requiere Python 3.10+ y Django 5.0+.
+<a id="__codelineno-16-37" name="__codelineno-16-37" href="#__codelineno-16-37"></a>
+<a id="__codelineno-16-38" name="__codelineno-16-38" href="#__codelineno-16-38"></a>Agregar a <span class="sb">`INSTALLED_APPS`</span>:
+<a id="__codelineno-16-39" name="__codelineno-16-39" href="#__codelineno-16-39"></a>
+<a id="__codelineno-16-40" name="__codelineno-16-40" href="#__codelineno-16-40"></a><span class="sb">```python</span>
+<a id="__codelineno-16-41" name="__codelineno-16-41" href="#__codelineno-16-41"></a><span class="n">INSTALLED_APPS</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-16-42" name="__codelineno-16-42" href="#__codelineno-16-42"></a>    <span class="c1"># ...</span>
+<a id="__codelineno-16-43" name="__codelineno-16-43" href="#__codelineno-16-43"></a>    <span class="s2">&quot;simple_history&quot;</span><span class="p">,</span>
+<a id="__codelineno-16-44" name="__codelineno-16-44" href="#__codelineno-16-44"></a>    <span class="s2">&quot;sinpapel&quot;</span><span class="p">,</span>
+<a id="__codelineno-16-45" name="__codelineno-16-45" href="#__codelineno-16-45"></a>    <span class="s2">&quot;mi_app&quot;</span><span class="p">,</span>  <span class="c1"># tu app que define modelos workflow-enabled</span>
+<a id="__codelineno-16-46" name="__codelineno-16-46" href="#__codelineno-16-46"></a><span class="p">]</span>
+<a id="__codelineno-16-47" name="__codelineno-16-47" href="#__codelineno-16-47"></a><span class="sb">```</span>
+<a id="__codelineno-16-48" name="__codelineno-16-48" href="#__codelineno-16-48"></a>
+<a id="__codelineno-16-49" name="__codelineno-16-49" href="#__codelineno-16-49"></a>Correr migraciones:
+<a id="__codelineno-16-50" name="__codelineno-16-50" href="#__codelineno-16-50"></a>
+<a id="__codelineno-16-51" name="__codelineno-16-51" href="#__codelineno-16-51"></a><span class="sb">```bash</span>
+<a id="__codelineno-16-52" name="__codelineno-16-52" href="#__codelineno-16-52"></a>python<span class="w"> </span>manage.py<span class="w"> </span>migrate<span class="w"> </span>sinpapel
+<a id="__codelineno-16-53" name="__codelineno-16-53" href="#__codelineno-16-53"></a><span class="sb">```</span>
+<a id="__codelineno-16-54" name="__codelineno-16-54" href="#__codelineno-16-54"></a>
+<a id="__codelineno-16-55" name="__codelineno-16-55" href="#__codelineno-16-55"></a><span class="gu">## Quick Start</span>
+<a id="__codelineno-16-56" name="__codelineno-16-56" href="#__codelineno-16-56"></a>
+<a id="__codelineno-16-57" name="__codelineno-16-57" href="#__codelineno-16-57"></a>Declarar un modelo workflow-enabled:
+<a id="__codelineno-16-58" name="__codelineno-16-58" href="#__codelineno-16-58"></a>
+<a id="__codelineno-16-59" name="__codelineno-16-59" href="#__codelineno-16-59"></a><span class="sb">```python</span>
+<a id="__codelineno-16-60" name="__codelineno-16-60" href="#__codelineno-16-60"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
+<a id="__codelineno-16-61" name="__codelineno-16-61" href="#__codelineno-16-61"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel</span><span class="w"> </span><span class="kn">import</span> <span class="n">workflow_enabled</span>
+<a id="__codelineno-16-62" name="__codelineno-16-62" href="#__codelineno-16-62"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">CampoMetadato</span><span class="p">,</span> <span class="n">MetadatosCapturables</span><span class="p">,</span> <span class="n">Trazable</span>
+<a id="__codelineno-16-63" name="__codelineno-16-63" href="#__codelineno-16-63"></a>
+<a id="__codelineno-16-64" name="__codelineno-16-64" href="#__codelineno-16-64"></a>
+<a id="__codelineno-16-65" name="__codelineno-16-65" href="#__codelineno-16-65"></a><span class="nd">@workflow_enabled</span>
+<a id="__codelineno-16-66" name="__codelineno-16-66" href="#__codelineno-16-66"></a><span class="k">class</span><span class="w"> </span><span class="nc">Solicitud</span><span class="p">(</span><span class="n">MetadatosCapturables</span><span class="p">,</span> <span class="n">Trazable</span><span class="p">):</span>
+<a id="__codelineno-16-67" name="__codelineno-16-67" href="#__codelineno-16-67"></a>    <span class="n">folio</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-16-68" name="__codelineno-16-68" href="#__codelineno-16-68"></a>    <span class="n">estado</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;sinpapel.Estado&quot;</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">PROTECT</span><span class="p">)</span>
+<a id="__codelineno-16-69" name="__codelineno-16-69" href="#__codelineno-16-69"></a>
+<a id="__codelineno-16-70" name="__codelineno-16-70" href="#__codelineno-16-70"></a>    <span class="n">SCHEMA_METADATOS</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-16-71" name="__codelineno-16-71" href="#__codelineno-16-71"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;monto&quot;</span><span class="p">,</span> <span class="n">tipo</span><span class="o">=</span><span class="s2">&quot;decimal&quot;</span><span class="p">,</span> <span class="n">requerido</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+<a id="__codelineno-16-72" name="__codelineno-16-72" href="#__codelineno-16-72"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;rfc&quot;</span><span class="p">,</span> <span class="n">tipo</span><span class="o">=</span><span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">requerido</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+<a id="__codelineno-16-73" name="__codelineno-16-73" href="#__codelineno-16-73"></a>    <span class="p">]</span>
+<a id="__codelineno-16-74" name="__codelineno-16-74" href="#__codelineno-16-74"></a>
+<a id="__codelineno-16-75" name="__codelineno-16-75" href="#__codelineno-16-75"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">resolve_workflow_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-16-76" name="__codelineno-16-76" href="#__codelineno-16-76"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">VersionFlujo</span>
+<a id="__codelineno-16-77" name="__codelineno-16-77" href="#__codelineno-16-77"></a>        <span class="k">return</span> <span class="n">VersionFlujo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nombre</span><span class="o">=</span><span class="s2">&quot;solicitudes&quot;</span><span class="p">,</span> <span class="n">activo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-16-78" name="__codelineno-16-78" href="#__codelineno-16-78"></a><span class="sb">```</span>
+<a id="__codelineno-16-79" name="__codelineno-16-79" href="#__codelineno-16-79"></a>
+<a id="__codelineno-16-80" name="__codelineno-16-80" href="#__codelineno-16-80"></a>Ejecutar una transición de estado a través del motor:
+<a id="__codelineno-16-81" name="__codelineno-16-81" href="#__codelineno-16-81"></a>
+<a id="__codelineno-16-82" name="__codelineno-16-82" href="#__codelineno-16-82"></a><span class="sb">```python</span>
+<a id="__codelineno-16-83" name="__codelineno-16-83" href="#__codelineno-16-83"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.services.workflow_engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorkflowEngine</span>
+<a id="__codelineno-16-84" name="__codelineno-16-84" href="#__codelineno-16-84"></a>
+<a id="__codelineno-16-85" name="__codelineno-16-85" href="#__codelineno-16-85"></a><span class="n">engine</span> <span class="o">=</span> <span class="n">WorkflowEngine</span><span class="p">()</span>
+<a id="__codelineno-16-86" name="__codelineno-16-86" href="#__codelineno-16-86"></a>
+<a id="__codelineno-16-87" name="__codelineno-16-87" href="#__codelineno-16-87"></a><span class="c1"># Preview antes de commitear (no muta, retorna reporte de impacto)</span>
+<a id="__codelineno-16-88" name="__codelineno-16-88" href="#__codelineno-16-88"></a><span class="n">preview</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">preview_transition</span><span class="p">(</span><span class="n">solicitud</span><span class="p">,</span> <span class="s2">&quot;APROBADA&quot;</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
+<a id="__codelineno-16-89" name="__codelineno-16-89" href="#__codelineno-16-89"></a><span class="k">if</span> <span class="ow">not</span> <span class="n">preview</span><span class="p">[</span><span class="s2">&quot;permitido&quot;</span><span class="p">]:</span>
+<a id="__codelineno-16-90" name="__codelineno-16-90" href="#__codelineno-16-90"></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">preview</span><span class="p">[</span><span class="s2">&quot;razones_bloqueo&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;mensaje&quot;</span><span class="p">])</span>
+<a id="__codelineno-16-91" name="__codelineno-16-91" href="#__codelineno-16-91"></a>
+<a id="__codelineno-16-92" name="__codelineno-16-92" href="#__codelineno-16-92"></a><span class="c1"># Ejecutar la transición (crea row de auditoría + dispara signals)</span>
+<a id="__codelineno-16-93" name="__codelineno-16-93" href="#__codelineno-16-93"></a><span class="n">engine</span><span class="o">.</span><span class="n">cambiar_estado</span><span class="p">(</span><span class="n">solicitud</span><span class="p">,</span> <span class="s2">&quot;APROBADA&quot;</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">comentarios</span><span class="o">=</span><span class="s2">&quot;Cumple requisitos&quot;</span><span class="p">)</span>
+<a id="__codelineno-16-94" name="__codelineno-16-94" href="#__codelineno-16-94"></a><span class="sb">```</span>
+<a id="__codelineno-16-95" name="__codelineno-16-95" href="#__codelineno-16-95"></a>
+<a id="__codelineno-16-96" name="__codelineno-16-96" href="#__codelineno-16-96"></a>Suscribirse a un signal personalizado:
+<a id="__codelineno-16-97" name="__codelineno-16-97" href="#__codelineno-16-97"></a>
+<a id="__codelineno-16-98" name="__codelineno-16-98" href="#__codelineno-16-98"></a><span class="sb">```python</span>
+<a id="__codelineno-16-99" name="__codelineno-16-99" href="#__codelineno-16-99"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.dispatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">receiver</span>
+<a id="__codelineno-16-100" name="__codelineno-16-100" href="#__codelineno-16-100"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.signals</span><span class="w"> </span><span class="kn">import</span> <span class="n">sla_breached</span>
+<a id="__codelineno-16-101" name="__codelineno-16-101" href="#__codelineno-16-101"></a>
+<a id="__codelineno-16-102" name="__codelineno-16-102" href="#__codelineno-16-102"></a><span class="nd">@receiver</span><span class="p">(</span><span class="n">sla_breached</span><span class="p">)</span>
+<a id="__codelineno-16-103" name="__codelineno-16-103" href="#__codelineno-16-103"></a><span class="k">def</span><span class="w"> </span><span class="nf">on_sla_breach</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">sla</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-16-104" name="__codelineno-16-104" href="#__codelineno-16-104"></a>    <span class="n">notify_team</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">sla</span><span class="p">)</span>
+<a id="__codelineno-16-105" name="__codelineno-16-105" href="#__codelineno-16-105"></a><span class="sb">```</span>
+<a id="__codelineno-16-106" name="__codelineno-16-106" href="#__codelineno-16-106"></a>
+<a id="__codelineno-16-107" name="__codelineno-16-107" href="#__codelineno-16-107"></a>Ejemplos end-to-end completos, seeding de schema, cookbook de predicados, setup de backends de firma e integración con admin viven en [<span class="sb">`docs/USAGE.es.md`</span>](docs/USAGE.es.md).
+<a id="__codelineno-16-108" name="__codelineno-16-108" href="#__codelineno-16-108"></a>
+<a id="__codelineno-16-109" name="__codelineno-16-109" href="#__codelineno-16-109"></a><span class="gu">## Qué Incluye</span>
+<a id="__codelineno-16-110" name="__codelineno-16-110" href="#__codelineno-16-110"></a>
+<a id="__codelineno-16-111" name="__codelineno-16-111" href="#__codelineno-16-111"></a>| Subsistema | Módulo | Docs |
+<a id="__codelineno-16-112" name="__codelineno-16-112" href="#__codelineno-16-112"></a>|---|---|---|
+<a id="__codelineno-16-113" name="__codelineno-16-113" href="#__codelineno-16-113"></a>| Motor de Workflow | <span class="sb">`sinpapel.services.workflow_engine`</span> | [<span class="nt">USAGE §Transiciones</span>](<span class="na">docs/USAGE.es.md#8-transiciones-de-estado</span>) |
+<a id="__codelineno-16-114" name="__codelineno-16-114" href="#__codelineno-16-114"></a>| Predicados | <span class="sb">`sinpapel.services.predicate_engine`</span> | [<span class="nt">USAGE §Predicados</span>](<span class="na">docs/USAGE.es.md#9-predicados-de-transición</span>) |
+<a id="__codelineno-16-115" name="__codelineno-16-115" href="#__codelineno-16-115"></a>| Metadatos | <span class="sb">`sinpapel.mixins`</span> | [<span class="nt">USAGE §Metadatos</span>](<span class="na">docs/USAGE.es.md#10-captura-estructurada-de-metadatos</span>) |
+<a id="__codelineno-16-116" name="__codelineno-16-116" href="#__codelineno-16-116"></a>| Forms Factory | <span class="sb">`sinpapel.forms`</span> | [<span class="nt">USAGE §Forms</span>](<span class="na">docs/USAGE.es.md#11-formserializer-factory</span>) |
+<a id="__codelineno-16-117" name="__codelineno-16-117" href="#__codelineno-16-117"></a>| Firmas | <span class="sb">`sinpapel.signing`</span> | [<span class="nt">USAGE §Firmas</span>](<span class="na">docs/USAGE.es.md#12-backends-de-firma</span>) |
+<a id="__codelineno-16-118" name="__codelineno-16-118" href="#__codelineno-16-118"></a>| Auditoría | <span class="sb">`sinpapel.models`</span> + <span class="sb">`sinpapel.mixins.Trazable`</span> | [<span class="nt">USAGE §Auditoría</span>](<span class="na">docs/USAGE.es.md#13-pista-de-auditoría</span>) |
+<a id="__codelineno-16-119" name="__codelineno-16-119" href="#__codelineno-16-119"></a>| Motor SLA | <span class="sb">`sinpapel.services.sla_engine`</span> | [<span class="nt">USAGE §SLA</span>](<span class="na">docs/USAGE.es.md</span>) |
+<a id="__codelineno-16-120" name="__codelineno-16-120" href="#__codelineno-16-120"></a>| Signals Personalizados | <span class="sb">`sinpapel.signals`</span> | [<span class="nt">USAGE §Signals</span>](<span class="na">docs/USAGE.es.md</span>) |
+<a id="__codelineno-16-121" name="__codelineno-16-121" href="#__codelineno-16-121"></a>| Export/Import de Schema | <span class="sb">`sinpapel.schemas`</span> + management commands | [<span class="nt">USAGE §Schema</span>](<span class="na">docs/USAGE.es.md</span>) |
+<a id="__codelineno-16-122" name="__codelineno-16-122" href="#__codelineno-16-122"></a>
+<a id="__codelineno-16-123" name="__codelineno-16-123" href="#__codelineno-16-123"></a><span class="gu">## Configuración</span>
+<a id="__codelineno-16-124" name="__codelineno-16-124" href="#__codelineno-16-124"></a>
+<a id="__codelineno-16-125" name="__codelineno-16-125" href="#__codelineno-16-125"></a>Settings opcionales de Django:
+<a id="__codelineno-16-126" name="__codelineno-16-126" href="#__codelineno-16-126"></a>
+<a id="__codelineno-16-127" name="__codelineno-16-127" href="#__codelineno-16-127"></a><span class="sb">```python</span>
+<a id="__codelineno-16-128" name="__codelineno-16-128" href="#__codelineno-16-128"></a><span class="c1"># settings.py</span>
+<a id="__codelineno-16-129" name="__codelineno-16-129" href="#__codelineno-16-129"></a><span class="n">SINPAPEL_DEFAULT_SIGNATURE_BACKEND</span> <span class="o">=</span> <span class="s2">&quot;rsa_file&quot;</span>
+<a id="__codelineno-16-130" name="__codelineno-16-130" href="#__codelineno-16-130"></a><span class="n">SINPAPEL_RSA_PRIVATE_KEY_PATH</span> <span class="o">=</span> <span class="s2">&quot;/run/secrets/sinpapel.key&quot;</span>
+<a id="__codelineno-16-131" name="__codelineno-16-131" href="#__codelineno-16-131"></a><span class="n">SINPAPEL_RSA_PUBLIC_KEY_PATH</span> <span class="o">=</span> <span class="s2">&quot;/run/secrets/sinpapel.pub&quot;</span>
+<a id="__codelineno-16-132" name="__codelineno-16-132" href="#__codelineno-16-132"></a><span class="n">SINPAPEL_EMIT_PREVIEW_EVENTS</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># poner True para disparar el signal transition_preview_requested</span>
+<a id="__codelineno-16-133" name="__codelineno-16-133" href="#__codelineno-16-133"></a><span class="sb">```</span>
+<a id="__codelineno-16-134" name="__codelineno-16-134" href="#__codelineno-16-134"></a>
+<a id="__codelineno-16-135" name="__codelineno-16-135" href="#__codelineno-16-135"></a>Ver [<span class="nt">USAGE §Settings</span>](<span class="na">docs/USAGE.es.md#4-settings</span>) para la referencia completa.
+<a id="__codelineno-16-136" name="__codelineno-16-136" href="#__codelineno-16-136"></a>
+<a id="__codelineno-16-137" name="__codelineno-16-137" href="#__codelineno-16-137"></a><span class="gu">## Compatibilidad</span>
+<a id="__codelineno-16-138" name="__codelineno-16-138" href="#__codelineno-16-138"></a>
+<a id="__codelineno-16-139" name="__codelineno-16-139" href="#__codelineno-16-139"></a>| Python | Django |
+<a id="__codelineno-16-140" name="__codelineno-16-140" href="#__codelineno-16-140"></a>|---|---|
+<a id="__codelineno-16-141" name="__codelineno-16-141" href="#__codelineno-16-141"></a>| 3.10, 3.11, 3.12, 3.13 | 5.0, 5.1 |
+<a id="__codelineno-16-142" name="__codelineno-16-142" href="#__codelineno-16-142"></a>
+<a id="__codelineno-16-143" name="__codelineno-16-143" href="#__codelineno-16-143"></a>CI corre el suite de tests contra la matriz completa.
+<a id="__codelineno-16-144" name="__codelineno-16-144" href="#__codelineno-16-144"></a>
+<a id="__codelineno-16-145" name="__codelineno-16-145" href="#__codelineno-16-145"></a><span class="gu">## Documentación</span>
+<a id="__codelineno-16-146" name="__codelineno-16-146" href="#__codelineno-16-146"></a>
+<a id="__codelineno-16-147" name="__codelineno-16-147" href="#__codelineno-16-147"></a><span class="k">-</span><span class="w"> </span>[<span class="nt">Guía de Uso</span>](<span class="na">docs/USAGE.es.md</span>) — referencia completa (ES)
+<a id="__codelineno-16-148" name="__codelineno-16-148" href="#__codelineno-16-148"></a><span class="k">-</span><span class="w"> </span>[<span class="nt">Usage Guide</span>](<span class="na">docs/USAGE.md</span>) — referencia completa (EN)
+<a id="__codelineno-16-149" name="__codelineno-16-149" href="#__codelineno-16-149"></a><span class="k">-</span><span class="w"> </span>[<span class="nt">Changelog</span>](<span class="na">CHANGELOG.md</span>)
+<a id="__codelineno-16-150" name="__codelineno-16-150" href="#__codelineno-16-150"></a><span class="k">-</span><span class="w"> </span>[<span class="nt">Contributing</span>](<span class="na">CONTRIBUTING.md</span>)
+<a id="__codelineno-16-151" name="__codelineno-16-151" href="#__codelineno-16-151"></a><span class="k">-</span><span class="w"> </span>[<span class="nt">Código de Conducta</span>](<span class="na">CODE_OF_CONDUCT.md</span>)
+<a id="__codelineno-16-152" name="__codelineno-16-152" href="#__codelineno-16-152"></a>
+<a id="__codelineno-16-153" name="__codelineno-16-153" href="#__codelineno-16-153"></a><span class="gu">## Versionado y Estabilidad</span>
+<a id="__codelineno-16-154" name="__codelineno-16-154" href="#__codelineno-16-154"></a>
+<a id="__codelineno-16-155" name="__codelineno-16-155" href="#__codelineno-16-155"></a>sinpapel sigue [<span class="nt">Semantic Versioning</span>](<span class="na">https://semver.org/</span>). La release actual es <span class="gs">**v0.5.0 (Beta)**</span>. Las APIs públicas (<span class="sb">`WorkflowEngine`</span>, <span class="sb">`PredicateEngine`</span>, <span class="sb">`SLAEngine`</span>, signals, campos de modelos, schema JSON v0.2) son estables en la serie 0.x; los breaking changes incrementarán el minor y serán marcados en <span class="sb">`CHANGELOG.md`</span> hasta 1.0.0.
+<a id="__codelineno-16-156" name="__codelineno-16-156" href="#__codelineno-16-156"></a>
+<a id="__codelineno-16-157" name="__codelineno-16-157" href="#__codelineno-16-157"></a><span class="gu">## Contribuir</span>
+<a id="__codelineno-16-158" name="__codelineno-16-158" href="#__codelineno-16-158"></a>
+<a id="__codelineno-16-159" name="__codelineno-16-159" href="#__codelineno-16-159"></a>Los pull requests son bienvenidos. Por favor lee [<span class="nt">CONTRIBUTING.md</span>](<span class="na">CONTRIBUTING.md</span>) para setup de desarrollo, convenciones de commits y el requisito de sign-off DCO (Developer Certificate of Origin).
+<a id="__codelineno-16-160" name="__codelineno-16-160" href="#__codelineno-16-160"></a>
+<a id="__codelineno-16-161" name="__codelineno-16-161" href="#__codelineno-16-161"></a><span class="gu">## Licencia</span>
+<a id="__codelineno-16-162" name="__codelineno-16-162" href="#__codelineno-16-162"></a>
+<a id="__codelineno-16-163" name="__codelineno-16-163" href="#__codelineno-16-163"></a>Copyright (C) 2024-2026 Julio Adrián.
+<a id="__codelineno-16-164" name="__codelineno-16-164" href="#__codelineno-16-164"></a>
+<a id="__codelineno-16-165" name="__codelineno-16-165" href="#__codelineno-16-165"></a>sinpapel es software libre: puedes redistribuirlo y/o modificarlo bajo los términos de la GNU General Public License publicada por la Free Software Foundation, ya sea la versión 3 de la Licencia, o (a tu elección) cualquier versión posterior.
+<a id="__codelineno-16-166" name="__codelineno-16-166" href="#__codelineno-16-166"></a>
+<a id="__codelineno-16-167" name="__codelineno-16-167" href="#__codelineno-16-167"></a>sinpapel se distribuye con la esperanza de ser útil, pero <span class="gs">**SIN NINGUNA GARANTÍA**</span>; sin siquiera la garantía implícita de COMERCIABILIDAD o IDONEIDAD PARA UN PROPÓSITO PARTICULAR. Ver la [<span class="nt">GNU General Public License</span>](<span class="na">LICENSE</span>) para más detalles.
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Verify length and no institutional refs</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>wc<span class="w"> </span>-l<span class="w"> </span>README.es.md
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="c1"># Expected: ~180-220 lines</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>grep<span class="w"> </span>-nE<span class="w"> </span><span class="s2">&quot;SEP|FONDESO|aprendomx|creditos|E12|jadrians/creditos&quot;</span><span class="w"> </span>README.es.md
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># Expected: no output</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>git<span class="w"> </span>add<span class="w"> </span>README.es.md
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;docs: rewrite README.es.md (ES mirror) — concise, GPL-3.0&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="task-6-create-changelogmd-reconstructed-from-git-log">Task 6: Create <code>CHANGELOG.md</code> reconstructed from git log<a class="headerlink" href="#task-6-create-changelogmd-reconstructed-from-git-log" title="Permanent link">&para;</a></h2>
+<p><strong>Files:</strong>
+- Create: <code>CHANGELOG.md</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Generate the file with the following exact content</strong></li>
+</ul>
+<p>Create <code>CHANGELOG.md</code> with this content:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="gh"># Changelog</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>All notable changes to <span class="gs">**sinpapel**</span> are documented in this file.
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>The format is based on [<span class="nt">Keep a Changelog 1.1.0</span>](<span class="na">https://keepachangelog.com/en/1.1.0/</span>),
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>and this project adheres to [<span class="nt">Semantic Versioning</span>](<span class="na">https://semver.org/spec/v2.0.0.html</span>).
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="gu">## [Unreleased]</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="gu">## [0.5.0] — 2026-05-14</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="gu">### Added</span>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="k">-</span><span class="w"> </span>Four custom domain signals in <span class="sb">`sinpapel.signals`</span>: <span class="sb">`predicate_failed`</span>, <span class="sb">`sla_breached`</span>, <span class="sb">`sla_action_executed`</span>, <span class="sb">`transition_preview_requested`</span>.
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="k">-</span><span class="w"> </span><span class="sb">`predicate_failed`</span> is fired by <span class="sb">`WorkflowEngine`</span> whenever a transition is rejected by a predicate.
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="k">-</span><span class="w"> </span><span class="sb">`sla_breached`</span> and <span class="sb">`sla_action_executed`</span> are fired by <span class="sb">`SLAEngine`</span> when an SLA is exceeded and when an action runs against it.
+<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="k">-</span><span class="w"> </span><span class="sb">`transition_preview_requested`</span> is opt-in via the <span class="sb">`SINPAPEL_EMIT_PREVIEW_EVENTS`</span> setting.
+<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a>
+<a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a><span class="gu">### Changed</span>
+<a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a><span class="k">-</span><span class="w"> </span><span class="sb">`WorkflowEngine.puede_cambiar_estado()`</span> now records the failing predicate in addition to returning <span class="sb">`(False, msg)`</span>.
+<a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a>
+<a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a><span class="gu">## [0.4.2] — 2026-05-14</span>
+<a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a>
+<a id="__codelineno-19-23" name="__codelineno-19-23" href="#__codelineno-19-23"></a><span class="gu">### Fixed</span>
+<a id="__codelineno-19-24" name="__codelineno-19-24" href="#__codelineno-19-24"></a><span class="k">-</span><span class="w"> </span>Prefix all sinpapel migration indexes with <span class="sb">`sin_`</span> to avoid naming collisions with downstream apps.
+<a id="__codelineno-19-25" name="__codelineno-19-25" href="#__codelineno-19-25"></a>
+<a id="__codelineno-19-26" name="__codelineno-19-26" href="#__codelineno-19-26"></a><span class="gu">## [0.4.1] — 2026-05-14</span>
+<a id="__codelineno-19-27" name="__codelineno-19-27" href="#__codelineno-19-27"></a>
+<a id="__codelineno-19-28" name="__codelineno-19-28" href="#__codelineno-19-28"></a><span class="gu">### Fixed</span>
+<a id="__codelineno-19-29" name="__codelineno-19-29" href="#__codelineno-19-29"></a><span class="k">-</span><span class="w"> </span>Packaging: remove <span class="sb">`sinpapel.mixins`</span> from the explicit <span class="sb">`setuptools`</span> packages list to prevent duplicate-module errors when installing in <span class="sb">`--editable`</span> mode.
+<a id="__codelineno-19-30" name="__codelineno-19-30" href="#__codelineno-19-30"></a>
+<a id="__codelineno-19-31" name="__codelineno-19-31" href="#__codelineno-19-31"></a><span class="gu">## [0.4.0] — 2026-05-14</span>
+<a id="__codelineno-19-32" name="__codelineno-19-32" href="#__codelineno-19-32"></a>
+<a id="__codelineno-19-33" name="__codelineno-19-33" href="#__codelineno-19-33"></a><span class="gu">### Added</span>
+<a id="__codelineno-19-34" name="__codelineno-19-34" href="#__codelineno-19-34"></a><span class="k">-</span><span class="w"> </span><span class="gs">**State Timers / SLA**</span> subsystem:
+<a id="__codelineno-19-35" name="__codelineno-19-35" href="#__codelineno-19-35"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`SLAConfiguracion`</span> model linking time limits to states.
+<a id="__codelineno-19-36" name="__codelineno-19-36" href="#__codelineno-19-36"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`SLAEngine`</span> service with four action dispatchers: notify, escalate, reject, flag.
+<a id="__codelineno-19-37" name="__codelineno-19-37" href="#__codelineno-19-37"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`sinpapel_verificar_slas`</span> management command (supports <span class="sb">`--dry-run`</span>).
+<a id="__codelineno-19-38" name="__codelineno-19-38" href="#__codelineno-19-38"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Preview Transitions**</span>:
+<a id="__codelineno-19-39" name="__codelineno-19-39" href="#__codelineno-19-39"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`WorkflowEngine.preview_transition()`</span> simulates a transition without mutating state and returns an impact report (blocking reasons, missing documents, failing predicates, required approvers, recent history).
+<a id="__codelineno-19-40" name="__codelineno-19-40" href="#__codelineno-19-40"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span>Internal validation logic extracted into <span class="sb">`_validar_estado_destino`</span>, <span class="sb">`_validar_configuracion_transicion`</span>, <span class="sb">`_validar_grupos_permitidos`</span>, <span class="sb">`_validar_documentos`</span>, <span class="sb">`_validar_predicados`</span> for reuse between <span class="sb">`puede_cambiar_estado()`</span> and <span class="sb">`preview_transition()`</span>.
+<a id="__codelineno-19-41" name="__codelineno-19-41" href="#__codelineno-19-41"></a><span class="k">-</span><span class="w"> </span>Schema export/import (<span class="sb">`sinpapel_export_flujo`</span> / <span class="sb">`sinpapel_import_flujo`</span>) now round-trips <span class="sb">`CondicionTransicion`</span> and <span class="sb">`SLAConfiguracion`</span>.
+<a id="__codelineno-19-42" name="__codelineno-19-42" href="#__codelineno-19-42"></a>
+<a id="__codelineno-19-43" name="__codelineno-19-43" href="#__codelineno-19-43"></a><span class="gu">### Changed</span>
+<a id="__codelineno-19-44" name="__codelineno-19-44" href="#__codelineno-19-44"></a><span class="k">-</span><span class="w"> </span><span class="sb">`puede_cambiar_estado()`</span> now delegates to <span class="sb">`preview_transition()`</span> for back-compat.
+<a id="__codelineno-19-45" name="__codelineno-19-45" href="#__codelineno-19-45"></a><span class="k">-</span><span class="w"> </span>Error messages use <span class="sb">`condicion.mensaje_error`</span> as the primary value before falling back to the engine-supplied message.
+<a id="__codelineno-19-46" name="__codelineno-19-46" href="#__codelineno-19-46"></a>
+<a id="__codelineno-19-47" name="__codelineno-19-47" href="#__codelineno-19-47"></a><span class="gu">## [0.3.0] — 2026-05-13</span>
+<a id="__codelineno-19-48" name="__codelineno-19-48" href="#__codelineno-19-48"></a>
+<a id="__codelineno-19-49" name="__codelineno-19-49" href="#__codelineno-19-49"></a><span class="gu">### Added</span>
+<a id="__codelineno-19-50" name="__codelineno-19-50" href="#__codelineno-19-50"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Transition Predicates**</span> subsystem:
+<a id="__codelineno-19-51" name="__codelineno-19-51" href="#__codelineno-19-51"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`CondicionTransicion`</span> model storing per-transition predicates ordered by priority.
+<a id="__codelineno-19-52" name="__codelineno-19-52" href="#__codelineno-19-52"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`PredicateEngine`</span> with three backends: Python dotted-path callables, restricted JSON Logic, and Django ORM queries.
+<a id="__codelineno-19-53" name="__codelineno-19-53" href="#__codelineno-19-53"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span>Restricted JSON Logic evaluator with a fixed operator allowlist.
+<a id="__codelineno-19-54" name="__codelineno-19-54" href="#__codelineno-19-54"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span>Integration into <span class="sb">`WorkflowEngine`</span> so transitions can be rejected before mutating state.
+<a id="__codelineno-19-55" name="__codelineno-19-55" href="#__codelineno-19-55"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Dynamic Forms / Serializers**</span>:
+<a id="__codelineno-19-56" name="__codelineno-19-56" href="#__codelineno-19-56"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`MetaFormFactory`</span> generates Django Forms from a model&#39;s <span class="sb">`SCHEMA_METADATOS`</span> declaration.
+<a id="__codelineno-19-57" name="__codelineno-19-57" href="#__codelineno-19-57"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span>DRF Serializer mode available through the same factory.
+<a id="__codelineno-19-58" name="__codelineno-19-58" href="#__codelineno-19-58"></a>
+<a id="__codelineno-19-59" name="__codelineno-19-59" href="#__codelineno-19-59"></a><span class="gu">### Fixed</span>
+<a id="__codelineno-19-60" name="__codelineno-19-60" href="#__codelineno-19-60"></a><span class="k">-</span><span class="w"> </span>Predicate evaluation handles missing variables in comparisons (returns False rather than raising).
+<a id="__codelineno-19-61" name="__codelineno-19-61" href="#__codelineno-19-61"></a><span class="k">-</span><span class="w"> </span>Integration test coverage for <span class="sb">`MetaFormFactory`</span> with <span class="sb">`MetadatosCapturables`</span>.
+<a id="__codelineno-19-62" name="__codelineno-19-62" href="#__codelineno-19-62"></a>
+<a id="__codelineno-19-63" name="__codelineno-19-63" href="#__codelineno-19-63"></a><span class="gu">## [0.2.0] — 2026-05-12</span>
+<a id="__codelineno-19-64" name="__codelineno-19-64" href="#__codelineno-19-64"></a>
+<a id="__codelineno-19-65" name="__codelineno-19-65" href="#__codelineno-19-65"></a><span class="gu">### Added</span>
+<a id="__codelineno-19-66" name="__codelineno-19-66" href="#__codelineno-19-66"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Structured Metadata Capture**</span>:
+<a id="__codelineno-19-67" name="__codelineno-19-67" href="#__codelineno-19-67"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`CampoMetadato`</span> dataclass for declaring schema fields (<span class="sb">`tipo`</span>, <span class="sb">`requerido`</span>, <span class="sb">`default`</span>, <span class="sb">`choices`</span>, validators).
+<a id="__codelineno-19-68" name="__codelineno-19-68" href="#__codelineno-19-68"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`MetadatosProxy`</span> runtime wrapper exposing <span class="sb">`to_dict()`</span> and validation.
+<a id="__codelineno-19-69" name="__codelineno-19-69" href="#__codelineno-19-69"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`MetadatosCapturables`</span> abstract model mixin that wires a JSONField + the proxy.
+<a id="__codelineno-19-70" name="__codelineno-19-70" href="#__codelineno-19-70"></a><span class="k">-</span><span class="w"> </span>Schema export/import management commands <span class="sb">`sinpapel_export_flujo`</span> and <span class="sb">`sinpapel_import_flujo`</span>, both supporting <span class="sb">`--inline-catalogs`</span> for fully self-contained workflow snapshots.
+<a id="__codelineno-19-71" name="__codelineno-19-71" href="#__codelineno-19-71"></a><span class="k">-</span><span class="w"> </span>CI matrix expanded across Python 3.10–3.13 × Django 5.0–5.1.
+<a id="__codelineno-19-72" name="__codelineno-19-72" href="#__codelineno-19-72"></a>
+<a id="__codelineno-19-73" name="__codelineno-19-73" href="#__codelineno-19-73"></a><span class="gu">### Changed</span>
+<a id="__codelineno-19-74" name="__codelineno-19-74" href="#__codelineno-19-74"></a><span class="k">-</span><span class="w"> </span>All model verbose names and labels wrapped in <span class="sb">`gettext_lazy`</span> for i18n.
+<a id="__codelineno-19-75" name="__codelineno-19-75" href="#__codelineno-19-75"></a><span class="k">-</span><span class="w"> </span>Schema JSON bumped to v0.2 with dual-version <span class="sb">`validate`</span> support.
+<a id="__codelineno-19-76" name="__codelineno-19-76" href="#__codelineno-19-76"></a>
+<a id="__codelineno-19-77" name="__codelineno-19-77" href="#__codelineno-19-77"></a><span class="gu">### Fixed</span>
+<a id="__codelineno-19-78" name="__codelineno-19-78" href="#__codelineno-19-78"></a><span class="k">-</span><span class="w"> </span>CI: install Pillow; switch to <span class="sb">`python -m pytest`</span> for deterministic <span class="sb">`sys.path`</span> resolution.
+<a id="__codelineno-19-79" name="__codelineno-19-79" href="#__codelineno-19-79"></a>
+<a id="__codelineno-19-80" name="__codelineno-19-80" href="#__codelineno-19-80"></a><span class="gu">## [0.1.1] — Initial public alpha</span>
+<a id="__codelineno-19-81" name="__codelineno-19-81" href="#__codelineno-19-81"></a>
+<a id="__codelineno-19-82" name="__codelineno-19-82" href="#__codelineno-19-82"></a><span class="gu">### Added</span>
+<a id="__codelineno-19-83" name="__codelineno-19-83" href="#__codelineno-19-83"></a><span class="k">-</span><span class="w"> </span>Versioned workflow engine: <span class="sb">`VersionFlujo`</span>, <span class="sb">`Estado`</span>, <span class="sb">`ConfiguracionTransicion`</span>, <span class="sb">`WorkflowEngine`</span>.
+<a id="__codelineno-19-84" name="__codelineno-19-84" href="#__codelineno-19-84"></a><span class="k">-</span><span class="w"> </span>Immutable audit trail: <span class="sb">`Trazable`</span> mixin, <span class="sb">`SeguimientoWorkflow`</span>, <span class="sb">`RegistroFirma`</span>.
+<a id="__codelineno-19-85" name="__codelineno-19-85" href="#__codelineno-19-85"></a><span class="k">-</span><span class="w"> </span>Pluggable signing backends: <span class="sb">`SimuladoBackend`</span>, <span class="sb">`RSAFileBackend`</span>, <span class="sb">`FielBackend`</span> (RSA-SHA256 + X.509).
+<a id="__codelineno-19-86" name="__codelineno-19-86" href="#__codelineno-19-86"></a><span class="k">-</span><span class="w"> </span><span class="sb">`django-simple-history`</span> integration for full change history.
+<a id="__codelineno-19-87" name="__codelineno-19-87" href="#__codelineno-19-87"></a><span class="k">-</span><span class="w"> </span>PEP 561 <span class="sb">`py.typed`</span> marker for type-checker downstream consumers.
+<a id="__codelineno-19-88" name="__codelineno-19-88" href="#__codelineno-19-88"></a>
+<a id="__codelineno-19-89" name="__codelineno-19-89" href="#__codelineno-19-89"></a>[<span class="nl">Unreleased</span>]: <span class="na">../../compare/v0.5.0...HEAD</span>
+<a id="__codelineno-19-90" name="__codelineno-19-90" href="#__codelineno-19-90"></a>[<span class="nl">0.5.0</span>]: <span class="na">../../compare/v0.4.2...v0.5.0</span>
+<a id="__codelineno-19-91" name="__codelineno-19-91" href="#__codelineno-19-91"></a>[<span class="nl">0.4.2</span>]: <span class="na">../../compare/v0.4.1...v0.4.2</span>
+<a id="__codelineno-19-92" name="__codelineno-19-92" href="#__codelineno-19-92"></a>[<span class="nl">0.4.1</span>]: <span class="na">../../compare/v0.4.0...v0.4.1</span>
+<a id="__codelineno-19-93" name="__codelineno-19-93" href="#__codelineno-19-93"></a>[<span class="nl">0.4.0</span>]: <span class="na">../../compare/v0.1.1...v0.4.0</span>
+<a id="__codelineno-19-94" name="__codelineno-19-94" href="#__codelineno-19-94"></a>[<span class="nl">0.3.0</span>]: <span class="na">../../releases/tag/v0.3.0</span>
+<a id="__codelineno-19-95" name="__codelineno-19-95" href="#__codelineno-19-95"></a>[<span class="nl">0.2.0</span>]: <span class="na">../../releases/tag/v0.2.0</span>
+<a id="__codelineno-19-96" name="__codelineno-19-96" href="#__codelineno-19-96"></a>[<span class="nl">0.1.1</span>]: <span class="na">../../releases/tag/v0.1.1</span>
+</code></pre></div>
+<blockquote>
+<p><strong>Note on compare links:</strong> The trailing <code>../../compare/...</code> paths are intentionally relative so they resolve correctly under any repository host once the project URL is decided. Tags <code>v0.3.0</code> and <code>v0.2.0</code> referenced in the link section do not exist in this repo (intermediate releases were not tagged); the links act as stable anchors for any future re-tagging.</p>
+</blockquote>
+<ul>
+<li>[ ] <strong>Step 2: Verify</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>wc<span class="w"> </span>-l<span class="w"> </span>CHANGELOG.md
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="c1"># Expected: ~95-110 lines</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>grep<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;^## \[&quot;</span><span class="w"> </span>CHANGELOG.md
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># Expected: 8 (Unreleased + 7 releases)</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>git<span class="w"> </span>add<span class="w"> </span>CHANGELOG.md
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;docs: add CHANGELOG.md (Keep a Changelog, v0.1.1 → v0.5.0)&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="task-7-create-contributingmd">Task 7: Create <code>CONTRIBUTING.md</code><a class="headerlink" href="#task-7-create-contributingmd" title="Permanent link">&para;</a></h2>
+<p><strong>Files:</strong>
+- Create: <code>CONTRIBUTING.md</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Generate the file with this exact content</strong></li>
+</ul>
+<p>Create <code>CONTRIBUTING.md</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="gh"># Contributing to sinpapel</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>Thanks for your interest in contributing! This document describes the development
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>workflow and the expectations for pull requests.
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="gu">## Code of Conduct</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>This project adopts the [<span class="nt">Contributor Covenant 2.1</span>](<span class="na">CODE_OF_CONDUCT.md</span>). By
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a>participating you agree to abide by its terms.
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a>
+<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a><span class="gu">## Development Setup</span>
+<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a>
+<a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a><span class="sb">```bash</span>
+<a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a>git<span class="w"> </span>clone<span class="w"> </span>&lt;repository-url&gt;
+<a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a><span class="nb">cd</span><span class="w"> </span>sinpapel
+<a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a>
+<a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+<a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a>
+<a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+<a id="__codelineno-22-21" name="__codelineno-22-21" href="#__codelineno-22-21"></a><span class="sb">```</span>
+<a id="__codelineno-22-22" name="__codelineno-22-22" href="#__codelineno-22-22"></a>
+<a id="__codelineno-22-23" name="__codelineno-22-23" href="#__codelineno-22-23"></a>Run the test suite:
+<a id="__codelineno-22-24" name="__codelineno-22-24" href="#__codelineno-22-24"></a>
+<a id="__codelineno-22-25" name="__codelineno-22-25" href="#__codelineno-22-25"></a><span class="sb">```bash</span>
+<a id="__codelineno-22-26" name="__codelineno-22-26" href="#__codelineno-22-26"></a>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/<span class="w"> </span>-q
+<a id="__codelineno-22-27" name="__codelineno-22-27" href="#__codelineno-22-27"></a><span class="sb">```</span>
+<a id="__codelineno-22-28" name="__codelineno-22-28" href="#__codelineno-22-28"></a>
+<a id="__codelineno-22-29" name="__codelineno-22-29" href="#__codelineno-22-29"></a>The suite must remain green before any pull request is merged. Current
+<a id="__codelineno-22-30" name="__codelineno-22-30" href="#__codelineno-22-30"></a>baseline: <span class="gs">**272 passing tests**</span>.
+<a id="__codelineno-22-31" name="__codelineno-22-31" href="#__codelineno-22-31"></a>
+<a id="__codelineno-22-32" name="__codelineno-22-32" href="#__codelineno-22-32"></a><span class="gu">## Development Workflow</span>
+<a id="__codelineno-22-33" name="__codelineno-22-33" href="#__codelineno-22-33"></a>
+<a id="__codelineno-22-34" name="__codelineno-22-34" href="#__codelineno-22-34"></a><span class="k">1.</span> Create a feature branch off <span class="sb">`main`</span>:
+<a id="__codelineno-22-35" name="__codelineno-22-35" href="#__codelineno-22-35"></a><span class="sb">   ```bash</span>
+<a id="__codelineno-22-36" name="__codelineno-22-36" href="#__codelineno-22-36"></a><span class="w">   </span>git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feat/&lt;short-description&gt;
+<a id="__codelineno-22-37" name="__codelineno-22-37" href="#__codelineno-22-37"></a><span class="sb">   ```</span>
+<a id="__codelineno-22-38" name="__codelineno-22-38" href="#__codelineno-22-38"></a><span class="k">2.</span> Make focused commits. Use [<span class="nt">Conventional Commits</span>](<span class="na">https://www.conventionalcommits.org/</span>):
+<a id="__codelineno-22-39" name="__codelineno-22-39" href="#__codelineno-22-39"></a><span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`feat:`</span> new feature
+<a id="__codelineno-22-40" name="__codelineno-22-40" href="#__codelineno-22-40"></a><span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`fix:`</span> bug fix
+<a id="__codelineno-22-41" name="__codelineno-22-41" href="#__codelineno-22-41"></a><span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`refactor:`</span> code change that neither fixes a bug nor adds a feature
+<a id="__codelineno-22-42" name="__codelineno-22-42" href="#__codelineno-22-42"></a><span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`docs:`</span> documentation only
+<a id="__codelineno-22-43" name="__codelineno-22-43" href="#__codelineno-22-43"></a><span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`test:`</span> adding or correcting tests
+<a id="__codelineno-22-44" name="__codelineno-22-44" href="#__codelineno-22-44"></a><span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`chore:`</span> tooling, build, CI
+<a id="__codelineno-22-45" name="__codelineno-22-45" href="#__codelineno-22-45"></a><span class="w">   </span><span class="k">-</span><span class="w"> </span><span class="sb">`ci:`</span> CI configuration only
+<a id="__codelineno-22-46" name="__codelineno-22-46" href="#__codelineno-22-46"></a><span class="k">3.</span> Run the test suite locally before pushing.
+<a id="__codelineno-22-47" name="__codelineno-22-47" href="#__codelineno-22-47"></a><span class="k">4.</span> Open a pull request against <span class="sb">`main`</span> with a clear description and a reference
+<a id="__codelineno-22-48" name="__codelineno-22-48" href="#__codelineno-22-48"></a>   to any related issue.
+<a id="__codelineno-22-49" name="__codelineno-22-49" href="#__codelineno-22-49"></a>
+<a id="__codelineno-22-50" name="__codelineno-22-50" href="#__codelineno-22-50"></a><span class="gu">## Sign Your Work (DCO)</span>
+<a id="__codelineno-22-51" name="__codelineno-22-51" href="#__codelineno-22-51"></a>
+<a id="__codelineno-22-52" name="__codelineno-22-52" href="#__codelineno-22-52"></a>We use the [<span class="nt">Developer Certificate of Origin</span>](<span class="na">https://developercertificate.org/</span>)
+<a id="__codelineno-22-53" name="__codelineno-22-53" href="#__codelineno-22-53"></a>instead of a CLA. Every commit must be signed off:
+<a id="__codelineno-22-54" name="__codelineno-22-54" href="#__codelineno-22-54"></a>
+<a id="__codelineno-22-55" name="__codelineno-22-55" href="#__codelineno-22-55"></a><span class="sb">```bash</span>
+<a id="__codelineno-22-56" name="__codelineno-22-56" href="#__codelineno-22-56"></a>git<span class="w"> </span>commit<span class="w"> </span>-s<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat: add ...&quot;</span>
+<a id="__codelineno-22-57" name="__codelineno-22-57" href="#__codelineno-22-57"></a><span class="sb">```</span>
+<a id="__codelineno-22-58" name="__codelineno-22-58" href="#__codelineno-22-58"></a>
+<a id="__codelineno-22-59" name="__codelineno-22-59" href="#__codelineno-22-59"></a>Sign-off adds the line <span class="sb">`Signed-off-by: Your Name &lt;you@example.com&gt;`</span> to the
+<a id="__codelineno-22-60" name="__codelineno-22-60" href="#__codelineno-22-60"></a>commit message. By signing off, you certify that you have the right to
+<a id="__codelineno-22-61" name="__codelineno-22-61" href="#__codelineno-22-61"></a>contribute the change under the project license (GPL-3.0-or-later).
+<a id="__codelineno-22-62" name="__codelineno-22-62" href="#__codelineno-22-62"></a>
+<a id="__codelineno-22-63" name="__codelineno-22-63" href="#__codelineno-22-63"></a><span class="gu">## Pull Request Checklist</span>
+<a id="__codelineno-22-64" name="__codelineno-22-64" href="#__codelineno-22-64"></a>
+<a id="__codelineno-22-65" name="__codelineno-22-65" href="#__codelineno-22-65"></a><span class="k">- [ ]</span> Tests pass locally (<span class="sb">`python -m pytest tests/ -q`</span>).
+<a id="__codelineno-22-66" name="__codelineno-22-66" href="#__codelineno-22-66"></a><span class="k">- [ ]</span> New behavior covered by tests.
+<a id="__codelineno-22-67" name="__codelineno-22-67" href="#__codelineno-22-67"></a><span class="k">- [ ]</span> <span class="sb">`CHANGELOG.md`</span> updated under <span class="sb">`## [Unreleased]`</span> when the change is
+<a id="__codelineno-22-68" name="__codelineno-22-68" href="#__codelineno-22-68"></a>      user-visible.
+<a id="__codelineno-22-69" name="__codelineno-22-69" href="#__codelineno-22-69"></a><span class="k">- [ ]</span> Commits follow Conventional Commits and are signed off (<span class="sb">`-s`</span>).
+<a id="__codelineno-22-70" name="__codelineno-22-70" href="#__codelineno-22-70"></a><span class="k">- [ ]</span> Documentation (<span class="sb">`docs/USAGE.md`</span> and <span class="sb">`docs/USAGE.es.md`</span>) updated when
+<a id="__codelineno-22-71" name="__codelineno-22-71" href="#__codelineno-22-71"></a>      public APIs or settings change.
+<a id="__codelineno-22-72" name="__codelineno-22-72" href="#__codelineno-22-72"></a><span class="k">- [ ]</span> No institutional or third-party trademark references introduced
+<a id="__codelineno-22-73" name="__codelineno-22-73" href="#__codelineno-22-73"></a>      anywhere in the codebase, README, or docs.
+<a id="__codelineno-22-74" name="__codelineno-22-74" href="#__codelineno-22-74"></a>
+<a id="__codelineno-22-75" name="__codelineno-22-75" href="#__codelineno-22-75"></a><span class="gu">## Reporting Bugs</span>
+<a id="__codelineno-22-76" name="__codelineno-22-76" href="#__codelineno-22-76"></a>
+<a id="__codelineno-22-77" name="__codelineno-22-77" href="#__codelineno-22-77"></a>Open an issue against the project repository. Include:
+<a id="__codelineno-22-78" name="__codelineno-22-78" href="#__codelineno-22-78"></a>
+<a id="__codelineno-22-79" name="__codelineno-22-79" href="#__codelineno-22-79"></a><span class="k">-</span><span class="w"> </span>sinpapel version (<span class="sb">`python -c &quot;import sinpapel; print(sinpapel.__version__)&quot;`</span>).
+<a id="__codelineno-22-80" name="__codelineno-22-80" href="#__codelineno-22-80"></a><span class="k">-</span><span class="w"> </span>Python and Django versions.
+<a id="__codelineno-22-81" name="__codelineno-22-81" href="#__codelineno-22-81"></a><span class="k">-</span><span class="w"> </span>A minimal reproduction (model definition + the failing call).
+<a id="__codelineno-22-82" name="__codelineno-22-82" href="#__codelineno-22-82"></a><span class="k">-</span><span class="w"> </span>The full traceback.
+<a id="__codelineno-22-83" name="__codelineno-22-83" href="#__codelineno-22-83"></a>
+<a id="__codelineno-22-84" name="__codelineno-22-84" href="#__codelineno-22-84"></a><span class="gu">## Reporting Security Vulnerabilities</span>
+<a id="__codelineno-22-85" name="__codelineno-22-85" href="#__codelineno-22-85"></a>
+<a id="__codelineno-22-86" name="__codelineno-22-86" href="#__codelineno-22-86"></a>Please <span class="gs">**do not**</span> open a public issue for security reports. Email
+<a id="__codelineno-22-87" name="__codelineno-22-87" href="#__codelineno-22-87"></a><span class="sb">`jadrian.s@gmail.com`</span> privately with a description and reproduction steps. You
+<a id="__codelineno-22-88" name="__codelineno-22-88" href="#__codelineno-22-88"></a>will receive an acknowledgement within seven days.
+<a id="__codelineno-22-89" name="__codelineno-22-89" href="#__codelineno-22-89"></a>
+<a id="__codelineno-22-90" name="__codelineno-22-90" href="#__codelineno-22-90"></a><span class="gu">## License</span>
+<a id="__codelineno-22-91" name="__codelineno-22-91" href="#__codelineno-22-91"></a>
+<a id="__codelineno-22-92" name="__codelineno-22-92" href="#__codelineno-22-92"></a>By contributing, you agree that your contributions will be licensed under the
+<a id="__codelineno-22-93" name="__codelineno-22-93" href="#__codelineno-22-93"></a>GNU General Public License v3.0 or later, the same license as the rest of the
+<a id="__codelineno-22-94" name="__codelineno-22-94" href="#__codelineno-22-94"></a>project.
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Verify</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>wc<span class="w"> </span>-l<span class="w"> </span>CONTRIBUTING.md
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="c1"># Expected: ~90-105 lines</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>git<span class="w"> </span>add<span class="w"> </span>CONTRIBUTING.md
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;docs: add CONTRIBUTING.md (Conventional Commits + DCO)&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="task-8-create-code_of_conductmd-contributor-covenant-21">Task 8: Create <code>CODE_OF_CONDUCT.md</code> (Contributor Covenant 2.1)<a class="headerlink" href="#task-8-create-code_of_conductmd-contributor-covenant-21" title="Permanent link">&para;</a></h2>
+<p><strong>Files:</strong>
+- Create: <code>CODE_OF_CONDUCT.md</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Download the canonical Contributor Covenant 2.1 text</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://www.contributor-covenant.org/version/2/1/code_of_conduct.txt<span class="w"> </span>-o<span class="w"> </span>CODE_OF_CONDUCT.tmp
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>wc<span class="w"> </span>-l<span class="w"> </span>CODE_OF_CONDUCT.tmp<span class="w">  </span><span class="c1"># expect ~130 lines</span>
+</code></pre></div></p>
+<ul>
+<li>[ ] <strong>Step 2: Replace the contact placeholder</strong></li>
+</ul>
+<p>The canonical text contains the placeholder string <code>[INSERT CONTACT METHOD]</code>. Replace it with the project contact email <code>jadrian.s@gmail.com</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>sed<span class="w"> </span>-i.bak<span class="w"> </span><span class="s1">&#39;s/\[INSERT CONTACT METHOD\]/jadrian.s@gmail.com/g&#39;</span><span class="w"> </span>CODE_OF_CONDUCT.tmp
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>rm<span class="w"> </span>CODE_OF_CONDUCT.tmp.bak
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 3: Wrap as Markdown and finalize</strong></li>
+</ul>
+<p>The downloaded <code>.txt</code> is plain text. Convert to Markdown by adding a top-level heading and saving as <code>CODE_OF_CONDUCT.md</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="o">{</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;# Code of Conduct&quot;</span>
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="w">  </span>cat<span class="w"> </span>CODE_OF_CONDUCT.tmp
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="o">}</span><span class="w"> </span>&gt;<span class="w"> </span>CODE_OF_CONDUCT.md
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>rm<span class="w"> </span>CODE_OF_CONDUCT.tmp
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 4: Verify</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>head<span class="w"> </span>-1<span class="w"> </span>CODE_OF_CONDUCT.md<span class="w">           </span><span class="c1"># Expected: &quot;# Code of Conduct&quot;</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>grep<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;Contributor Covenant&quot;</span><span class="w"> </span>CODE_OF_CONDUCT.md<span class="w">   </span><span class="c1"># Expected: ≥ 2</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>grep<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;jadrian.s@gmail.com&quot;</span><span class="w"> </span>CODE_OF_CONDUCT.md<span class="w">    </span><span class="c1"># Expected: ≥ 1</span>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>grep<span class="w"> </span><span class="s2">&quot;INSERT CONTACT METHOD&quot;</span><span class="w"> </span>CODE_OF_CONDUCT.md<span class="w">     </span><span class="c1"># Expected: no output</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>git<span class="w"> </span>add<span class="w"> </span>CODE_OF_CONDUCT.md
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;docs: add CODE_OF_CONDUCT.md (Contributor Covenant 2.1)&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="task-9-update-pyprojecttoml-for-gpl-30-pypi-readiness">Task 9: Update <code>pyproject.toml</code> for GPL-3.0 + PyPI readiness<a class="headerlink" href="#task-9-update-pyprojecttoml-for-gpl-30-pypi-readiness" title="Permanent link">&para;</a></h2>
+<p><strong>Files:</strong>
+- Modify: <code>pyproject.toml</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Replace the file with the updated metadata</strong></li>
+</ul>
+<p>Overwrite <code>pyproject.toml</code> with this content <strong>exactly</strong> (the <code>[tool.setuptools]</code> block is preserved verbatim from the existing file because the flat layout is correct):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="k">[project]</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;sinpapel&quot;</span>
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.5.0&quot;</span>
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Versioned workflows, immutable audit, and pluggable e-signatures for Django.&quot;</span>
+<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a><span class="n">readme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;README.md&quot;</span>
+<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.10&quot;</span>
+<a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="n">license</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;GPL-3.0-or-later&quot;</span>
+<a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a><span class="n">license-files</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;LICENSE&quot;</span><span class="p">]</span>
+<a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a><span class="n">authors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a><span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;Julio Adrián&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">email</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;jadrian.s@gmail.com&quot;</span><span class="w"> </span><span class="p">},</span>
+<a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a><span class="p">]</span>
+<a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a><span class="n">keywords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-30-13" name="__codelineno-30-13" href="#__codelineno-30-13"></a><span class="w">    </span><span class="s2">&quot;django&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-14" name="__codelineno-30-14" href="#__codelineno-30-14"></a><span class="w">    </span><span class="s2">&quot;workflow&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-15" name="__codelineno-30-15" href="#__codelineno-30-15"></a><span class="w">    </span><span class="s2">&quot;state-machine&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-16" name="__codelineno-30-16" href="#__codelineno-30-16"></a><span class="w">    </span><span class="s2">&quot;audit-trail&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-17" name="__codelineno-30-17" href="#__codelineno-30-17"></a><span class="w">    </span><span class="s2">&quot;electronic-signature&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-18" name="__codelineno-30-18" href="#__codelineno-30-18"></a><span class="w">    </span><span class="s2">&quot;compliance&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-19" name="__codelineno-30-19" href="#__codelineno-30-19"></a><span class="w">    </span><span class="s2">&quot;paperless&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-20" name="__codelineno-30-20" href="#__codelineno-30-20"></a><span class="p">]</span>
+<a id="__codelineno-30-21" name="__codelineno-30-21" href="#__codelineno-30-21"></a><span class="n">classifiers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-30-22" name="__codelineno-30-22" href="#__codelineno-30-22"></a><span class="w">    </span><span class="s2">&quot;Development Status :: 4 - Beta&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-23" name="__codelineno-30-23" href="#__codelineno-30-23"></a><span class="w">    </span><span class="s2">&quot;Framework :: Django&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-24" name="__codelineno-30-24" href="#__codelineno-30-24"></a><span class="w">    </span><span class="s2">&quot;Framework :: Django :: 5.0&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-25" name="__codelineno-30-25" href="#__codelineno-30-25"></a><span class="w">    </span><span class="s2">&quot;Framework :: Django :: 5.1&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-26" name="__codelineno-30-26" href="#__codelineno-30-26"></a><span class="w">    </span><span class="s2">&quot;Intended Audience :: Developers&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-27" name="__codelineno-30-27" href="#__codelineno-30-27"></a><span class="w">    </span><span class="s2">&quot;License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-28" name="__codelineno-30-28" href="#__codelineno-30-28"></a><span class="w">    </span><span class="s2">&quot;Operating System :: OS Independent&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-29" name="__codelineno-30-29" href="#__codelineno-30-29"></a><span class="w">    </span><span class="s2">&quot;Programming Language :: Python :: 3&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-30" name="__codelineno-30-30" href="#__codelineno-30-30"></a><span class="w">    </span><span class="s2">&quot;Programming Language :: Python :: 3.10&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-31" name="__codelineno-30-31" href="#__codelineno-30-31"></a><span class="w">    </span><span class="s2">&quot;Programming Language :: Python :: 3.11&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-32" name="__codelineno-30-32" href="#__codelineno-30-32"></a><span class="w">    </span><span class="s2">&quot;Programming Language :: Python :: 3.12&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-33" name="__codelineno-30-33" href="#__codelineno-30-33"></a><span class="w">    </span><span class="s2">&quot;Programming Language :: Python :: 3.13&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-34" name="__codelineno-30-34" href="#__codelineno-30-34"></a><span class="w">    </span><span class="s2">&quot;Topic :: Office/Business :: Groupware&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-35" name="__codelineno-30-35" href="#__codelineno-30-35"></a><span class="w">    </span><span class="s2">&quot;Topic :: Software Development :: Libraries :: Python Modules&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-36" name="__codelineno-30-36" href="#__codelineno-30-36"></a><span class="p">]</span>
+<a id="__codelineno-30-37" name="__codelineno-30-37" href="#__codelineno-30-37"></a><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-30-38" name="__codelineno-30-38" href="#__codelineno-30-38"></a><span class="w">    </span><span class="s2">&quot;Django&gt;=5.0&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-39" name="__codelineno-30-39" href="#__codelineno-30-39"></a><span class="w">    </span><span class="s2">&quot;django-simple-history&gt;=3.5&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-40" name="__codelineno-30-40" href="#__codelineno-30-40"></a><span class="w">    </span><span class="s2">&quot;cryptography&gt;=42.0&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-41" name="__codelineno-30-41" href="#__codelineno-30-41"></a><span class="p">]</span>
+<a id="__codelineno-30-42" name="__codelineno-30-42" href="#__codelineno-30-42"></a>
+<a id="__codelineno-30-43" name="__codelineno-30-43" href="#__codelineno-30-43"></a><span class="k">[project.optional-dependencies]</span>
+<a id="__codelineno-30-44" name="__codelineno-30-44" href="#__codelineno-30-44"></a><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-30-45" name="__codelineno-30-45" href="#__codelineno-30-45"></a><span class="w">    </span><span class="s2">&quot;pytest&gt;=9.0&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-46" name="__codelineno-30-46" href="#__codelineno-30-46"></a><span class="w">    </span><span class="s2">&quot;pytest-django&gt;=4.12&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-47" name="__codelineno-30-47" href="#__codelineno-30-47"></a><span class="w">    </span><span class="s2">&quot;build&gt;=1.2&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-48" name="__codelineno-30-48" href="#__codelineno-30-48"></a><span class="w">    </span><span class="s2">&quot;twine&gt;=5.0&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-49" name="__codelineno-30-49" href="#__codelineno-30-49"></a><span class="p">]</span>
+<a id="__codelineno-30-50" name="__codelineno-30-50" href="#__codelineno-30-50"></a>
+<a id="__codelineno-30-51" name="__codelineno-30-51" href="#__codelineno-30-51"></a><span class="c1"># URLs intentionally omitted until a public repo URL is decided.</span>
+<a id="__codelineno-30-52" name="__codelineno-30-52" href="#__codelineno-30-52"></a><span class="c1"># Before the first PyPI publish, uncomment and fill in:</span>
+<a id="__codelineno-30-53" name="__codelineno-30-53" href="#__codelineno-30-53"></a><span class="c1"># [project.urls]</span>
+<a id="__codelineno-30-54" name="__codelineno-30-54" href="#__codelineno-30-54"></a><span class="c1"># Homepage  = &quot;https://example.com/sinpapel&quot;</span>
+<a id="__codelineno-30-55" name="__codelineno-30-55" href="#__codelineno-30-55"></a><span class="c1"># Source    = &quot;https://example.com/sinpapel&quot;</span>
+<a id="__codelineno-30-56" name="__codelineno-30-56" href="#__codelineno-30-56"></a><span class="c1"># Issues    = &quot;https://example.com/sinpapel/issues&quot;</span>
+<a id="__codelineno-30-57" name="__codelineno-30-57" href="#__codelineno-30-57"></a><span class="c1"># Changelog = &quot;https://example.com/sinpapel/blob/main/CHANGELOG.md&quot;</span>
+<a id="__codelineno-30-58" name="__codelineno-30-58" href="#__codelineno-30-58"></a>
+<a id="__codelineno-30-59" name="__codelineno-30-59" href="#__codelineno-30-59"></a><span class="k">[build-system]</span>
+<a id="__codelineno-30-60" name="__codelineno-30-60" href="#__codelineno-30-60"></a><span class="n">requires</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;setuptools&gt;=77&quot;</span><span class="p">]</span>
+<a id="__codelineno-30-61" name="__codelineno-30-61" href="#__codelineno-30-61"></a><span class="n">build-backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;setuptools.build_meta&quot;</span>
+<a id="__codelineno-30-62" name="__codelineno-30-62" href="#__codelineno-30-62"></a>
+<a id="__codelineno-30-63" name="__codelineno-30-63" href="#__codelineno-30-63"></a><span class="c1"># Layout: flat — pyproject.toml + package files at repo root.</span>
+<a id="__codelineno-30-64" name="__codelineno-30-64" href="#__codelineno-30-64"></a><span class="c1"># package_dir maps the package &quot;sinpapel&quot; to the current working directory (.).</span>
+<a id="__codelineno-30-65" name="__codelineno-30-65" href="#__codelineno-30-65"></a><span class="c1"># Subpackages are declared explicitly (deterministic + visible).</span>
+<a id="__codelineno-30-66" name="__codelineno-30-66" href="#__codelineno-30-66"></a><span class="k">[tool.setuptools]</span>
+<a id="__codelineno-30-67" name="__codelineno-30-67" href="#__codelineno-30-67"></a><span class="n">packages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-30-68" name="__codelineno-30-68" href="#__codelineno-30-68"></a><span class="w">    </span><span class="s2">&quot;sinpapel&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-69" name="__codelineno-30-69" href="#__codelineno-30-69"></a><span class="w">    </span><span class="s2">&quot;sinpapel.management&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-70" name="__codelineno-30-70" href="#__codelineno-30-70"></a><span class="w">    </span><span class="s2">&quot;sinpapel.management.commands&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-71" name="__codelineno-30-71" href="#__codelineno-30-71"></a><span class="w">    </span><span class="s2">&quot;sinpapel.migrations&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-72" name="__codelineno-30-72" href="#__codelineno-30-72"></a><span class="w">    </span><span class="s2">&quot;sinpapel.mixins&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-73" name="__codelineno-30-73" href="#__codelineno-30-73"></a><span class="w">    </span><span class="s2">&quot;sinpapel.models&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-74" name="__codelineno-30-74" href="#__codelineno-30-74"></a><span class="w">    </span><span class="s2">&quot;sinpapel.schemas&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-75" name="__codelineno-30-75" href="#__codelineno-30-75"></a><span class="w">    </span><span class="s2">&quot;sinpapel.services&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-76" name="__codelineno-30-76" href="#__codelineno-30-76"></a><span class="w">    </span><span class="s2">&quot;sinpapel.signing&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-77" name="__codelineno-30-77" href="#__codelineno-30-77"></a><span class="w">    </span><span class="s2">&quot;sinpapel.signing.backends&quot;</span><span class="p">,</span>
+<a id="__codelineno-30-78" name="__codelineno-30-78" href="#__codelineno-30-78"></a><span class="p">]</span>
+<a id="__codelineno-30-79" name="__codelineno-30-79" href="#__codelineno-30-79"></a>
+<a id="__codelineno-30-80" name="__codelineno-30-80" href="#__codelineno-30-80"></a><span class="k">[tool.setuptools.package-dir]</span>
+<a id="__codelineno-30-81" name="__codelineno-30-81" href="#__codelineno-30-81"></a><span class="n">sinpapel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;.&quot;</span>
+<a id="__codelineno-30-82" name="__codelineno-30-82" href="#__codelineno-30-82"></a><span class="s2">&quot;sinpapel.management&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;management&quot;</span>
+<a id="__codelineno-30-83" name="__codelineno-30-83" href="#__codelineno-30-83"></a><span class="s2">&quot;sinpapel.management.commands&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;management/commands&quot;</span>
+<a id="__codelineno-30-84" name="__codelineno-30-84" href="#__codelineno-30-84"></a><span class="s2">&quot;sinpapel.migrations&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;migrations&quot;</span>
+<a id="__codelineno-30-85" name="__codelineno-30-85" href="#__codelineno-30-85"></a><span class="s2">&quot;sinpapel.mixins&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;.&quot;</span>
+<a id="__codelineno-30-86" name="__codelineno-30-86" href="#__codelineno-30-86"></a><span class="s2">&quot;sinpapel.models&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;models&quot;</span>
+<a id="__codelineno-30-87" name="__codelineno-30-87" href="#__codelineno-30-87"></a><span class="s2">&quot;sinpapel.schemas&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;schemas&quot;</span>
+<a id="__codelineno-30-88" name="__codelineno-30-88" href="#__codelineno-30-88"></a><span class="s2">&quot;sinpapel.services&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;services&quot;</span>
+<a id="__codelineno-30-89" name="__codelineno-30-89" href="#__codelineno-30-89"></a><span class="s2">&quot;sinpapel.signing&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;signing&quot;</span>
+<a id="__codelineno-30-90" name="__codelineno-30-90" href="#__codelineno-30-90"></a><span class="s2">&quot;sinpapel.signing.backends&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;signing/backends&quot;</span>
+<a id="__codelineno-30-91" name="__codelineno-30-91" href="#__codelineno-30-91"></a>
+<a id="__codelineno-30-92" name="__codelineno-30-92" href="#__codelineno-30-92"></a><span class="k">[tool.setuptools.package-data]</span>
+<a id="__codelineno-30-93" name="__codelineno-30-93" href="#__codelineno-30-93"></a><span class="n">sinpapel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;py.typed&quot;</span><span class="p">]</span>
+<a id="__codelineno-30-94" name="__codelineno-30-94" href="#__codelineno-30-94"></a><span class="s2">&quot;sinpapel.migrations&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;*.py&quot;</span><span class="p">]</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Verify the file is valid TOML and the metadata is correct</strong></li>
+</ul>
+<p>Run:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>/usr/local/bin/python3.13<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import tomllib; data=tomllib.loads(open(&#39;pyproject.toml&#39;).read()); print(data[&#39;project&#39;][&#39;license&#39;]); print(data[&#39;project&#39;][&#39;version&#39;])&quot;</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="c1"># Expected output:</span>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="c1"># GPL-3.0-or-later</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="c1"># 0.5.0</span>
+</code></pre></div></p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>git<span class="w"> </span>add<span class="w"> </span>pyproject.toml
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;build: relicense to GPL-3.0-or-later (SPDX), PyPI-ready metadata&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="task-10-verification-final-cleanup-commit">Task 10: Verification + final cleanup commit<a class="headerlink" href="#task-10-verification-final-cleanup-commit" title="Permanent link">&para;</a></h2>
+<p><strong>Files:</strong> No code files modified. This task validates the previous nine commits.</p>
+<ul>
+<li>[ ] <strong>Step 1: Run the test suite</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>/usr/local/bin/python3.13<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/<span class="w"> </span>-q
+</code></pre></div>
+<p>Expected: <strong>272 passed</strong>. If any test fails, stop and fix before continuing.</p>
+<ul>
+<li>[ ] <strong>Step 2: Build a wheel + sdist</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>rm<span class="w"> </span>-rf<span class="w"> </span>dist/<span class="w"> </span>build/<span class="w"> </span>*.egg-info
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>/usr/local/bin/python3.13<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--quiet<span class="w"> </span>--upgrade<span class="w"> </span>build<span class="w"> </span>twine
+<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>/usr/local/bin/python3.13<span class="w"> </span>-m<span class="w"> </span>build
+</code></pre></div>
+<p>Expected: <code>dist/sinpapel-0.5.0-py3-none-any.whl</code> and <code>dist/sinpapel-0.5.0.tar.gz</code> produced without errors.</p>
+<ul>
+<li>[ ] <strong>Step 3: Run <code>twine check</code></strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>/usr/local/bin/python3.13<span class="w"> </span>-m<span class="w"> </span>twine<span class="w"> </span>check<span class="w"> </span>dist/*
+</code></pre></div>
+<p>Expected: <code>PASSED</code> for both files. If <code>twine check</code> flags the README rendering, fix and rerun.</p>
+<ul>
+<li>[ ] <strong>Step 4: Verify license metadata in the built wheel</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>/usr/local/bin/python3.13<span class="w"> </span>-m<span class="w"> </span>zipfile<span class="w"> </span>-e<span class="w"> </span>dist/sinpapel-0.5.0-py3-none-any.whl<span class="w"> </span>/tmp/sinpapel-wheel-inspect
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;^License-Expression:&quot;</span><span class="w"> </span>/tmp/sinpapel-wheel-inspect/sinpapel-0.5.0.dist-info/METADATA
+<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a><span class="c1"># Expected: License-Expression: GPL-3.0-or-later</span>
+<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a>ls<span class="w"> </span>/tmp/sinpapel-wheel-inspect/sinpapel-0.5.0.dist-info/licenses/
+<a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a><span class="c1"># Expected: LICENSE</span>
+<a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a>rm<span class="w"> </span>-rf<span class="w"> </span>/tmp/sinpapel-wheel-inspect
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 5: Confirm institutional references are gone from public-facing files</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>grep<span class="w"> </span>-nE<span class="w"> </span><span class="s2">&quot;SEP|FONDESO|aprendomx|creditos|E12|jadrians/creditos&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a><span class="w">  </span>README.md<span class="w"> </span>README.es.md<span class="w"> </span>CHANGELOG.md<span class="w"> </span>CONTRIBUTING.md<span class="w"> </span>CODE_OF_CONDUCT.md<span class="w"> </span>pyproject.toml
+<a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a><span class="c1"># Expected: no output</span>
+</code></pre></div>
+<p>(<code>docs/USAGE.md</code>, <code>docs/USAGE.es.md</code> are scanned in their respective tasks and should already be clean.)</p>
+<ul>
+<li>[ ] <strong>Step 6: Add <code>dist/</code> to <code>.gitignore</code> if not already present</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>grep<span class="w"> </span>-qxF<span class="w"> </span><span class="s2">&quot;dist/&quot;</span><span class="w"> </span>.gitignore<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;dist/&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.gitignore
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>grep<span class="w"> </span>-qxF<span class="w"> </span><span class="s2">&quot;build/&quot;</span><span class="w"> </span>.gitignore<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;build/&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.gitignore
+<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>grep<span class="w"> </span>-qxF<span class="w"> </span><span class="s2">&quot;*.egg-info/&quot;</span><span class="w"> </span>.gitignore<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;*.egg-info/&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.gitignore
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 7: Clean up build artifacts before committing</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>rm<span class="w"> </span>-rf<span class="w"> </span>dist/<span class="w"> </span>build/<span class="w"> </span>*.egg-info
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 8: Final commit if <code>.gitignore</code> changed</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>git<span class="w"> </span>status<span class="w"> </span>--short
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a><span class="c1"># If .gitignore changed:</span>
+<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>git<span class="w"> </span>add<span class="w"> </span>.gitignore
+<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;chore: ignore build artifacts (dist/, build/, *.egg-info/)&quot;</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 9: Push</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>main
+</code></pre></div>
+<hr />
+<h2 id="self-review">Self-Review<a class="headerlink" href="#self-review" title="Permanent link">&para;</a></h2>
+<p><strong>1. Spec coverage:</strong>
+- [x] GPL-3.0 LICENSE → Task 1
+- [x] README.md rewrite (concise, ~350 lines target) → Task 4 (actual ~200 lines, under target ✓)
+- [x] README.es.md mirror → Task 5
+- [x] Long-form manual moved to docs/USAGE.md (+ ES) → Tasks 2, 3
+- [x] CHANGELOG.md reconstructed from git log → Task 6
+- [x] CONTRIBUTING.md with DCO → Task 7
+- [x] CODE_OF_CONDUCT.md (Contributor Covenant 2.1) → Task 8
+- [x] pyproject.toml GPL + PyPI-ready (SPDX, classifiers, setuptools≥77) → Task 9
+- [x] Verification (pytest, build, twine check, grep) → Task 10
+- [x] No public repo URL hardcoded (uses placeholders / generic phrasing) → Tasks 4, 5, 7, 9</p>
+<p><strong>2. Placeholder scan:</strong> No "TBD", "TODO", or "implement later" in any task. The only deliberate placeholders are <code>&lt;repository-url&gt;</code> in CONTRIBUTING.md and the commented <code>https://example.com/sinpapel</code> template in pyproject.toml, both flagged as deliberate in the spec.</p>
+<p><strong>3. Type consistency:</strong> Filenames (<code>USAGE.md</code>, <code>USAGE.es.md</code>, <code>CHANGELOG.md</code>, <code>CONTRIBUTING.md</code>, <code>CODE_OF_CONDUCT.md</code>, <code>LICENSE</code>, <code>pyproject.toml</code>) are consistent across all tasks. Cross-links between README and CHANGELOG/CONTRIBUTING/CODE_OF_CONDUCT match. Version <code>0.5.0</code> consistent across LICENSE header, README headers, CHANGELOG, pyproject.</p>
+<hr />
+<h2 id="execution-handoff">Execution Handoff<a class="headerlink" href="#execution-handoff" title="Permanent link">&para;</a></h2>
+<p><strong>Plan complete and saved to <code>docs/superpowers/plans/2026-05-16-readme-publication.md</code>.</strong></p>
+<p>Two execution options:</p>
+<p><strong>1. Subagent-Driven (recommended)</strong> — I dispatch a fresh subagent per task, review between tasks, fast iteration.</p>
+<p><strong>2. Inline Execution</strong> — Execute tasks in this session using executing-plans, batch execution with checkpoints.</p>
+<p>Which approach?</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1446 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Versioned workflows, immutable audit, and pluggable e-signatures for Django">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Form/Serializer Factory Implementation Plan - sinpapel</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#formserializer-factory-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="sinpapel" class="md-header__button md-logo" aria-label="sinpapel" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sinpapel
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Form/Serializer Factory Implementation Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../usage/" class="md-tabs__link">
+          
+  
+  
+  Usage
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../api/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../development/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="sinpapel" class="md-nav__button md-logo" aria-label="sinpapel" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    sinpapel
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage Guides
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../usage/en/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    English
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../usage/es/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Español
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing to sinpapel
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../development/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#file-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-1-implement-metaformfactorybuild_form" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: Implement MetaFormFactory.build_form()
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-2-implement-metaformfactorybuild_serializer-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: Implement MetaFormFactory.build_serializer() + tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-3-integration-test-with-metadatoscapturables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 3: Integration test with MetadatosCapturables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-4-run-full-suite-and-push" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 4: Run full suite and push
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#self-review-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Self-Review Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execution-handoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution Handoff
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="formserializer-factory-implementation-plan">Form/Serializer Factory Implementation Plan<a class="headerlink" href="#formserializer-factory-implementation-plan" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p>
+</blockquote>
+<p><strong>Goal:</strong> Implement <code>MetaFormFactory</code> that generates Django <code>forms.Form</code> and DRF <code>serializers.Serializer</code> classes dynamically from a <code>list[CampoMetadato]</code> schema.</p>
+<p><strong>Architecture:</strong> A single factory class maps <code>CampoMetadato</code> type/choices/defaults to Django/DRF field classes. Supports both Django Forms and DRF Serializers (optional, gracefully degrades if DRF not installed).</p>
+<p><strong>Tech Stack:</strong> Django 5.0+, djangorestframework (optional), pytest-django</p>
+<hr />
+<h2 id="file-map">File Map<a class="headerlink" href="#file-map" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sinpapel/forms.py</code></td>
+<td><code>MetaFormFactory</code> class with <code>build_form()</code> and <code>build_serializer()</code></td>
+</tr>
+<tr>
+<td><code>tests/test_forms_factory.py</code></td>
+<td>Tests for Django Form generation</td>
+</tr>
+<tr>
+<td><code>tests/test_serializers_factory.py</code></td>
+<td>Tests for DRF Serializer generation (skipped if DRF not installed)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="task-1-implement-metaformfactorybuild_form">Task 1: Implement <code>MetaFormFactory.build_form()</code><a class="headerlink" href="#task-1-implement-metaformfactorybuild_form" title="Permanent link">&para;</a></h2>
+<p><strong>Files:</strong>
+- Create: <code>sinpapel/forms.py</code>
+- Test: <code>tests/test_forms_factory.py</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Write the failing test</strong></li>
+</ul>
+<p>Create <code>tests/test_forms_factory.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="sd">&quot;&quot;&quot;Tests for MetaFormFactory Django Form generation.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django</span><span class="w"> </span><span class="kn">import</span> <span class="n">forms</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.forms</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetaFormFactory</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">CampoMetadato</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_form_str_field</span><span class="p">():</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;str CampoMetadato generates CharField.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;nombre&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)]</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">MetaForm</span><span class="p">,</span> <span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">)</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">MetaForm</span><span class="o">.</span><span class="n">base_fields</span><span class="p">[</span><span class="s2">&quot;nombre&quot;</span><span class="p">],</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">)</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_form_int_field</span><span class="p">():</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;int CampoMetadato generates IntegerField.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;edad&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">)]</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">MetaForm</span><span class="o">.</span><span class="n">base_fields</span><span class="p">[</span><span class="s2">&quot;edad&quot;</span><span class="p">],</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">)</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_form_decimal_field</span><span class="p">():</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Decimal CampoMetadato generates DecimalField with correct digits.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;monto&quot;</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">)]</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    <span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>    <span class="n">field</span> <span class="o">=</span> <span class="n">MetaForm</span><span class="o">.</span><span class="n">base_fields</span><span class="p">[</span><span class="s2">&quot;monto&quot;</span><span class="p">]</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">)</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    <span class="k">assert</span> <span class="n">field</span><span class="o">.</span><span class="n">max_digits</span> <span class="o">==</span> <span class="mi">15</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>    <span class="k">assert</span> <span class="n">field</span><span class="o">.</span><span class="n">decimal_places</span> <span class="o">==</span> <span class="mi">2</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_form_date_field</span><span class="p">():</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;date CampoMetadato generates DateField.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;fecha&quot;</span><span class="p">,</span> <span class="n">date</span><span class="p">)]</span>
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>    <span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">MetaForm</span><span class="o">.</span><span class="n">base_fields</span><span class="p">[</span><span class="s2">&quot;fecha&quot;</span><span class="p">],</span> <span class="n">forms</span><span class="o">.</span><span class="n">DateField</span><span class="p">)</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>
+<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_form_bool_field</span><span class="p">():</span>
+<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;bool CampoMetadato generates BooleanField.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;activo&quot;</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)]</span>
+<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>    <span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a>    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">MetaForm</span><span class="o">.</span><span class="n">base_fields</span><span class="p">[</span><span class="s2">&quot;activo&quot;</span><span class="p">],</span> <span class="n">forms</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">)</span>
+<a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a>
+<a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a>
+<a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_form_choices</span><span class="p">():</span>
+<a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;str with choices generates ChoiceField with correct options.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;tipo&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">])]</span>
+<a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a>    <span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>    <span class="n">field</span> <span class="o">=</span> <span class="n">MetaForm</span><span class="o">.</span><span class="n">base_fields</span><span class="p">[</span><span class="s2">&quot;tipo&quot;</span><span class="p">]</span>
+<a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">forms</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">)</span>
+<a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>    <span class="k">assert</span> <span class="n">field</span><span class="o">.</span><span class="n">choices</span> <span class="o">==</span> <span class="p">[(</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">)]</span>
+<a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>
+<a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>
+<a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_form_required_and_label</span><span class="p">():</span>
+<a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;required and etiqueta mapped correctly.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;rfc&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">requerido</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">etiqueta</span><span class="o">=</span><span class="s2">&quot;RFC&quot;</span><span class="p">)]</span>
+<a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>    <span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>    <span class="n">field</span> <span class="o">=</span> <span class="n">MetaForm</span><span class="o">.</span><span class="n">base_fields</span><span class="p">[</span><span class="s2">&quot;rfc&quot;</span><span class="p">]</span>
+<a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>    <span class="k">assert</span> <span class="n">field</span><span class="o">.</span><span class="n">required</span> <span class="ow">is</span> <span class="kc">True</span>
+<a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>    <span class="k">assert</span> <span class="n">field</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="s2">&quot;RFC&quot;</span>
+<a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>
+<a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>
+<a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_form_help_text</span><span class="p">():</span>
+<a id="__codelineno-0-71" name="__codelineno-0-71" href="#__codelineno-0-71"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;ayuda mapped to help_text.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-72" name="__codelineno-0-72" href="#__codelineno-0-72"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;rfc&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ayuda</span><span class="o">=</span><span class="s2">&quot;Formato: ABCD010101ABC&quot;</span><span class="p">)]</span>
+<a id="__codelineno-0-73" name="__codelineno-0-73" href="#__codelineno-0-73"></a>    <span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-0-74" name="__codelineno-0-74" href="#__codelineno-0-74"></a>    <span class="k">assert</span> <span class="n">MetaForm</span><span class="o">.</span><span class="n">base_fields</span><span class="p">[</span><span class="s2">&quot;rfc&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">help_text</span> <span class="o">==</span> <span class="s2">&quot;Formato: ABCD010101ABC&quot;</span>
+<a id="__codelineno-0-75" name="__codelineno-0-75" href="#__codelineno-0-75"></a>
+<a id="__codelineno-0-76" name="__codelineno-0-76" href="#__codelineno-0-76"></a>
+<a id="__codelineno-0-77" name="__codelineno-0-77" href="#__codelineno-0-77"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_form_default_initial</span><span class="p">():</span>
+<a id="__codelineno-0-78" name="__codelineno-0-78" href="#__codelineno-0-78"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;default mapped to initial value.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-79" name="__codelineno-0-79" href="#__codelineno-0-79"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;nombre&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;sin nombre&quot;</span><span class="p">)]</span>
+<a id="__codelineno-0-80" name="__codelineno-0-80" href="#__codelineno-0-80"></a>    <span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-0-81" name="__codelineno-0-81" href="#__codelineno-0-81"></a>    <span class="k">assert</span> <span class="n">MetaForm</span><span class="o">.</span><span class="n">base_fields</span><span class="p">[</span><span class="s2">&quot;nombre&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">==</span> <span class="s2">&quot;sin nombre&quot;</span>
+<a id="__codelineno-0-82" name="__codelineno-0-82" href="#__codelineno-0-82"></a>
+<a id="__codelineno-0-83" name="__codelineno-0-83" href="#__codelineno-0-83"></a>
+<a id="__codelineno-0-84" name="__codelineno-0-84" href="#__codelineno-0-84"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_form_empty_schema</span><span class="p">():</span>
+<a id="__codelineno-0-85" name="__codelineno-0-85" href="#__codelineno-0-85"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Empty schema returns empty Form.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-86" name="__codelineno-0-86" href="#__codelineno-0-86"></a>    <span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">([])</span>
+<a id="__codelineno-0-87" name="__codelineno-0-87" href="#__codelineno-0-87"></a>    <span class="k">assert</span> <span class="n">MetaForm</span><span class="o">.</span><span class="n">base_fields</span> <span class="o">==</span> <span class="p">{}</span>
+<a id="__codelineno-0-88" name="__codelineno-0-88" href="#__codelineno-0-88"></a>
+<a id="__codelineno-0-89" name="__codelineno-0-89" href="#__codelineno-0-89"></a>
+<a id="__codelineno-0-90" name="__codelineno-0-90" href="#__codelineno-0-90"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_form_validates_type</span><span class="p">():</span>
+<a id="__codelineno-0-91" name="__codelineno-0-91" href="#__codelineno-0-91"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generated form rejects wrong type.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-92" name="__codelineno-0-92" href="#__codelineno-0-92"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;edad&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">)]</span>
+<a id="__codelineno-0-93" name="__codelineno-0-93" href="#__codelineno-0-93"></a>    <span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-0-94" name="__codelineno-0-94" href="#__codelineno-0-94"></a>    <span class="n">form</span> <span class="o">=</span> <span class="n">MetaForm</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;edad&quot;</span><span class="p">:</span> <span class="s2">&quot;not_an_int&quot;</span><span class="p">})</span>
+<a id="__codelineno-0-95" name="__codelineno-0-95" href="#__codelineno-0-95"></a>    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">False</span>
+<a id="__codelineno-0-96" name="__codelineno-0-96" href="#__codelineno-0-96"></a>    <span class="k">assert</span> <span class="s2">&quot;edad&quot;</span> <span class="ow">in</span> <span class="n">form</span><span class="o">.</span><span class="n">errors</span>
+<a id="__codelineno-0-97" name="__codelineno-0-97" href="#__codelineno-0-97"></a>
+<a id="__codelineno-0-98" name="__codelineno-0-98" href="#__codelineno-0-98"></a>
+<a id="__codelineno-0-99" name="__codelineno-0-99" href="#__codelineno-0-99"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_form_accepts_valid_data</span><span class="p">():</span>
+<a id="__codelineno-0-100" name="__codelineno-0-100" href="#__codelineno-0-100"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generated form accepts valid data.&quot;&quot;&quot;</span>
+<a id="__codelineno-0-101" name="__codelineno-0-101" href="#__codelineno-0-101"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
+<a id="__codelineno-0-102" name="__codelineno-0-102" href="#__codelineno-0-102"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<a id="__codelineno-0-103" name="__codelineno-0-103" href="#__codelineno-0-103"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-0-104" name="__codelineno-0-104" href="#__codelineno-0-104"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;nombre&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
+<a id="__codelineno-0-105" name="__codelineno-0-105" href="#__codelineno-0-105"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;edad&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+<a id="__codelineno-0-106" name="__codelineno-0-106" href="#__codelineno-0-106"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;monto&quot;</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">),</span>
+<a id="__codelineno-0-107" name="__codelineno-0-107" href="#__codelineno-0-107"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;fecha&quot;</span><span class="p">,</span> <span class="n">date</span><span class="p">),</span>
+<a id="__codelineno-0-108" name="__codelineno-0-108" href="#__codelineno-0-108"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;activo&quot;</span><span class="p">,</span> <span class="nb">bool</span><span class="p">),</span>
+<a id="__codelineno-0-109" name="__codelineno-0-109" href="#__codelineno-0-109"></a>    <span class="p">]</span>
+<a id="__codelineno-0-110" name="__codelineno-0-110" href="#__codelineno-0-110"></a>    <span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-0-111" name="__codelineno-0-111" href="#__codelineno-0-111"></a>    <span class="n">form</span> <span class="o">=</span> <span class="n">MetaForm</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-0-112" name="__codelineno-0-112" href="#__codelineno-0-112"></a>        <span class="s2">&quot;nombre&quot;</span><span class="p">:</span> <span class="s2">&quot;Juan&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-113" name="__codelineno-0-113" href="#__codelineno-0-113"></a>        <span class="s2">&quot;edad&quot;</span><span class="p">:</span> <span class="s2">&quot;30&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-114" name="__codelineno-0-114" href="#__codelineno-0-114"></a>        <span class="s2">&quot;monto&quot;</span><span class="p">:</span> <span class="s2">&quot;150000.50&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-115" name="__codelineno-0-115" href="#__codelineno-0-115"></a>        <span class="s2">&quot;fecha&quot;</span><span class="p">:</span> <span class="s2">&quot;2024-01-15&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-116" name="__codelineno-0-116" href="#__codelineno-0-116"></a>        <span class="s2">&quot;activo&quot;</span><span class="p">:</span> <span class="s2">&quot;on&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-117" name="__codelineno-0-117" href="#__codelineno-0-117"></a>    <span class="p">})</span>
+<a id="__codelineno-0-118" name="__codelineno-0-118" href="#__codelineno-0-118"></a>    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(),</span> <span class="n">form</span><span class="o">.</span><span class="n">errors</span>
+<a id="__codelineno-0-119" name="__codelineno-0-119" href="#__codelineno-0-119"></a>    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s2">&quot;nombre&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Juan&quot;</span>
+<a id="__codelineno-0-120" name="__codelineno-0-120" href="#__codelineno-0-120"></a>    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s2">&quot;edad&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">30</span>
+<a id="__codelineno-0-121" name="__codelineno-0-121" href="#__codelineno-0-121"></a>    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s2">&quot;monto&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;150000.50&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-122" name="__codelineno-0-122" href="#__codelineno-0-122"></a>    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s2">&quot;fecha&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-0-123" name="__codelineno-0-123" href="#__codelineno-0-123"></a>    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s2">&quot;activo&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span>
+</code></pre></div>
+<p>Run: <code>/usr/local/bin/python3.13 -m pytest tests/test_forms_factory.py -v</code>
+Expected: FAIL — <code>MetaFormFactory</code> not defined.</p>
+<ul>
+<li>[ ] <strong>Step 2: Implement <code>sinpapel/forms.py</code></strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="sd">&quot;&quot;&quot;Sinpapel — Form/Serializer Factory for MetadatosCapturables.</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="sd">Generates Django Forms and DRF Serializers dynamically from</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="sd">SCHEMA_METADATOS definitions.</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TypeVar</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django</span><span class="w"> </span><span class="kn">import</span> <span class="n">forms</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">CampoMetadato</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">F</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">)</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="k">class</span><span class="w"> </span><span class="nc">MetaFormFactory</span><span class="p">:</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Genera Django Forms / DRF Serializers desde SCHEMA_METADATOS.&quot;&quot;&quot;</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>    <span class="n">_DJANGO_FIELD_MAP</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="nb">type</span><span class="p">[</span><span class="n">forms</span><span class="o">.</span><span class="n">Field</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>        <span class="nb">str</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">,</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>        <span class="nb">int</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">,</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>        <span class="nb">bool</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">,</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>        <span class="n">Decimal</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">,</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>        <span class="n">date</span><span class="p">:</span> <span class="n">forms</span><span class="o">.</span><span class="n">DateField</span><span class="p">,</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    <span class="p">}</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>    <span class="nd">@classmethod</span>
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_form</span><span class="p">(</span>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>        <span class="bp">cls</span><span class="p">,</span>
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>        <span class="n">schema</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CampoMetadato</span><span class="p">],</span>
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>        <span class="o">**</span><span class="n">form_class_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">[</span><span class="n">F</span><span class="p">]:</span>
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Construye una subclase de django.forms.Form a partir de un schema.</span>
+<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>
+<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="sd">        Args:</span>
+<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="sd">            schema: lista de CampoMetadato</span>
+<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="sd">            **form_class_kwargs: kwargs adicionales para la clase Form</span>
+<a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>
+<a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a><span class="sd">        Returns:</span>
+<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a><span class="sd">            Subclase de forms.Form con los campos definidos</span>
+<a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>        <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">forms</span><span class="o">.</span><span class="n">Field</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>        <span class="k">for</span> <span class="n">campo</span> <span class="ow">in</span> <span class="n">schema</span><span class="p">:</span>
+<a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>            <span class="n">field_class</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_DJANGO_FIELD_MAP</span><span class="p">[</span><span class="n">campo</span><span class="o">.</span><span class="n">tipo</span><span class="p">]</span>
+<a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a>            <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_build_field_kwargs</span><span class="p">(</span><span class="n">campo</span><span class="p">,</span> <span class="n">is_django</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>            <span class="n">attrs</span><span class="p">[</span><span class="n">campo</span><span class="o">.</span><span class="n">nombre</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_class</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-1-51" name="__codelineno-1-51" href="#__codelineno-1-51"></a>
+<a id="__codelineno-1-52" name="__codelineno-1-52" href="#__codelineno-1-52"></a>        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="s2">&quot;DynamicMetaForm&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">Form</span><span class="p">,),</span> <span class="p">{</span><span class="o">**</span><span class="n">attrs</span><span class="p">,</span> <span class="o">**</span><span class="n">form_class_kwargs</span><span class="p">})</span>
+<a id="__codelineno-1-53" name="__codelineno-1-53" href="#__codelineno-1-53"></a>
+<a id="__codelineno-1-54" name="__codelineno-1-54" href="#__codelineno-1-54"></a>    <span class="nd">@classmethod</span>
+<a id="__codelineno-1-55" name="__codelineno-1-55" href="#__codelineno-1-55"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">build_serializer</span><span class="p">(</span>
+<a id="__codelineno-1-56" name="__codelineno-1-56" href="#__codelineno-1-56"></a>        <span class="bp">cls</span><span class="p">,</span>
+<a id="__codelineno-1-57" name="__codelineno-1-57" href="#__codelineno-1-57"></a>        <span class="n">schema</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CampoMetadato</span><span class="p">],</span>
+<a id="__codelineno-1-58" name="__codelineno-1-58" href="#__codelineno-1-58"></a>        <span class="o">**</span><span class="n">serializer_class_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<a id="__codelineno-1-59" name="__codelineno-1-59" href="#__codelineno-1-59"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<a id="__codelineno-1-60" name="__codelineno-1-60" href="#__codelineno-1-60"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Construye una subclase de rest_framework.serializers.Serializer.</span>
+<a id="__codelineno-1-61" name="__codelineno-1-61" href="#__codelineno-1-61"></a>
+<a id="__codelineno-1-62" name="__codelineno-1-62" href="#__codelineno-1-62"></a><span class="sd">        Requiere que &#39;djangorestframework&#39; esté instalado.</span>
+<a id="__codelineno-1-63" name="__codelineno-1-63" href="#__codelineno-1-63"></a>
+<a id="__codelineno-1-64" name="__codelineno-1-64" href="#__codelineno-1-64"></a><span class="sd">        Args:</span>
+<a id="__codelineno-1-65" name="__codelineno-1-65" href="#__codelineno-1-65"></a><span class="sd">            schema: lista de CampoMetadato</span>
+<a id="__codelineno-1-66" name="__codelineno-1-66" href="#__codelineno-1-66"></a><span class="sd">            **serializer_class_kwargs: kwargs adicionales para la clase Serializer</span>
+<a id="__codelineno-1-67" name="__codelineno-1-67" href="#__codelineno-1-67"></a>
+<a id="__codelineno-1-68" name="__codelineno-1-68" href="#__codelineno-1-68"></a><span class="sd">        Returns:</span>
+<a id="__codelineno-1-69" name="__codelineno-1-69" href="#__codelineno-1-69"></a><span class="sd">            Subclase de serializers.Serializer con los campos definidos</span>
+<a id="__codelineno-1-70" name="__codelineno-1-70" href="#__codelineno-1-70"></a>
+<a id="__codelineno-1-71" name="__codelineno-1-71" href="#__codelineno-1-71"></a><span class="sd">        Raises:</span>
+<a id="__codelineno-1-72" name="__codelineno-1-72" href="#__codelineno-1-72"></a><span class="sd">            ImportError: si djangorestframework no está instalado</span>
+<a id="__codelineno-1-73" name="__codelineno-1-73" href="#__codelineno-1-73"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-1-74" name="__codelineno-1-74" href="#__codelineno-1-74"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-1-75" name="__codelineno-1-75" href="#__codelineno-1-75"></a>            <span class="kn">from</span><span class="w"> </span><span class="nn">rest_framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">serializers</span>
+<a id="__codelineno-1-76" name="__codelineno-1-76" href="#__codelineno-1-76"></a>        <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+<a id="__codelineno-1-77" name="__codelineno-1-77" href="#__codelineno-1-77"></a>            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+<a id="__codelineno-1-78" name="__codelineno-1-78" href="#__codelineno-1-78"></a>                <span class="s2">&quot;MetaFormFactory.build_serializer() requiere &#39;djangorestframework&#39;. &quot;</span>
+<a id="__codelineno-1-79" name="__codelineno-1-79" href="#__codelineno-1-79"></a>                <span class="s2">&quot;Instálalo con: pip install djangorestframework&quot;</span>
+<a id="__codelineno-1-80" name="__codelineno-1-80" href="#__codelineno-1-80"></a>            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+<a id="__codelineno-1-81" name="__codelineno-1-81" href="#__codelineno-1-81"></a>
+<a id="__codelineno-1-82" name="__codelineno-1-82" href="#__codelineno-1-82"></a>        <span class="n">drf_field_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">type</span><span class="p">,</span> <span class="nb">type</span><span class="p">[</span><span class="n">serializers</span><span class="o">.</span><span class="n">Field</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-1-83" name="__codelineno-1-83" href="#__codelineno-1-83"></a>            <span class="nb">str</span><span class="p">:</span> <span class="n">serializers</span><span class="o">.</span><span class="n">CharField</span><span class="p">,</span>
+<a id="__codelineno-1-84" name="__codelineno-1-84" href="#__codelineno-1-84"></a>            <span class="nb">int</span><span class="p">:</span> <span class="n">serializers</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">,</span>
+<a id="__codelineno-1-85" name="__codelineno-1-85" href="#__codelineno-1-85"></a>            <span class="nb">bool</span><span class="p">:</span> <span class="n">serializers</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">,</span>
+<a id="__codelineno-1-86" name="__codelineno-1-86" href="#__codelineno-1-86"></a>            <span class="n">Decimal</span><span class="p">:</span> <span class="n">serializers</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">,</span>
+<a id="__codelineno-1-87" name="__codelineno-1-87" href="#__codelineno-1-87"></a>            <span class="n">date</span><span class="p">:</span> <span class="n">serializers</span><span class="o">.</span><span class="n">DateField</span><span class="p">,</span>
+<a id="__codelineno-1-88" name="__codelineno-1-88" href="#__codelineno-1-88"></a>        <span class="p">}</span>
+<a id="__codelineno-1-89" name="__codelineno-1-89" href="#__codelineno-1-89"></a>
+<a id="__codelineno-1-90" name="__codelineno-1-90" href="#__codelineno-1-90"></a>        <span class="n">attrs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">serializers</span><span class="o">.</span><span class="n">Field</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<a id="__codelineno-1-91" name="__codelineno-1-91" href="#__codelineno-1-91"></a>        <span class="k">for</span> <span class="n">campo</span> <span class="ow">in</span> <span class="n">schema</span><span class="p">:</span>
+<a id="__codelineno-1-92" name="__codelineno-1-92" href="#__codelineno-1-92"></a>            <span class="n">field_class</span> <span class="o">=</span> <span class="n">drf_field_map</span><span class="p">[</span><span class="n">campo</span><span class="o">.</span><span class="n">tipo</span><span class="p">]</span>
+<a id="__codelineno-1-93" name="__codelineno-1-93" href="#__codelineno-1-93"></a>            <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_build_field_kwargs</span><span class="p">(</span><span class="n">campo</span><span class="p">,</span> <span class="n">is_django</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-1-94" name="__codelineno-1-94" href="#__codelineno-1-94"></a>            <span class="n">attrs</span><span class="p">[</span><span class="n">campo</span><span class="o">.</span><span class="n">nombre</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_class</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<a id="__codelineno-1-95" name="__codelineno-1-95" href="#__codelineno-1-95"></a>
+<a id="__codelineno-1-96" name="__codelineno-1-96" href="#__codelineno-1-96"></a>        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="s2">&quot;DynamicMetaSerializer&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">Serializer</span><span class="p">,),</span> <span class="p">{</span><span class="o">**</span><span class="n">attrs</span><span class="p">,</span> <span class="o">**</span><span class="n">serializer_class_kwargs</span><span class="p">})</span>
+<a id="__codelineno-1-97" name="__codelineno-1-97" href="#__codelineno-1-97"></a>
+<a id="__codelineno-1-98" name="__codelineno-1-98" href="#__codelineno-1-98"></a>    <span class="nd">@classmethod</span>
+<a id="__codelineno-1-99" name="__codelineno-1-99" href="#__codelineno-1-99"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_build_field_kwargs</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">campo</span><span class="p">:</span> <span class="n">CampoMetadato</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">is_django</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<a id="__codelineno-1-100" name="__codelineno-1-100" href="#__codelineno-1-100"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Construye kwargs para un campo Django o DRF desde CampoMetadato.&quot;&quot;&quot;</span>
+<a id="__codelineno-1-101" name="__codelineno-1-101" href="#__codelineno-1-101"></a>        <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-1-102" name="__codelineno-1-102" href="#__codelineno-1-102"></a>            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="n">campo</span><span class="o">.</span><span class="n">requerido</span><span class="p">,</span>
+<a id="__codelineno-1-103" name="__codelineno-1-103" href="#__codelineno-1-103"></a>            <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">campo</span><span class="o">.</span><span class="n">etiqueta</span> <span class="ow">or</span> <span class="n">campo</span><span class="o">.</span><span class="n">nombre</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span>
+<a id="__codelineno-1-104" name="__codelineno-1-104" href="#__codelineno-1-104"></a>            <span class="s2">&quot;help_text&quot;</span><span class="p">:</span> <span class="n">campo</span><span class="o">.</span><span class="n">ayuda</span><span class="p">,</span>
+<a id="__codelineno-1-105" name="__codelineno-1-105" href="#__codelineno-1-105"></a>        <span class="p">}</span>
+<a id="__codelineno-1-106" name="__codelineno-1-106" href="#__codelineno-1-106"></a>
+<a id="__codelineno-1-107" name="__codelineno-1-107" href="#__codelineno-1-107"></a>        <span class="k">if</span> <span class="n">campo</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-1-108" name="__codelineno-1-108" href="#__codelineno-1-108"></a>            <span class="k">if</span> <span class="n">is_django</span><span class="p">:</span>
+<a id="__codelineno-1-109" name="__codelineno-1-109" href="#__codelineno-1-109"></a>                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;initial&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">campo</span><span class="o">.</span><span class="n">default</span>
+<a id="__codelineno-1-110" name="__codelineno-1-110" href="#__codelineno-1-110"></a>            <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-1-111" name="__codelineno-1-111" href="#__codelineno-1-111"></a>                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">campo</span><span class="o">.</span><span class="n">default</span>
+<a id="__codelineno-1-112" name="__codelineno-1-112" href="#__codelineno-1-112"></a>
+<a id="__codelineno-1-113" name="__codelineno-1-113" href="#__codelineno-1-113"></a>        <span class="k">if</span> <span class="n">campo</span><span class="o">.</span><span class="n">choices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-1-114" name="__codelineno-1-114" href="#__codelineno-1-114"></a>            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;choices&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[(</span><span class="n">c</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">campo</span><span class="o">.</span><span class="n">choices</span><span class="p">]</span>
+<a id="__codelineno-1-115" name="__codelineno-1-115" href="#__codelineno-1-115"></a>
+<a id="__codelineno-1-116" name="__codelineno-1-116" href="#__codelineno-1-116"></a>        <span class="k">if</span> <span class="n">campo</span><span class="o">.</span><span class="n">tipo</span> <span class="ow">is</span> <span class="n">Decimal</span><span class="p">:</span>
+<a id="__codelineno-1-117" name="__codelineno-1-117" href="#__codelineno-1-117"></a>            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;max_digits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">15</span>
+<a id="__codelineno-1-118" name="__codelineno-1-118" href="#__codelineno-1-118"></a>            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;decimal_places&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+<a id="__codelineno-1-119" name="__codelineno-1-119" href="#__codelineno-1-119"></a>
+<a id="__codelineno-1-120" name="__codelineno-1-120" href="#__codelineno-1-120"></a>        <span class="k">return</span> <span class="n">kwargs</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 3: Run tests to verify they pass</strong></li>
+</ul>
+<p>Run: <code>/usr/local/bin/python3.13 -m pytest tests/test_forms_factory.py -v</code>
+Expected: PASS (12 tests)</p>
+<ul>
+<li>[ ] <strong>Step 4: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>git<span class="w"> </span>add<span class="w"> </span>sinpapel/forms.py<span class="w"> </span>tests/test_forms_factory.py
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat(forms): add MetaFormFactory for Django Form generation from SCHEMA_METADATOS&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="task-2-implement-metaformfactorybuild_serializer-tests">Task 2: Implement <code>MetaFormFactory.build_serializer()</code> + tests<a class="headerlink" href="#task-2-implement-metaformfactorybuild_serializer-tests" title="Permanent link">&para;</a></h2>
+<p><strong>Files:</strong>
+- Modify: <code>sinpapel/forms.py</code> (already done in Task 1)
+- Create: <code>tests/test_serializers_factory.py</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Write the failing test</strong></li>
+</ul>
+<p>Create <code>tests/test_serializers_factory.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="sd">&quot;&quot;&quot;Tests for MetaFormFactory DRF Serializer generation.</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="sd">Skips all tests if djangorestframework is not installed.</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">CampoMetadato</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">rest_framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">serializers</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.forms</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetaFormFactory</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>    <span class="n">DRF_INSTALLED</span> <span class="o">=</span> <span class="kc">True</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>    <span class="n">DRF_INSTALLED</span> <span class="o">=</span> <span class="kc">False</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="n">pytestmark</span> <span class="o">=</span> <span class="n">pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">skipif</span><span class="p">(</span><span class="ow">not</span> <span class="n">DRF_INSTALLED</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;djangorestframework not installed&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_serializer_str_field</span><span class="p">():</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;str CampoMetadato generates DRF CharField.&quot;&quot;&quot;</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;nombre&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)]</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>    <span class="n">MetaSerializer</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_serializer</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>    <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">MetaSerializer</span><span class="p">,</span> <span class="n">serializers</span><span class="o">.</span><span class="n">Serializer</span><span class="p">)</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">MetaSerializer</span><span class="p">()</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;nombre&quot;</span><span class="p">],</span> <span class="n">serializers</span><span class="o">.</span><span class="n">CharField</span><span class="p">)</span>
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_serializer_decimal_field</span><span class="p">():</span>
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Decimal CampoMetadato generates DRF DecimalField.&quot;&quot;&quot;</span>
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;monto&quot;</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">)]</span>
+<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a>    <span class="n">MetaSerializer</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_serializer</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a>    <span class="n">field</span> <span class="o">=</span> <span class="n">MetaSerializer</span><span class="p">()</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;monto&quot;</span><span class="p">]</span>
+<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">serializers</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">)</span>
+<a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a>    <span class="k">assert</span> <span class="n">field</span><span class="o">.</span><span class="n">max_digits</span> <span class="o">==</span> <span class="mi">15</span>
+<a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a>    <span class="k">assert</span> <span class="n">field</span><span class="o">.</span><span class="n">decimal_places</span> <span class="o">==</span> <span class="mi">2</span>
+<a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a>
+<a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a>
+<a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_serializer_choices</span><span class="p">():</span>
+<a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;str with choices generates DRF ChoiceField.&quot;&quot;&quot;</span>
+<a id="__codelineno-3-43" name="__codelineno-3-43" href="#__codelineno-3-43"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;tipo&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">])]</span>
+<a id="__codelineno-3-44" name="__codelineno-3-44" href="#__codelineno-3-44"></a>    <span class="n">MetaSerializer</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_serializer</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-3-45" name="__codelineno-3-45" href="#__codelineno-3-45"></a>    <span class="n">field</span> <span class="o">=</span> <span class="n">MetaSerializer</span><span class="p">()</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;tipo&quot;</span><span class="p">]</span>
+<a id="__codelineno-3-46" name="__codelineno-3-46" href="#__codelineno-3-46"></a>    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">serializers</span><span class="o">.</span><span class="n">ChoiceField</span><span class="p">)</span>
+<a id="__codelineno-3-47" name="__codelineno-3-47" href="#__codelineno-3-47"></a>    <span class="k">assert</span> <span class="n">field</span><span class="o">.</span><span class="n">choices</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="s2">&quot;B&quot;</span><span class="p">}</span>
+<a id="__codelineno-3-48" name="__codelineno-3-48" href="#__codelineno-3-48"></a>
+<a id="__codelineno-3-49" name="__codelineno-3-49" href="#__codelineno-3-49"></a>
+<a id="__codelineno-3-50" name="__codelineno-3-50" href="#__codelineno-3-50"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_serializer_required_and_label</span><span class="p">():</span>
+<a id="__codelineno-3-51" name="__codelineno-3-51" href="#__codelineno-3-51"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;required and etiqueta mapped to DRF field.&quot;&quot;&quot;</span>
+<a id="__codelineno-3-52" name="__codelineno-3-52" href="#__codelineno-3-52"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;rfc&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">requerido</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">etiqueta</span><span class="o">=</span><span class="s2">&quot;RFC&quot;</span><span class="p">)]</span>
+<a id="__codelineno-3-53" name="__codelineno-3-53" href="#__codelineno-3-53"></a>    <span class="n">MetaSerializer</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_serializer</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-3-54" name="__codelineno-3-54" href="#__codelineno-3-54"></a>    <span class="n">field</span> <span class="o">=</span> <span class="n">MetaSerializer</span><span class="p">()</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;rfc&quot;</span><span class="p">]</span>
+<a id="__codelineno-3-55" name="__codelineno-3-55" href="#__codelineno-3-55"></a>    <span class="k">assert</span> <span class="n">field</span><span class="o">.</span><span class="n">required</span> <span class="ow">is</span> <span class="kc">True</span>
+<a id="__codelineno-3-56" name="__codelineno-3-56" href="#__codelineno-3-56"></a>    <span class="k">assert</span> <span class="n">field</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="s2">&quot;RFC&quot;</span>
+<a id="__codelineno-3-57" name="__codelineno-3-57" href="#__codelineno-3-57"></a>
+<a id="__codelineno-3-58" name="__codelineno-3-58" href="#__codelineno-3-58"></a>
+<a id="__codelineno-3-59" name="__codelineno-3-59" href="#__codelineno-3-59"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_serializer_default</span><span class="p">():</span>
+<a id="__codelineno-3-60" name="__codelineno-3-60" href="#__codelineno-3-60"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;default mapped to DRF default.&quot;&quot;&quot;</span>
+<a id="__codelineno-3-61" name="__codelineno-3-61" href="#__codelineno-3-61"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;nombre&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;sin nombre&quot;</span><span class="p">)]</span>
+<a id="__codelineno-3-62" name="__codelineno-3-62" href="#__codelineno-3-62"></a>    <span class="n">MetaSerializer</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_serializer</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-3-63" name="__codelineno-3-63" href="#__codelineno-3-63"></a>    <span class="k">assert</span> <span class="n">MetaSerializer</span><span class="p">()</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;nombre&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">default</span> <span class="o">==</span> <span class="s2">&quot;sin nombre&quot;</span>
+<a id="__codelineno-3-64" name="__codelineno-3-64" href="#__codelineno-3-64"></a>
+<a id="__codelineno-3-65" name="__codelineno-3-65" href="#__codelineno-3-65"></a>
+<a id="__codelineno-3-66" name="__codelineno-3-66" href="#__codelineno-3-66"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_build_serializer_empty_schema</span><span class="p">():</span>
+<a id="__codelineno-3-67" name="__codelineno-3-67" href="#__codelineno-3-67"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Empty schema returns empty Serializer.&quot;&quot;&quot;</span>
+<a id="__codelineno-3-68" name="__codelineno-3-68" href="#__codelineno-3-68"></a>    <span class="n">MetaSerializer</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_serializer</span><span class="p">([])</span>
+<a id="__codelineno-3-69" name="__codelineno-3-69" href="#__codelineno-3-69"></a>    <span class="k">assert</span> <span class="n">MetaSerializer</span><span class="p">()</span><span class="o">.</span><span class="n">fields</span> <span class="o">==</span> <span class="p">{}</span>
+<a id="__codelineno-3-70" name="__codelineno-3-70" href="#__codelineno-3-70"></a>
+<a id="__codelineno-3-71" name="__codelineno-3-71" href="#__codelineno-3-71"></a>
+<a id="__codelineno-3-72" name="__codelineno-3-72" href="#__codelineno-3-72"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_serializer_validates_type</span><span class="p">():</span>
+<a id="__codelineno-3-73" name="__codelineno-3-73" href="#__codelineno-3-73"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generated serializer rejects wrong type.&quot;&quot;&quot;</span>
+<a id="__codelineno-3-74" name="__codelineno-3-74" href="#__codelineno-3-74"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span><span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;edad&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">)]</span>
+<a id="__codelineno-3-75" name="__codelineno-3-75" href="#__codelineno-3-75"></a>    <span class="n">MetaSerializer</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_serializer</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-3-76" name="__codelineno-3-76" href="#__codelineno-3-76"></a>    <span class="n">serializer</span> <span class="o">=</span> <span class="n">MetaSerializer</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;edad&quot;</span><span class="p">:</span> <span class="s2">&quot;not_an_int&quot;</span><span class="p">})</span>
+<a id="__codelineno-3-77" name="__codelineno-3-77" href="#__codelineno-3-77"></a>    <span class="k">assert</span> <span class="n">serializer</span><span class="o">.</span><span class="n">is_valid</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">False</span>
+<a id="__codelineno-3-78" name="__codelineno-3-78" href="#__codelineno-3-78"></a>    <span class="k">assert</span> <span class="s2">&quot;edad&quot;</span> <span class="ow">in</span> <span class="n">serializer</span><span class="o">.</span><span class="n">errors</span>
+<a id="__codelineno-3-79" name="__codelineno-3-79" href="#__codelineno-3-79"></a>
+<a id="__codelineno-3-80" name="__codelineno-3-80" href="#__codelineno-3-80"></a>
+<a id="__codelineno-3-81" name="__codelineno-3-81" href="#__codelineno-3-81"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_serializer_accepts_valid_data</span><span class="p">():</span>
+<a id="__codelineno-3-82" name="__codelineno-3-82" href="#__codelineno-3-82"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generated serializer accepts valid data.&quot;&quot;&quot;</span>
+<a id="__codelineno-3-83" name="__codelineno-3-83" href="#__codelineno-3-83"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
+<a id="__codelineno-3-84" name="__codelineno-3-84" href="#__codelineno-3-84"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+<a id="__codelineno-3-85" name="__codelineno-3-85" href="#__codelineno-3-85"></a>    <span class="n">schema</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-3-86" name="__codelineno-3-86" href="#__codelineno-3-86"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;nombre&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span>
+<a id="__codelineno-3-87" name="__codelineno-3-87" href="#__codelineno-3-87"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;edad&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+<a id="__codelineno-3-88" name="__codelineno-3-88" href="#__codelineno-3-88"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;monto&quot;</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">),</span>
+<a id="__codelineno-3-89" name="__codelineno-3-89" href="#__codelineno-3-89"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;fecha&quot;</span><span class="p">,</span> <span class="n">date</span><span class="p">),</span>
+<a id="__codelineno-3-90" name="__codelineno-3-90" href="#__codelineno-3-90"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;activo&quot;</span><span class="p">,</span> <span class="nb">bool</span><span class="p">),</span>
+<a id="__codelineno-3-91" name="__codelineno-3-91" href="#__codelineno-3-91"></a>    <span class="p">]</span>
+<a id="__codelineno-3-92" name="__codelineno-3-92" href="#__codelineno-3-92"></a>    <span class="n">MetaSerializer</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_serializer</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
+<a id="__codelineno-3-93" name="__codelineno-3-93" href="#__codelineno-3-93"></a>    <span class="n">serializer</span> <span class="o">=</span> <span class="n">MetaSerializer</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-3-94" name="__codelineno-3-94" href="#__codelineno-3-94"></a>        <span class="s2">&quot;nombre&quot;</span><span class="p">:</span> <span class="s2">&quot;Juan&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-95" name="__codelineno-3-95" href="#__codelineno-3-95"></a>        <span class="s2">&quot;edad&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+<a id="__codelineno-3-96" name="__codelineno-3-96" href="#__codelineno-3-96"></a>        <span class="s2">&quot;monto&quot;</span><span class="p">:</span> <span class="s2">&quot;150000.50&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-97" name="__codelineno-3-97" href="#__codelineno-3-97"></a>        <span class="s2">&quot;fecha&quot;</span><span class="p">:</span> <span class="s2">&quot;2024-01-15&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-98" name="__codelineno-3-98" href="#__codelineno-3-98"></a>        <span class="s2">&quot;activo&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-3-99" name="__codelineno-3-99" href="#__codelineno-3-99"></a>    <span class="p">})</span>
+<a id="__codelineno-3-100" name="__codelineno-3-100" href="#__codelineno-3-100"></a>    <span class="k">assert</span> <span class="n">serializer</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(),</span> <span class="n">serializer</span><span class="o">.</span><span class="n">errors</span>
+<a id="__codelineno-3-101" name="__codelineno-3-101" href="#__codelineno-3-101"></a>    <span class="k">assert</span> <span class="n">serializer</span><span class="o">.</span><span class="n">validated_data</span><span class="p">[</span><span class="s2">&quot;nombre&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Juan&quot;</span>
+<a id="__codelineno-3-102" name="__codelineno-3-102" href="#__codelineno-3-102"></a>    <span class="k">assert</span> <span class="n">serializer</span><span class="o">.</span><span class="n">validated_data</span><span class="p">[</span><span class="s2">&quot;edad&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">30</span>
+<a id="__codelineno-3-103" name="__codelineno-3-103" href="#__codelineno-3-103"></a>    <span class="k">assert</span> <span class="n">serializer</span><span class="o">.</span><span class="n">validated_data</span><span class="p">[</span><span class="s2">&quot;monto&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;150000.50&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-104" name="__codelineno-3-104" href="#__codelineno-3-104"></a>    <span class="k">assert</span> <span class="n">serializer</span><span class="o">.</span><span class="n">validated_data</span><span class="p">[</span><span class="s2">&quot;fecha&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">date</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-3-105" name="__codelineno-3-105" href="#__codelineno-3-105"></a>    <span class="k">assert</span> <span class="n">serializer</span><span class="o">.</span><span class="n">validated_data</span><span class="p">[</span><span class="s2">&quot;activo&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span>
+</code></pre></div>
+<p>Run: <code>/usr/local/bin/python3.13 -m pytest tests/test_serializers_factory.py -v</code>
+Expected: SKIP (all tests) — DRF not installed in dev environment.</p>
+<p>If DRF is installed: Expected PASS (8 tests).</p>
+<ul>
+<li>[ ] <strong>Step 2: Install DRF and verify tests pass (optional)</strong></li>
+</ul>
+<p>If user wants DRF tests to run:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>/usr/local/bin/python3.13<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>djangorestframework
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>/usr/local/bin/python3.13<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/test_serializers_factory.py<span class="w"> </span>-v
+</code></pre></div></p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>git<span class="w"> </span>add<span class="w"> </span>tests/test_serializers_factory.py
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test(forms): add DRF Serializer factory tests&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="task-3-integration-test-with-metadatoscapturables">Task 3: Integration test with MetadatosCapturables<a class="headerlink" href="#task-3-integration-test-with-metadatoscapturables" title="Permanent link">&para;</a></h2>
+<p><strong>Files:</strong>
+- Test: <code>tests/test_forms_factory.py</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Write integration test</strong></li>
+</ul>
+<p>Append to <code>tests/test_forms_factory.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_form_integration_with_metadatos_capturables</span><span class="p">():</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generated form writes correctly to MetadatosCapturables instance.&quot;&quot;&quot;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">CampoMetadato</span><span class="p">,</span> <span class="n">MetadatosCapturables</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="k">class</span><span class="w"> </span><span class="nc">_TestModel</span><span class="p">(</span><span class="n">MetadatosCapturables</span><span class="p">):</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>        <span class="n">SCHEMA_METADATOS</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>            <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;rfc&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">requerido</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>            <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;monto&quot;</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)),</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>        <span class="p">]</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>        <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>            <span class="n">app_label</span> <span class="o">=</span> <span class="s2">&quot;tests&quot;</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>    <span class="n">obj</span> <span class="o">=</span> <span class="n">_TestModel</span><span class="p">()</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>    <span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">(</span><span class="n">_TestModel</span><span class="o">.</span><span class="n">SCHEMA_METADATOS</span><span class="p">)</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>    <span class="n">form</span> <span class="o">=</span> <span class="n">MetaForm</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;rfc&quot;</span><span class="p">:</span> <span class="s2">&quot;ABCD010101ABC&quot;</span><span class="p">,</span> <span class="s2">&quot;monto&quot;</span><span class="p">:</span> <span class="s2">&quot;500000&quot;</span><span class="p">})</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>    <span class="k">assert</span> <span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(),</span> <span class="n">form</span><span class="o">.</span><span class="n">errors</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>    <span class="c1"># Write cleaned data to instance</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>        <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>    <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>    <span class="n">obj</span><span class="o">.</span><span class="n">refresh_from_db</span><span class="p">()</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>    <span class="k">assert</span> <span class="n">obj</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">rfc</span> <span class="o">==</span> <span class="s2">&quot;ABCD010101ABC&quot;</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a>    <span class="k">assert</span> <span class="n">obj</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">monto</span> <span class="o">==</span> <span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;500000&quot;</span><span class="p">)</span>
+</code></pre></div>
+<ul>
+<li>[ ] <strong>Step 2: Run test</strong></li>
+</ul>
+<p>Run: <code>/usr/local/bin/python3.13 -m pytest tests/test_forms_factory.py::test_form_integration_with_metadatos_capturables -v</code>
+Expected: PASS</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>git<span class="w"> </span>add<span class="w"> </span>tests/test_forms_factory.py
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test(forms): add integration test for Form + MetadatosCapturables&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="task-4-run-full-suite-and-push">Task 4: Run full suite and push<a class="headerlink" href="#task-4-run-full-suite-and-push" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[ ] <strong>Step 1: Run full test suite</strong></li>
+</ul>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>/usr/local/bin/python3.13<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/<span class="w"> </span>-q
+</code></pre></div>
+Expected: All 195+ tests PASS</p>
+<ul>
+<li>[ ] <strong>Step 2: Push</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>develop
+</code></pre></div>
+<hr />
+<h2 id="self-review-checklist">Self-Review Checklist<a class="headerlink" href="#self-review-checklist" title="Permanent link">&para;</a></h2>
+<p><strong>1. Spec coverage:</strong>
+- [x] <code>build_form()</code> for Django Forms → Task 1
+- [x] <code>build_serializer()</code> for DRF → Task 2
+- [x] Field type mapping (str, int, bool, Decimal, date) → Tasks 1-2
+- [x] Choices support → Tasks 1-2
+- [x] Required, default, label, help_text → Tasks 1-2
+- [x] Empty schema → Tasks 1-2
+- [x] Graceful degradation without DRF → Task 2
+- [x] Integration with MetadatosCapturables → Task 3</p>
+<p><strong>2. Placeholder scan:</strong>
+- [x] No "TBD", "TODO", or "implement later"
+- [x] No vague requirements
+- [x] Every code step contains actual code</p>
+<p><strong>3. Type consistency:</strong>
+- [x] <code>MetaFormFactory.build_form()</code> signature consistent with spec
+- [x] <code>MetaFormFactory.build_serializer()</code> raises ImportError gracefully
+- [x] <code>_build_field_kwargs()</code> handles both Django and DRF consistently</p>
+<hr />
+<h2 id="execution-handoff">Execution Handoff<a class="headerlink" href="#execution-handoff" title="Permanent link">&para;</a></h2>
+<p><strong>Plan complete and saved to <code>docs/superpowers/plans/2026-05-14-form-serializer-factory.md</code>.</strong></p>
+<p>Two execution options:</p>
+<p><strong>1. Subagent-Driven (recommended)</strong> — I dispatch a fresh subagent per task, review between tasks, fast iteration.</p>
+<p><strong>2. Inline Execution</strong> — Execute tasks in this session using executing-plans, batch execution with checkpoints.</p>
+<p>Which approach?</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
