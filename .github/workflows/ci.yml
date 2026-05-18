@@ -75,4 +75,4 @@ jobs:
           TEST_DB_PASSWORD: postgres
           TEST_DB_HOST: localhost
           TEST_DB_PORT: 5432
-        run: python -m pytest tests/ -v
+        run: python -m pytest tests/ -v --create-db
