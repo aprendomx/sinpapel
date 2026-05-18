@@ -35,7 +35,7 @@ jobs:
       - name: Type check with pyright
         run: |
           pip install pyright
-          pyright sinpapel/
+          pyright
 
   test-postgres:
     name: Test (PostgreSQL) — Python 3.12 / Django 5.1

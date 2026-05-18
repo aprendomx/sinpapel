@@ -96,3 +96,18 @@ sinpapel = "."
 [tool.setuptools.package-data]
 sinpapel = ["py.typed"]
 "sinpapel.migrations" = ["*.py"]
+
+[tool.pyright]
+include = ["."]
+exclude = [
+    "tests",
+    "docs",
+    "site",
+    ".venv",
+    "__pycache__",
+    ".pytest_cache",
+]
+pythonVersion = "3.10"
+pythonPlatform = "Linux"
+venvPath = ".venv"
+venv = ".venv"
