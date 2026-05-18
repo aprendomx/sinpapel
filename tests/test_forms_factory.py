@@ -167,21 +167,13 @@ def test_build_form_default_is_initial_not_fallback():
     assert form.cleaned_data.get("nombre") == ""
 
 
-class _TestModel(MetadatosCapturables):
-    SCHEMA_METADATOS = [
-        CampoMetadato("rfc", str, requerido=True),
-        CampoMetadato("monto", Decimal, default=Decimal("0")),
-    ]
-
-    class Meta:
-        app_label = "tests"
-
-
 @pytest.mark.django_db
 def test_form_integration_with_metadatos_capturables():
     """Generated form writes correctly to MetadatosCapturables instance."""
-    obj = _TestModel()
-    MetaForm = MetaFormFactory.build_form(_TestModel.SCHEMA_METADATOS)
+    from tests.models import TestFormModel
+
+    obj = TestFormModel()
+    MetaForm = MetaFormFactory.build_form(TestFormModel.SCHEMA_METADATOS)
     form = MetaForm(data={"rfc": "ABCD010101ABC", "monto": "500000"})
     assert form.is_valid(), form.errors
 

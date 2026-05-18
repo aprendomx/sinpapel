@@ -9,7 +9,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
 from sinpapel import workflow_enabled
-from sinpapel.mixins import CampoMetadato, MetadatosCapturables, Trazable
+from sinpapel.mixins import CampoMetadato, Catalogo, MetadatosCapturables, Trazable
 from sinpapel.models import Estado, VersionFlujo
 
 
@@ -76,6 +76,53 @@ class TestProducto(models.Model):
 class TestProductoVersionFlujo(models.Model):
     producto = models.ForeignKey(TestProducto, on_delete=models.CASCADE)
     flujo = models.ForeignKey(VersionFlujo, on_delete=models.CASCADE)
+
+    class Meta:
+        app_label = "tests"
+
+
+class TestFormModel(MetadatosCapturables, models.Model):
+    """Modelo mínimo para probar MetaFormFactory con MetadatosCapturables."""
+
+    SCHEMA_METADATOS = [
+        CampoMetadato("rfc", str, requerido=True),
+        CampoMetadato("monto", Decimal, default=Decimal("0")),
+    ]
+
+    class Meta:
+        app_label = "tests"
+
+
+class TestTrazableModel(Trazable):
+    """Modelo mínimo para probar Trazable mixin."""
+    name = models.CharField(max_length=50)
+
+    class Meta:
+        app_label = "tests"
+
+
+class TestCatalogoModel(Catalogo):
+    """Modelo mínimo para probar Catalogo mixin."""
+    extra = models.CharField(max_length=50)
+
+    class Meta:
+        app_label = "tests"
+
+
+class TestEmptySchema(MetadatosCapturables):
+    """Modelo con schema vacío para probar validación."""
+    SCHEMA_METADATOS = []
+
+    class Meta:
+        app_label = "tests"
+
+
+class TestCapturable(MetadatosCapturables):
+    """Modelo con schema requerido para probar MetadatosCapturables."""
+    SCHEMA_METADATOS = [
+        CampoMetadato("rfc", str, requerido=True),
+        CampoMetadato("edad", int, default=0),
+    ]
 
     class Meta:
         app_label = "tests"

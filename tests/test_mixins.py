@@ -12,27 +12,14 @@ from django.db import models
 from sinpapel.mixins import CampoMetadato, Catalogo, MetadatosCapturables, MetadatosProxy, Trazable
 
 
-class _TestTrazableModel(Trazable):
-    name = models.CharField(max_length=50)
-
-    class Meta:
-        app_label = "tests"
-
-
-class _TestCatalogoModel(Catalogo):
-    extra = models.CharField(max_length=50)
-
-    class Meta:
-        app_label = "tests"
-
-
 @pytest.mark.django_db
 def test_trazable_fields_exist():
     """Trazable model instances have creado, actualizado, autor, modificador."""
     from django.contrib.auth.models import User
+    from tests.models import TestTrazableModel
 
     user = User.objects.create_user("traz_test", password="x")
-    obj = _TestTrazableModel.objects.create(name="a", autor=user, modificador=user)
+    obj = TestTrazableModel.objects.create(name="a", autor=user, modificador=user)
     assert obj.creado is not None
     assert obj.actualizado is not None
     assert obj.autor == user
@@ -42,7 +29,9 @@ def test_trazable_fields_exist():
 @pytest.mark.django_db
 def test_catalogo_fields_exist():
     """Catalogo inherits Trazable and adds nombre, activo, orden, etc."""
-    obj = _TestCatalogoModel.objects.create(nombre="cat", activo=True, orden=1, extra="x")
+    from tests.models import TestCatalogoModel
+
+    obj = TestCatalogoModel.objects.create(nombre="cat", activo=True, orden=1, extra="x")
     assert obj.nombre == "cat"
     assert obj.activo is True
     assert obj.orden == 1
@@ -229,31 +218,18 @@ def test_proxy_to_dict_incluir_defaults_true_with_none():
 
 def test_capturable_empty_schema_passes():
     """MetadatosCapturables with empty SCHEMA_METADATOS passes validation."""
+    from tests.models import TestEmptySchema
 
-    class _TestEmptySchema(MetadatosCapturables):
-        SCHEMA_METADATOS = []
-
-        class Meta:
-            app_label = "tests"
-
-    obj = _TestEmptySchema()
+    obj = TestEmptySchema()
     obj.clean()  # no raise
-
-
-class _TestCapturable(MetadatosCapturables):
-    SCHEMA_METADATOS = [
-        CampoMetadato("rfc", str, requerido=True),
-        CampoMetadato("edad", int, default=0),
-    ]
-
-    class Meta:
-        app_label = "tests"
 
 
 @pytest.mark.django_db
 def test_capturable_clean_valid():
     """clean() passes when required fields are present."""
-    obj = _TestCapturable()
+    from tests.models import TestCapturable
+
+    obj = TestCapturable()
     obj.datos_capturados = {"rfc": "ABCD010101ABC"}
     obj.clean()  # no raise
 
@@ -261,7 +237,9 @@ def test_capturable_clean_valid():
 @pytest.mark.django_db
 def test_capturable_clean_missing_required():
     """clean() raises ValidationError when required field missing."""
-    obj = _TestCapturable()
+    from tests.models import TestCapturable
+
+    obj = TestCapturable()
     with pytest.raises(ValidationError):
         obj.clean()
 
@@ -269,7 +247,9 @@ def test_capturable_clean_missing_required():
 @pytest.mark.django_db
 def test_capturable_meta_property():
     """instance.meta returns a MetadatosProxy."""
-    obj = _TestCapturable()
+    from tests.models import TestCapturable
+
+    obj = TestCapturable()
     assert obj.meta.rfc is None
     obj.meta.rfc = "XYZ"
     assert obj.datos_capturados == {"rfc": "XYZ"}
