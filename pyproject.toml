@@ -73,7 +73,6 @@ packages = [
     "sinpapel.management",
     "sinpapel.management.commands",
     "sinpapel.migrations",
-    "sinpapel.mixins",
     "sinpapel.models",
     "sinpapel.schemas",
     "sinpapel.services",
@@ -86,7 +85,6 @@ sinpapel = "."
 "sinpapel.management" = "management"
 "sinpapel.management.commands" = "management/commands"
 "sinpapel.migrations" = "migrations"
-"sinpapel.mixins" = "."
 "sinpapel.models" = "models"
 "sinpapel.schemas" = "schemas"
 "sinpapel.services" = "services"
