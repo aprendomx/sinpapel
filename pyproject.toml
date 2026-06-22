@@ -1,6 +1,6 @@
 [project]
 name = "sinpapel"
-version = "0.5.1"
+version = "0.5.2"
 description = "Versioned workflows, immutable audit, and pluggable e-signatures for Django."
 readme = "README.md"
 requires-python = ">=3.10"
