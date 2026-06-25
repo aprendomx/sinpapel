@@ -23,7 +23,12 @@ from typing import TYPE_CHECKING
 from django.core.exceptions import FieldDoesNotExist
 
 from sinpapel.exceptions import WorkflowConfigurationError
-from sinpapel.injection import available_transitions, can_transition_to, transition
+from sinpapel.injection import (
+    available_transitions,
+    can_transition_to,
+    preview_transition,
+    transition,
+)
 from sinpapel.registry import WorkflowConfig, WorkflowRegistry
 
 if TYPE_CHECKING:
@@ -109,6 +114,7 @@ def workflow_enabled(
         model_class.available_transitions = available_transitions  # type: ignore[attr-defined]
         model_class.can_transition_to = can_transition_to  # type: ignore[attr-defined]
         model_class.transition = transition  # type: ignore[attr-defined]
+        model_class.preview_transition = preview_transition  # type: ignore[attr-defined]
 
         return model_class
 
