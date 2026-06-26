@@ -85,31 +85,55 @@ class WorkflowEngine:
                 return False, "No tiene permisos para realizar esta acción"
         return True, None
 
-    def _validar_documentos(self, instance, estado_actual):
-        """Verifica requisitos documentales. Retorna lista de faltantes.
+    def evaluar_requisitos_documentales(self, instance, estado=None):
+        """Evalúa TODOS los requisitos documentales del estado (no solo faltantes).
 
-        Dos niveles, ambos sobre el estado actual:
+        Mecanismo público compartido: lo consumen `_validar_documentos` (engine)
+        y `sinpapel-drf` (GET /requisitos/), evitando duplicar la lógica.
 
-        1. Flag coarse `Estado.expediente_obligatorio`: requiere ≥1
-           ExpedienteAdjunto (vía la GenericRelation `expedientes`).
-        2. Reglas finas `RequisitoEstadoDocumento` (tipo_documento + porcentaje
-           mínimo), consultadas vía cache `get_requisitos_for` (invalidado por
-           signal). El "documento presente por tipo" sale de InstanciaDocumento
-           (liga el tipo vía documento.tipo_documento y la instancia vía la GFK
-           target); el porcentaje actual = max(InstanciaDocumento.porcentaje) de
-           ese tipo (0 si no hay ninguno). Requisitos con auto_carga=True NO
-           bloquean (documento generado por el sistema).
+        Args:
+            instance: instancia decorada con @workflow_enabled.
+            estado: Estado a evaluar. Si es None, usa el estado actual de la
+                instancia (config.state_field).
+
+        Returns:
+            list[dict] — un item por requisito, con su cumplimiento. Dos niveles:
+
+            Coarse (flag `Estado.expediente_obligatorio`):
+                {"nivel": "expediente", "satisfecho": bool, "mensaje": str}
+
+            Typed (`RequisitoEstadoDocumento`, tipo_documento + porcentaje):
+                {"nivel": "requisito_documento", "satisfecho": bool,
+                 "mensaje": str, "tipo_documento": str, "tipo_documento_id": int,
+                 "porcentaje_requerido": int, "porcentaje_actual": int,
+                 "auto_carga": bool}
+
+            El "documento presente por tipo" sale de InstanciaDocumento (liga el
+            tipo vía documento.tipo_documento y la instancia vía la GFK target);
+            porcentaje_actual = max(InstanciaDocumento.porcentaje) de ese tipo
+            (0 si no hay ninguno). auto_carga=True ⇒ satisfecho=True (lo genera
+            el sistema, no bloquea al usuario).
         """
-        faltantes = []
+        if estado is None:
+            config = self._get_config(instance)
+            estado = getattr(instance, config.state_field, None)
+
+        resultado: list[dict] = []
+        if estado is None:
+            return resultado
 
         # 1. Flag coarse: expediente_obligatorio
-        if estado_actual.expediente_obligatorio:
+        if estado.expediente_obligatorio:
             expedientes = getattr(instance, "expedientes", None)
-            if expedientes is not None and not expedientes.exists():
-                faltantes.append({
-                    "tipo": "expediente",
-                    "mensaje": f"Se requiere adjuntar al menos un documento antes de avanzar desde '{estado_actual.nombre}'.",
-                })
+            tiene = expedientes is not None and expedientes.exists()
+            resultado.append({
+                "nivel": "expediente",
+                "satisfecho": bool(tiene),
+                "mensaje": "" if tiene else (
+                    f"Se requiere adjuntar al menos un documento antes de "
+                    f"avanzar desde '{estado.nombre}'."
+                ),
+            })
 
         # 2. Reglas finas: RequisitoEstadoDocumento por tipo/porcentaje
         from django.contrib.contenttypes.models import ContentType
@@ -117,13 +141,10 @@ class WorkflowEngine:
         from sinpapel.cache import get_requisitos_for
         from sinpapel.models import InstanciaDocumento
 
-        requisitos = get_requisitos_for(estado_actual.id)
+        requisitos = get_requisitos_for(estado.id)
         if requisitos:
             content_type = ContentType.objects.get_for_model(type(instance))
             for requisito in requisitos:
-                if requisito.auto_carga:
-                    # Documento generado por el sistema: no bloquea al usuario.
-                    continue
                 porcentaje_actual = max(
                     InstanciaDocumento.objects.filter(
                         target_content_type=content_type,
@@ -132,20 +153,49 @@ class WorkflowEngine:
                     ).values_list("porcentaje", flat=True),
                     default=0,
                 )
-                if porcentaje_actual < requisito.porcentaje:
-                    nombre_tipo = requisito.tipo_documento.nombre
-                    faltantes.append({
-                        "tipo": "requisito_documento",
-                        "tipo_documento": nombre_tipo,
-                        "porcentaje_requerido": requisito.porcentaje,
-                        "porcentaje_actual": porcentaje_actual,
-                        "mensaje": (
-                            f"Falta el documento '{nombre_tipo}' "
-                            f"(requerido {requisito.porcentaje}%, "
-                            f"actual {porcentaje_actual}%)."
-                        ),
-                    })
+                satisfecho = (
+                    requisito.auto_carga
+                    or porcentaje_actual >= requisito.porcentaje
+                )
+                nombre_tipo = requisito.tipo_documento.nombre
+                resultado.append({
+                    "nivel": "requisito_documento",
+                    "satisfecho": satisfecho,
+                    "mensaje": "" if satisfecho else (
+                        f"Falta el documento '{nombre_tipo}' "
+                        f"(requerido {requisito.porcentaje}%, "
+                        f"actual {porcentaje_actual}%)."
+                    ),
+                    "tipo_documento": nombre_tipo,
+                    "tipo_documento_id": requisito.tipo_documento_id,
+                    "porcentaje_requerido": requisito.porcentaje,
+                    "porcentaje_actual": porcentaje_actual,
+                    "auto_carga": requisito.auto_carga,
+                })
 
+        return resultado
+
+    def _validar_documentos(self, instance, estado_actual):
+        """Retorna la lista de requisitos documentales NO satisfechos (faltantes).
+
+        Wrapper sobre `evaluar_requisitos_documentales` — una sola fuente de
+        verdad. Proyecta a la forma histórica de `documentos_faltantes` (key
+        `tipo`, etc.) que consume `preview_transition()` y `sinpapel-drf`.
+        """
+        faltantes = []
+        for r in self.evaluar_requisitos_documentales(instance, estado_actual):
+            if r["satisfecho"]:
+                continue
+            if r["nivel"] == "expediente":
+                faltantes.append({"tipo": "expediente", "mensaje": r["mensaje"]})
+            else:
+                faltantes.append({
+                    "tipo": "requisito_documento",
+                    "tipo_documento": r["tipo_documento"],
+                    "porcentaje_requerido": r["porcentaje_requerido"],
+                    "porcentaje_actual": r["porcentaje_actual"],
+                    "mensaje": r["mensaje"],
+                })
         return faltantes
 
     def _validar_predicados(self, config_transicion, instance, user):
