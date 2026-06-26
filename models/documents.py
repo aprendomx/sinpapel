@@ -73,6 +73,17 @@ class InstanciaDocumento(Trazable):
         upload_to="documentos_generados/", blank=True, null=True
     )
 
+    archivo = models.FileField(
+        upload_to="instancias_documento/",
+        blank=True,
+        null=True,
+        verbose_name=_("Archivo subido"),
+        help_text=_(
+            "Archivo subido por el usuario para satisfacer un requisito documental "
+            "(distinto de archivo_generado, que produce el sistema)."
+        ),
+    )
+
     actor_content_type = models.ForeignKey(
         ContentType,
         on_delete=models.SET_NULL,
