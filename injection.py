@@ -7,6 +7,7 @@ Métodos:
     available_transitions(self, user) -> list[Estado]
     can_transition_to(self, target_state_name, user) -> tuple[bool, str | None]
     transition(self, target_state_name, user, **kwargs)
+    preview_transition(self, target_state_name, user) -> dict
 
 Estrategia S12.3: lectura (`available_transitions`, `can_transition_to`) consulta
 DB directamente; mutación (`transition`) delega a WorkflowService para preservar
@@ -91,3 +92,22 @@ def transition(self, target_state_name: str, user: "User", **kwargs: Any) -> Any
         comentarios=comentarios,
         **kwargs,
     )
+
+
+def preview_transition(self, target_state_name: str, user: "User") -> dict:
+    """Simula la transición a target_state_name sin mutar ni persistir nada.
+
+    Delega a sinpapel.services.workflow_engine.WorkflowEngine.
+
+    Args:
+        target_state_name: nombre del Estado destino
+        user: usuario que consulta el preview
+
+    Returns:
+        dict con keys: permitido, razones_bloqueo, side_effects,
+        documentos_faltantes, predicados_fallidos, aprobadores_requeridos,
+        historial_reciente
+    """
+    from sinpapel.services.workflow_engine import WorkflowEngine
+
+    return WorkflowEngine().preview_transition(self, target_state_name, user)

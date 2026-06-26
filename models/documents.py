@@ -5,6 +5,7 @@ extraídos desde creditos en S12.2/T2 preservando tablas SQL existentes.
 """
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.db.models import TextField
@@ -86,6 +87,17 @@ class InstanciaDocumento(Trazable):
     actor = GenericForeignKey("actor_content_type", "actor_object_id")
 
     metadatos = models.JSONField(blank=True, null=True)
+
+    porcentaje: models.IntegerField = models.IntegerField(
+        default=100,
+        verbose_name=_("Porcentaje de completitud"),
+        help_text=_(
+            "Porcentaje de completitud del documento (0-100). Se compara contra "
+            "RequisitoEstadoDocumento.porcentaje al evaluar una transición. "
+            "Default 100 (documento completo) para backward-compatibility."
+        ),
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
 
     history = HistoricalRecords()
 

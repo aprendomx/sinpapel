@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-06-25
+
+### Added
+- **Enforce de requisitos documentales finos en las transiciones.** El motor
+  (`WorkflowEngine._validar_documentos`) ahora evalúa las reglas de
+  `RequisitoEstadoDocumento` (tipo de documento + porcentaje mínimo) sobre el
+  estado actual, además del flag coarse `Estado.expediente_obligatorio`. Un
+  requisito no satisfecho bloquea `preview_transition()`
+  (en `documentos_faltantes` / `razones_bloqueo`), `puede_cambiar_estado()` y
+  `cambiar_estado()` (→ `PermissionError`). Las reglas se leen vía el cache
+  `get_requisitos_for()` (invalidado por signal). Cada faltante se reporta como
+  `{"tipo": "requisito_documento", "tipo_documento", "porcentaje_requerido",
+  "porcentaje_actual", "mensaje"}`. La fuente de "documento presente por tipo"
+  es `InstanciaDocumento` (liga el tipo vía `documento.tipo_documento` y la
+  instancia vía la GFK `target`). Requisitos con `auto_carga=True` (documento
+  generado por el sistema) **no** bloquean.
+- Campo `InstanciaDocumento.porcentaje` (`IntegerField`, `0–100`, `default=100`)
+  como origen del porcentaje real de completitud por documento. Migración
+  reversible `0004_historicalinstanciadocumento_porcentaje_and_more`. El default
+  100 hace que las filas existentes cuenten como documento completo
+  (backward-compatible).
+- `@workflow_enabled` ahora inyecta `instance.preview_transition(target, user)`,
+  que delega a `WorkflowEngine().preview_transition(...)` (antes faltaba, aunque
+  el motor sí lo exponía). **Nota para el consumidor `sinpapel-drf`:** el
+  workaround que llama al motor directamente en el endpoint `preview-transition`
+  ya no es necesario; puede volver opcionalmente a `instance.preview_transition(...)`.
+
+### Changed
+- **Comportamiento potencialmente breaking:** flujos que ya tenían
+  `RequisitoEstadoDocumento` configurados (pero nunca se evaluaban) ahora los
+  enforce. Flujos sin requisitos documentales se comportan idénticamente a 0.5.x;
+  el flag `expediente_obligatorio` no cambia. El JSON v0.2 de export/import no se
+  modifica (sigue serializando `RequisitoEstadoDocumento`, no `InstanciaDocumento`).
+
 ## [0.5.1] — 2026-05-17
 
 ### Fixed
