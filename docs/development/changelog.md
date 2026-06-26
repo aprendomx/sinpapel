@@ -28,6 +28,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reversible `0004_historicalinstanciadocumento_porcentaje_and_more`. El default
   100 hace que las filas existentes cuenten como documento completo
   (backward-compatible).
+- Campo `InstanciaDocumento.archivo` (`FileField`, `upload_to="instancias_documento/"`,
+  `blank/null`) para el archivo que sube el usuario, distinto de `archivo_generado`
+  (que produce el sistema). Migración reversible
+  `0005_historicalinstanciadocumento_archivo_and_more`. Lo consume `sinpapel-drf`
+  en el endpoint de carga `POST /<slug>/<pk>/documentos/`.
+- Método público `WorkflowEngine.evaluar_requisitos_documentales(instance, estado=None)`
+  que devuelve **todos** los requisitos documentales del estado (no solo los
+  faltantes) con su cumplimiento por nivel (`expediente` / `requisito_documento`).
+  `_validar_documentos` pasa a ser un wrapper sobre él (una sola fuente de verdad,
+  preservando exacta la forma de `documentos_faltantes`). Lo consume `sinpapel-drf`
+  en `GET /<slug>/<pk>/requisitos/`, evitando duplicar la lógica del motor.
 - `@workflow_enabled` ahora inyecta `instance.preview_transition(target, user)`,
   que delega a `WorkflowEngine().preview_transition(...)` (antes faltaba, aunque
   el motor sí lo exponía). **Nota para el consumidor `sinpapel-drf`:** el
