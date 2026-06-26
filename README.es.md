@@ -1,12 +1,12 @@
 # sinpapel
 
-> **v0.5.0** — Máquinas de estado versionadas, auditoría inmutable y firmas electrónicas plugables para Django.
+> **v0.6.0** — Máquinas de estado versionadas, auditoría inmutable y firmas electrónicas plugables para Django.
 
 [![PyPI](https://img.shields.io/pypi/v/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Python](https://img.shields.io/pypi/pyversions/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Django](https://img.shields.io/badge/django-5.0%20%7C%205.1-blue)](https://www.djangoproject.com/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-272%20passing-brightgreen)](#)
+[![Tests](https://img.shields.io/badge/tests-268%20passing-brightgreen)](#)
 
 🇺🇸 [Read in English](README.md)
 
@@ -18,13 +18,14 @@ Construir procesos sin papel en Django suele significar pegar una librería de m
 
 ## Características
 
-- **Motor de Workflow** — máquinas de estado versionadas vía `VersionFlujo` + `ConfiguracionTransicion`, con grupos de permisos, gates de documentos obligatorios y un servicio `WorkflowEngine`.
+- **Motor de Workflow** — máquinas de estado versionadas vía `VersionFlujo` + `ConfiguracionTransicion`, con grupos de permisos, gates de documentos y un servicio `WorkflowEngine`. Métodos de conveniencia (`available_transitions`, `can_transition_to`, `transition`, `preview_transition`) se inyectan en cada modelo `@workflow_enabled`.
+- **Requisitos Documentales** — se enforce tanto el flag coarse por estado (`Estado.expediente_obligatorio`) como las reglas finas por tipo (`RequisitoEstadoDocumento`: tipo de documento + porcentaje mínimo de completitud) en cada transición; los documentos generados por el sistema (`auto_carga=True`) no bloquean.
 - **Predicados de Transición** — paths Python, JSON Logic restringido y predicados con backend ORM de Django, ordenados por transición.
 - **Captura Estructurada de Metadatos** — mixin `MetadatosCapturables` con campos declarados por schema vía `CampoMetadato`, validados al guardar.
 - **Formularios y Serializers Dinámicos** — `MetaFormFactory` construye Django Forms desde el schema de metadatos; modo DRF Serializer también soportado.
-- **Backends de Firma Plugables** — interfaz strategy más backends de referencia: `SimuladoBackend`, `RSAFileBackend` y `FielBackend` (RSA-SHA256 + X.509).
+- **Backends de Firma Plugables** — interfaz strategy `SignatureBackend` más backends de referencia: `FakeBackend` (tests), `ManualBackend` (default) y `FielBackend` (FIEL/SAT, RSA-SHA256 + X.509).
 - **Pista de Auditoría Inmutable** — mixin `Trazable`, historial `SeguimientoWorkflow`, `RegistroFirma`, más integración con `django-simple-history`.
-- **Timers SLA y Preview de Transiciones** — `SLAEngine` con acciones notificar / escalar / rechazar / alertar; `WorkflowEngine.preview_transition()` retorna un reporte de impacto sin mutar el estado.
+- **Timers SLA y Preview de Transiciones** — `SLAEngine` con acciones notificar / escalar / rechazar / alertar; `preview_transition()` retorna un reporte de impacto (razones de bloqueo, documentos faltantes, predicados fallidos) sin mutar el estado — disponible tanto como `WorkflowEngine.preview_transition()` como método en la instancia.
 - **Signals de Dominio Personalizados** — `predicate_failed`, `sla_breached`, `sla_action_executed`, `transition_preview_requested` para observabilidad y cableado de side-effects.
 
 ## Instalación
@@ -57,19 +58,21 @@ python manage.py migrate sinpapel
 Declarar un modelo workflow-enabled:
 
 ```python
+from decimal import Decimal
+
 from django.db import models
 from sinpapel import workflow_enabled
 from sinpapel.mixins import CampoMetadato, MetadatosCapturables, Trazable
 
 
-@workflow_enabled
+@workflow_enabled(state_field="estado", workflow_key="solicitud")
 class Solicitud(MetadatosCapturables, Trazable):
     folio = models.CharField(max_length=20, unique=True)
     estado = models.ForeignKey("sinpapel.Estado", on_delete=models.PROTECT)
 
     SCHEMA_METADATOS = [
-        CampoMetadato("monto", tipo="decimal", requerido=True),
-        CampoMetadato("rfc", tipo="str", requerido=True),
+        CampoMetadato("monto", Decimal, requerido=True),
+        CampoMetadato("rfc", str, requerido=True),
     ]
 
     def resolve_workflow_version(self):
@@ -77,21 +80,26 @@ class Solicitud(MetadatosCapturables, Trazable):
         return VersionFlujo.objects.get(nombre="solicitudes", activo=True)
 ```
 
-Ejecutar una transición de estado a través del motor:
+Ejecutar una transición de estado con los métodos inyectados en la instancia:
 
 ```python
-from sinpapel.services.workflow_engine import WorkflowEngine
-
-engine = WorkflowEngine()
-
-# Preview antes de commitear (no muta, retorna reporte de impacto)
-preview = engine.preview_transition(solicitud, "APROBADA", user=request.user)
+# Preview antes de commitear (no muta, retorna un reporte de impacto)
+preview = solicitud.preview_transition("APROBADA", user=request.user)
 if not preview["permitido"]:
+    # razones_bloqueo agrega fallos de permisos, predicados y documentos;
+    # documentos_faltantes lista los requisitos por tipo no satisfechos, p.ej.
+    # {"tipo": "requisito_documento", "tipo_documento": "INE",
+    #  "porcentaje_requerido": 100, "porcentaje_actual": 0, "mensaje": "..."}
     raise ValueError(preview["razones_bloqueo"][0]["mensaje"])
 
-# Ejecutar la transición (crea row de auditoría + dispara signals)
-engine.cambiar_estado(solicitud, "APROBADA", user=request.user, comentarios="Cumple requisitos")
+# Ejecutar la transición (valida, crea row de auditoría, dispara signals).
+# Lanza PermissionError si la validación (grupos, predicados, documentos) falla.
+solicitud.transition("APROBADA", user=request.user, comentarios="Cumple requisitos")
 ```
+
+La misma lógica también es accesible directamente vía el servicio `WorkflowEngine`
+(`WorkflowEngine().preview_transition(solicitud, "APROBADA", user)` /
+`.cambiar_estado(...)`) cuando la necesitas fuera de una instancia del modelo.
 
 Suscribirse a un signal personalizado:
 
@@ -126,10 +134,10 @@ Settings opcionales de Django:
 
 ```python
 # settings.py
-SINPAPEL_DEFAULT_SIGNATURE_BACKEND = "rsa_file"
-SINPAPEL_RSA_PRIVATE_KEY_PATH = "/run/secrets/sinpapel.key"
-SINPAPEL_RSA_PUBLIC_KEY_PATH = "/run/secrets/sinpapel.pub"
-SINPAPEL_EMIT_PREVIEW_EVENTS = False  # poner True para disparar el signal transition_preview_requested
+# Dotted path al backend de firma (default: ManualBackend).
+SINPAPEL_SIGNATURE_BACKEND = "sinpapel.signing.backends.fiel.FielBackend"
+SINPAPEL_ALLOW_SERVER_SIGNING = False  # habilita firma FIEL server-side (revisión legal)
+SINPAPEL_EMIT_PREVIEW_EVENTS = False   # poner True para disparar el signal transition_preview_requested
 ```
 
 Ver [USAGE §Settings](docs/usage/es.md#4-settings) para la referencia completa.
@@ -152,7 +160,7 @@ CI corre el suite de tests contra la matriz completa.
 
 ## Versionado y Estabilidad
 
-sinpapel sigue [Semantic Versioning](https://semver.org/). La release actual es **v0.5.0 (Beta)**. Las APIs públicas (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, campos de modelos, schema JSON v0.2) son estables en la serie 0.x; los breaking changes incrementarán el minor y serán marcados en `docs/development/changelog.md` hasta 1.0.0.
+sinpapel sigue [Semantic Versioning](https://semver.org/). La release actual es **v0.6.0 (Beta)**. Las APIs públicas (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, campos de modelos, schema JSON v0.2) son estables en la serie 0.x; los breaking changes incrementarán el minor y serán marcados en `docs/development/changelog.md` hasta 1.0.0. **Al actualizar desde 0.5.x:** las transiciones ahora enforzan las reglas `RequisitoEstadoDocumento` que antes se configuraban pero nunca se evaluaban — revisa tus flujos existentes antes de actualizar.
 
 ## Contribuir
 
