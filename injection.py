@@ -9,9 +9,10 @@ Métodos:
     transition(self, target_state_name, user, **kwargs)
     preview_transition(self, target_state_name, user) -> dict
 
-Estrategia S12.3: lectura (`available_transitions`, `can_transition_to`) consulta
-DB directamente; mutación (`transition`) delega a WorkflowService para preservar
-compatibilidad con tests creditos. S12.4 reemplaza con WorkflowEngine extraído.
+Estrategia: `available_transitions` consulta `ConfiguracionTransicion` en DB
+directamente; `can_transition_to`, `transition` y `preview_transition` delegan en
+`sinpapel.services.workflow_engine.WorkflowEngine` (el único motor; `WorkflowService`
+no existe).
 """
 from __future__ import annotations
 
