@@ -1,0 +1,2661 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Versioned workflows, immutable audit, and pluggable e-signatures for Django">
+      
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../es/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>English - sinpapel</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#sinpapel-usage-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="sinpapel" class="md-header__button md-logo" aria-label="sinpapel" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sinpapel
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              English
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Usage
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../development/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="sinpapel" class="md-nav__button md-logo" aria-label="sinpapel" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    sinpapel
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage Guides
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    English
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    English
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-is-sinpapel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What is sinpapel?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Installation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Settings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-migrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Migrations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-workflow-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Workflow Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-state-transitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. State Transitions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-transition-predicates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Transition Predicates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-structured-metadata-capture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Structured Metadata Capture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-formserializer-factory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Form/Serializer Factory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Form/Serializer Factory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#django-forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Django Forms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drf-serializers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DRF Serializers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field Mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-signing-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Signing Backends
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-audit-trail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Audit Trail
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-state-timers-sla" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. State Timers / SLA
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-preview-transition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Preview Transition
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-side-effects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Side Effects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="17. Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-sinpapels-own-test-suite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running sinpapel's own test suite
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-with-fakebackend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing with FakeBackend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-with-real-rsa-self-signed-certificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing with real RSA + self-signed certificate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-history_user-population" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing history_user population
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="18. API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#workflow_enabledstate_field-workflow_key-expose_endpointsfalse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @workflow_enabled(state_field, workflow_key, expose_endpoints=False)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflowengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowEngine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#condiciontransicion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CondicionTransicion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#predicateengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PredicateEngine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#slaconfiguracion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SLAConfiguracion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#slaengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SLAEngine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metaformfactory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MetaFormFactory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metadatoscapturables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MetadatosCapturables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#campometadato" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CampoMetadato
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metadatosproxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MetadatosProxy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-contributing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. Contributing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-license-versioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. License &amp; Versioning
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../es/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Español
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing to sinpapel
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-is-sinpapel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What is sinpapel?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Installation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Settings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-migrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Migrations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-workflow-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Workflow Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-state-transitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. State Transitions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-transition-predicates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Transition Predicates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-structured-metadata-capture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Structured Metadata Capture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-formserializer-factory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Form/Serializer Factory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Form/Serializer Factory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#django-forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Django Forms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#drf-serializers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DRF Serializers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field Mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-signing-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Signing Backends
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-audit-trail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Audit Trail
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-state-timers-sla" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. State Timers / SLA
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-preview-transition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Preview Transition
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-side-effects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Side Effects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="17. Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-sinpapels-own-test-suite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running sinpapel's own test suite
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-with-fakebackend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing with FakeBackend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-with-real-rsa-self-signed-certificate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing with real RSA + self-signed certificate
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing-history_user-population" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing history_user population
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. API Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="18. API Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#workflow_enabledstate_field-workflow_key-expose_endpointsfalse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @workflow_enabled(state_field, workflow_key, expose_endpoints=False)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflowengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WorkflowEngine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#condiciontransicion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CondicionTransicion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#predicateengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PredicateEngine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#slaconfiguracion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SLAConfiguracion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#slaengine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SLAEngine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metaformfactory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MetaFormFactory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metadatoscapturables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MetadatosCapturables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#campometadato" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CampoMetadato
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metadatosproxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MetadatosProxy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-contributing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. Contributing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-license-versioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. License &amp; Versioning
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="sinpapel-usage-guide">sinpapel — Usage Guide<a class="headerlink" href="#sinpapel-usage-guide" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>Comprehensive usage guide for sinpapel. For the high-level overview, see the <a href="/">README</a>. Spanish version: <a href="../es/">es.md</a>.</p>
+</blockquote>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#1-what-is-sinpapel">What is sinpapel?</a></li>
+<li><a href="#2-features">Features</a></li>
+<li><a href="#3-installation">Installation</a></li>
+<li><a href="#4-settings">Settings</a></li>
+<li><a href="#5-migrations">Migrations</a></li>
+<li><a href="#6-quick-start">Quick Start</a></li>
+<li><a href="#7-workflow-configuration">Workflow Configuration</a></li>
+<li><a href="#8-state-transitions">State Transitions</a></li>
+<li><a href="#9-transition-predicates">Transition Predicates</a></li>
+<li><a href="#10-structured-metadata-capture">Structured Metadata Capture</a></li>
+<li><a href="#11-formserializer-factory">Form/Serializer Factory</a></li>
+<li><a href="#12-signing-backends">Signing Backends</a></li>
+<li><a href="#13-audit-trail">Audit Trail</a></li>
+<li><a href="#14-state-timers--sla">State Timers / SLA</a></li>
+<li><a href="#15-preview-transition">Preview Transition</a></li>
+<li><a href="#16-side-effects">Side Effects</a></li>
+<li><a href="#17-testing">Testing</a></li>
+<li><a href="#18-api-reference">API Reference</a></li>
+<li><a href="#19-contributing">Contributing</a></li>
+<li><a href="#20-license--versioning">License &amp; Versioning</a></li>
+</ol>
+<blockquote>
+<p><strong>Navigation:</strong> <a href="/">README (overview)</a> · <a href="../../development/changelog/">CHANGELOG</a> · <a href="../../development/contributing/">CONTRIBUTING</a> · <a href="../es/">Spanish version</a></p>
+</blockquote>
+<hr />
+<h2 id="1-what-is-sinpapel">1. What is sinpapel?<a class="headerlink" href="#1-what-is-sinpapel" title="Permanent link">&para;</a></h2>
+<p><code>sinpapel</code> is a Django package that provides four reusable capabilities for transaction-processing systems:</p>
+<ul>
+<li><strong>Workflow Engine</strong>: Versioned state machine with transitions configured via Django admin or data migrations — no hardcoded state logic. The <code>@workflow_enabled</code> decorator marks your domain model (Loan Application, Permit, Ticket, etc.) as workflow-capable. The engine queries <code>ConfiguracionTransicion</code> from the database at runtime.</li>
+<li><strong>Audit Trail</strong>: Immutable history of every change on key models via <a href="https://django-simple-history.readthedocs.io/">django-simple-history</a>, with <code>history_user</code> populated by middleware during real requests.</li>
+<li><strong>Digital Signatures</strong>: Port + Adapter pattern with three shipped backends:</li>
+<li><code>FielBackend</code> — Mexico SAT FIEL/RSA-SHA256 + X.509</li>
+<li><code>ManualBackend</code> — Universal scanned-image + witness + timestamp (no cryptography)</li>
+<li><code>FakeBackend</code> — Deterministic for tests/CI</li>
+<li><strong>Structured Metadata Capture</strong>: <code>MetadatosCapturables</code> mixin with schema-declared fields, type-safe proxy access (<code>instance.meta.field</code>), automatic validation, and JSON serialization.</li>
+</ul>
+<p>Transitions, document requirements, audit, signatures, and metadata are <strong>data, not code</strong>. Your application can mutate business flows without redeployment.</p>
+<blockquote>
+<p><strong>Tip:</strong> An optional visual workflow designer can round-trip JSON via the <code>sinpapel_export_flujo</code> / <code>sinpapel_import_flujo</code> management commands.</p>
+</blockquote>
+<hr />
+<h2 id="2-features">2. Features<a class="headerlink" href="#2-features" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@workflow_enabled</code> decorator</td>
+<td>Injects <code>available_transitions()</code>, <code>can_transition_to()</code>, <code>transition()</code> into your model</td>
+</tr>
+<tr>
+<td><code>VersionFlujo</code></td>
+<td>Versioned workflow definitions; active/inactive flags for A/B rollout</td>
+</tr>
+<tr>
+<td><code>ConfiguracionTransicion</code></td>
+<td>Directed edges between states with group-based permissions</td>
+</tr>
+<tr>
+<td><code>SeguimientoWorkflow</code></td>
+<td>Immutable audit log of every transition with timestamp, IP, comments</td>
+</tr>
+<tr>
+<td><code>MetadatosCapturables</code></td>
+<td>Schema-based metadata capture with type validation and proxy access</td>
+</tr>
+<tr>
+<td><code>MetaFormFactory</code></td>
+<td>Dynamic Django Form / DRF Serializer generation from <code>SCHEMA_METADATOS</code></td>
+</tr>
+<tr>
+<td><code>CondicionTransicion</code></td>
+<td>Configurable transition predicates with pluggable backends (Python, JSON Logic, ORM)</td>
+</tr>
+<tr>
+<td><code>PredicateEngine</code></td>
+<td>Extensible engine for evaluating business rules before state transitions</td>
+</tr>
+<tr>
+<td><code>SLAConfiguracion</code></td>
+<td>Per-state time limits with configurable actions (notify, escalate, reject, flag)</td>
+</tr>
+<tr>
+<td><code>SLAEngine</code></td>
+<td>Evaluates active SLAs and dispatches actions for overdue instances</td>
+</tr>
+<tr>
+<td><code>preview_transition()</code></td>
+<td>Simulates a transition without executing it, returning a detailed impact report</td>
+</tr>
+<tr>
+<td><code>Trazable</code> / <code>Catalogo</code></td>
+<td>Reusable mixins for created/updated tracking and catalog models</td>
+</tr>
+<tr>
+<td><code>RegistroFirma</code></td>
+<td>Cryptographic signature records with backend-agnostic verification</td>
+</tr>
+<tr>
+<td><code>ExpedienteAdjunto</code></td>
+<td>Generic file attachments with content-type linking</td>
+</tr>
+<tr>
+<td><code>django-simple-history</code> integration</td>
+<td>Automatic historical tables for 5+ models</td>
+</tr>
+<tr>
+<td>Side effects</td>
+<td>Decorator-based handlers executed atomically within transitions</td>
+</tr>
+<tr>
+<td>i18n ready</td>
+<td>All model metadata wrapped in <code>gettext_lazy</code></td>
+</tr>
+<tr>
+<td>Type hints</td>
+<td><code>py.typed</code> marker included for PEP 561 compliance</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-installation">3. Installation<a class="headerlink" href="#3-installation" title="Permanent link">&para;</a></h2>
+<p><code>sinpapel</code> is available on PyPI:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>sinpapel
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Or with a fixed version:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;sinpapel==0.5.0&quot;</span>
+</code></pre></div>
+<p><strong>Requirements:</strong>
+- Python <code>&gt;=3.10</code>
+- Django <code>&gt;=5.0</code></p>
+<p>Post-install verification:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span><span class="w"> </span><span class="nn">sinpapel</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="o">&gt;&gt;&gt;</span> <span class="n">sinpapel</span><span class="o">.</span><span class="n">__version__</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="s1">&#39;0.5.0&#39;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel</span><span class="w"> </span><span class="kn">import</span> <span class="n">workflow_enabled</span><span class="p">,</span> <span class="n">WorkflowRegistry</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="o">&gt;&gt;&gt;</span> <span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.signing.backends.fiel</span><span class="w"> </span><span class="kn">import</span> <span class="n">FielBackend</span>
+</code></pre></div>
+<hr />
+<h2 id="4-settings">4. Settings<a class="headerlink" href="#4-settings" title="Permanent link">&para;</a></h2>
+<p>Add <code>sinpapel</code> (and dependencies) to <code>INSTALLED_APPS</code> <strong>before your domain app</strong>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># settings.py</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">INSTALLED_APPS</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="c1"># ... django.contrib.* ...</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="s2">&quot;simple_history&quot;</span><span class="p">,</span>   <span class="c1"># required by HistoricalRecords</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="s2">&quot;sinpapel&quot;</span><span class="p">,</span>         <span class="c1"># before your domain app for string FK resolution</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="s2">&quot;your_app&quot;</span><span class="p">,</span>         <span class="c1"># e.g. &quot;my_app&quot;, &quot;requests&quot;</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">]</span>
+</code></pre></div>
+<p>Enable the audit user middleware (after <code>AuthenticationMiddleware</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">MIDDLEWARE</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="c1"># ...</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="s2">&quot;django.contrib.auth.middleware.AuthenticationMiddleware&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="s2">&quot;simple_history.middleware.HistoryRequestMiddleware&quot;</span><span class="p">,</span>  <span class="c1"># populates history_user</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="c1"># ...</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="p">]</span>
+</code></pre></div>
+<p>Configure the signing backend (overridable via environment variable):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">SINPAPEL_SIGNATURE_BACKEND</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="s2">&quot;SINPAPEL_SIGNATURE_BACKEND&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="s2">&quot;sinpapel.signing.backends.fiel.FielBackend&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">)</span>
+</code></pre></div>
+<blockquote>
+<p><strong>CI tip:</strong> Use <code>SINPAPEL_SIGNATURE_BACKEND=sinpapel.signing.backends.fake.FakeBackend</code> in test pipelines to avoid generating real keypairs.</p>
+</blockquote>
+<hr />
+<h2 id="5-migrations">5. Migrations<a class="headerlink" href="#5-migrations" title="Permanent link">&para;</a></h2>
+<p>Run sinpapel migrations to create all workflow, document, signature, and audit tables:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>manage.py<span class="w"> </span>migrate<span class="w"> </span>sinpapel
+</code></pre></div>
+<p>Shipped migrations:</p>
+<ul>
+<li><code>0001_initial</code> — Creates all models: <code>Etapa</code>, <code>Estado</code>, <code>VersionFlujo</code>, <code>ConfiguracionTransicion</code>, <code>SeguimientoWorkflow</code>, <code>RequisitoEstadoDocumento</code>, <code>TipoDocumento</code>, <code>Documento</code>, <code>InstanciaDocumento</code>, <code>RazonRechazoDocumento</code>, <code>ExpedienteAdjunto</code>, <code>RegistroFirma</code>, plus <code>historical_*</code> tables.</li>
+</ul>
+<blockquote>
+<p><strong>Breaking change in v0.2.0:</strong> Migration history was squashed into a single <code>0001_initial</code>. Existing deployments must <code>migrate --fake</code> or recreate the database.</p>
+</blockquote>
+<hr />
+<h2 id="6-quick-start">6. Quick Start<a class="headerlink" href="#6-quick-start" title="Permanent link">&para;</a></h2>
+<p>Apply <code>@workflow_enabled</code> to the model that moves between states:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># your_app/models.py</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel</span><span class="w"> </span><span class="kn">import</span> <span class="n">workflow_enabled</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetadatosCapturables</span><span class="p">,</span> <span class="n">Trazable</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="nd">@workflow_enabled</span><span class="p">(</span><span class="n">state_field</span><span class="o">=</span><span class="s2">&quot;estado&quot;</span><span class="p">,</span> <span class="n">workflow_key</span><span class="o">=</span><span class="s2">&quot;solicitud&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="k">class</span><span class="w"> </span><span class="nc">Solicitud</span><span class="p">(</span><span class="n">MetadatosCapturables</span><span class="p">,</span> <span class="n">Trazable</span><span class="p">):</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="n">SCHEMA_METADATOS</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;rfc&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">requerido</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">etiqueta</span><span class="o">=</span><span class="s2">&quot;RFC&quot;</span><span class="p">),</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;monto_solicitado&quot;</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)),</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;tipo_credito&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;FOVISSSTE&quot;</span><span class="p">,</span> <span class="s2">&quot;INFONAVIT&quot;</span><span class="p">],</span> <span class="n">requerido</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>    <span class="p">]</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>    <span class="n">folio</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>    <span class="n">estado</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;sinpapel.Estado&quot;</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>    <span class="n">monto</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DecimalField</span><span class="p">(</span><span class="n">max_digits</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">decimal_places</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>    <span class="n">solicitante</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;auth.User&quot;</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">)</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">resolve_workflow_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Polymorphic hook to resolve the active VersionFlujo for this instance.</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a><span class="sd">        The engine calls this method when validating a transition.</span>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="sd">        Return a VersionFlujo (or None for global fallback).</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">VersionFlujo</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a>        <span class="k">return</span> <span class="n">VersionFlujo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">activo</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nombre</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tipo_tramite</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+</code></pre></div>
+<p>The decorator injects three methods:</p>
+<ul>
+<li><code>solicitud.available_transitions(user)</code> → list of permitted <code>Estado</code> objects for this user in the current state.</li>
+<li><code>solicitud.can_transition_to(target_state_name, user)</code> → <code>(bool, str | None)</code> tuple.</li>
+<li><code>solicitud.transition(target_state_name, user, **kwargs)</code> → executes transition + audit + side effects.</li>
+</ul>
+<p><code>state_field</code> must be a ForeignKey to <code>sinpapel.Estado</code>. <code>workflow_key</code> identifies the flow in the registry.</p>
+<hr />
+<h2 id="7-workflow-configuration">7. Workflow Configuration<a class="headerlink" href="#7-workflow-configuration" title="Permanent link">&para;</a></h2>
+<p>Create <code>Etapa</code>, <code>Estado</code>, <code>VersionFlujo</code>, and <code>ConfiguracionTransicion</code> via admin or data migration:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># your_app/migrations/0002_seed_workflow.py</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">migrations</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">seed</span><span class="p">(</span><span class="n">apps</span><span class="p">,</span> <span class="n">schema_editor</span><span class="p">):</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="n">Etapa</span> <span class="o">=</span> <span class="n">apps</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="s2">&quot;sinpapel&quot;</span><span class="p">,</span> <span class="s2">&quot;Etapa&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="n">Estado</span> <span class="o">=</span> <span class="n">apps</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="s2">&quot;sinpapel&quot;</span><span class="p">,</span> <span class="s2">&quot;Estado&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="n">VersionFlujo</span> <span class="o">=</span> <span class="n">apps</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="s2">&quot;sinpapel&quot;</span><span class="p">,</span> <span class="s2">&quot;VersionFlujo&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>    <span class="n">ConfiguracionTransicion</span> <span class="o">=</span> <span class="n">apps</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="s2">&quot;sinpapel&quot;</span><span class="p">,</span> <span class="s2">&quot;ConfiguracionTransicion&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    <span class="n">etapa_inicial</span> <span class="o">=</span> <span class="n">Etapa</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">nombre</span><span class="o">=</span><span class="s2">&quot;Inicial&quot;</span><span class="p">,</span> <span class="n">activo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    <span class="n">captura</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Estado</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">nombre</span><span class="o">=</span><span class="s2">&quot;CAPTURA&quot;</span><span class="p">,</span> <span class="n">activo</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">etapa</span><span class="o">=</span><span class="n">etapa_inicial</span><span class="p">)</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    <span class="n">revision</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Estado</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">nombre</span><span class="o">=</span><span class="s2">&quot;EN_REVISION&quot;</span><span class="p">,</span> <span class="n">activo</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">etapa</span><span class="o">=</span><span class="n">etapa_inicial</span><span class="p">)</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>    <span class="n">aprobada</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Estado</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">nombre</span><span class="o">=</span><span class="s2">&quot;APROBADA&quot;</span><span class="p">,</span> <span class="n">activo</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">etapa</span><span class="o">=</span><span class="n">etapa_inicial</span><span class="p">)</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>    <span class="n">flujo</span> <span class="o">=</span> <span class="n">VersionFlujo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">nombre</span><span class="o">=</span><span class="s2">&quot;Flujo Estándar v1&quot;</span><span class="p">,</span> <span class="n">activo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>    <span class="n">ConfiguracionTransicion</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>        <span class="n">flujo</span><span class="o">=</span><span class="n">flujo</span><span class="p">,</span> <span class="n">estado_origen</span><span class="o">=</span><span class="n">captura</span><span class="p">,</span> <span class="n">estado_destino</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>    <span class="p">)</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>    <span class="n">ConfiguracionTransicion</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>        <span class="n">flujo</span><span class="o">=</span><span class="n">flujo</span><span class="p">,</span> <span class="n">estado_origen</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span> <span class="n">estado_destino</span><span class="o">=</span><span class="n">aprobada</span><span class="p">,</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>    <span class="p">)</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="k">class</span><span class="w"> </span><span class="nc">Migration</span><span class="p">(</span><span class="n">migrations</span><span class="o">.</span><span class="n">Migration</span><span class="p">):</span>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>    <span class="n">dependencies</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;sinpapel&quot;</span><span class="p">,</span> <span class="s2">&quot;0001_initial&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;your_app&quot;</span><span class="p">,</span> <span class="s2">&quot;0001_initial&quot;</span><span class="p">)]</span>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>    <span class="n">operations</span> <span class="o">=</span> <span class="p">[</span><span class="n">migrations</span><span class="o">.</span><span class="n">RunPython</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="n">reverse_code</span><span class="o">=</span><span class="n">migrations</span><span class="o">.</span><span class="n">RunPython</span><span class="o">.</span><span class="n">noop</span><span class="p">)]</span>
+</code></pre></div>
+<p>To restrict transitions by Django group, add members to <code>ConfiguracionTransicion.grupos_permitidos</code>.</p>
+<blockquote>
+<p><strong>Tip:</strong> An optional visual workflow designer can round-trip JSON via the <code>sinpapel_export_flujo</code> / <code>sinpapel_import_flujo</code> management commands.</p>
+</blockquote>
+<hr />
+<h2 id="8-state-transitions">8. State Transitions<a class="headerlink" href="#8-state-transitions" title="Permanent link">&para;</a></h2>
+<p>With the workflow configured, executing a transition is straightforward:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># your_app/views.py or service layer</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">SinpapelError</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">advance_solicitud</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">solicitud_id</span><span class="p">):</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>    <span class="n">solicitud</span> <span class="o">=</span> <span class="n">Solicitud</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">solicitud_id</span><span class="p">)</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>        <span class="n">seguimiento</span> <span class="o">=</span> <span class="n">solicitud</span><span class="o">.</span><span class="n">transition</span><span class="p">(</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>            <span class="n">target_state_name</span><span class="o">=</span><span class="s2">&quot;EN_REVISION&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>            <span class="n">user</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>            <span class="n">comentarios</span><span class="o">=</span><span class="s2">&quot;Capture complete, ready for review&quot;</span><span class="p">,</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>        <span class="p">)</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>    <span class="k">except</span> <span class="n">SinpapelError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">({</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)},</span> <span class="n">status</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>    <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">({</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>        <span class="s2">&quot;seguimiento_id&quot;</span><span class="p">:</span> <span class="n">seguimiento</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>        <span class="s2">&quot;nuevo_estado&quot;</span><span class="p">:</span> <span class="n">seguimiento</span><span class="o">.</span><span class="n">estado_nuevo</span><span class="o">.</span><span class="n">nombre</span><span class="p">,</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>    <span class="p">})</span>
+</code></pre></div>
+<p><code>transition()</code> validates (source state, user permissions, document gates) and persists a <code>SeguimientoWorkflow</code> with timestamp, IP, comments + dispatch of registered side effects.</p>
+<p>Common errors:</p>
+<ul>
+<li><code>WorkflowConfigurationError</code> — Model not decorated with <code>@workflow_enabled</code> or missing <code>resolve_workflow_version()</code>.</li>
+<li><code>PermissionError</code> — User does not belong to a permitted group for this transition.</li>
+<li><code>ValueError</code> — <code>target_state_name</code> does not exist or is not a valid destination from the current state.</li>
+</ul>
+<hr />
+<h2 id="9-transition-predicates">9. Transition Predicates<a class="headerlink" href="#9-transition-predicates" title="Permanent link">&para;</a></h2>
+<p>Attach configurable business rules to any <code>ConfiguracionTransicion</code> via <code>CondicionTransicion</code>. The <code>WorkflowEngine</code> evaluates all active conditions (in <code>orden</code>) after group validation and before permitting the transition.</p>
+<p><strong>Backends:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Backend</th>
+<th><code>tipo</code></th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Python Path</strong></td>
+<td><code>python_path</code></td>
+<td>Complex logic, reusable validators, external API calls. Whitelisted modules only (<code>SINPAPEL_PREDICATE_MODULES</code>).</td>
+</tr>
+<tr>
+<td><strong>JSON Logic</strong></td>
+<td><code>json_logic</code></td>
+<td>Simple declarative rules editable by non-devs via UI. Safe operators only: <code>var</code>, <code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>, <code>and</code>, <code>or</code>, <code>!</code>, <code>in</code>.</td>
+</tr>
+<tr>
+<td><strong>Django ORM</strong></td>
+<td><code>django_orm</code></td>
+<td>Conditions on related model fields via ORM lookups.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example — Python Path:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># your_app/validators.py</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">monto_minimo_100k</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    <span class="k">if</span> <span class="n">instance</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">monto_solicitado</span> <span class="o">&gt;=</span> <span class="mi">100_000</span><span class="p">:</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>        <span class="k">return</span> <span class="kc">True</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;El monto debe ser al menos $100,000&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Admin or migration</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.models.predicates</span><span class="w"> </span><span class="kn">import</span> <span class="n">CondicionTransicion</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">CondicionTransicion</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="n">transicion</span><span class="o">=</span><span class="n">transicion_aprobacion</span><span class="p">,</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    <span class="n">tipo</span><span class="o">=</span><span class="s2">&quot;python_path&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="n">configuracion</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;your_app.validators.monto_minimo_100k&quot;</span><span class="p">},</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>    <span class="n">mensaje_error</span><span class="o">=</span><span class="s2">&quot;No cumple con las condiciones de monto&quot;</span><span class="p">,</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>    <span class="n">orden</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="p">)</span>
+</code></pre></div>
+<p><strong>Example — JSON Logic:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">CondicionTransicion</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="n">transicion</span><span class="o">=</span><span class="n">transicion_aprobacion</span><span class="p">,</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="n">tipo</span><span class="o">=</span><span class="s2">&quot;json_logic&quot;</span><span class="p">,</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="n">configuracion</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>        <span class="s2">&quot;rule&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>            <span class="s2">&quot;and&quot;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>                <span class="p">{</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;var&quot;</span><span class="p">:</span> <span class="s2">&quot;meta.monto_solicitado&quot;</span><span class="p">},</span> <span class="mi">100000</span><span class="p">]},</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>                <span class="p">{</span><span class="s2">&quot;==&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;var&quot;</span><span class="p">:</span> <span class="s2">&quot;meta.tipo_credito&quot;</span><span class="p">},</span> <span class="s2">&quot;FOVISSSTE&quot;</span><span class="p">]},</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>            <span class="p">]</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>        <span class="p">}</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>    <span class="p">},</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>    <span class="n">mensaje_error</span><span class="o">=</span><span class="s2">&quot;Solo FOVISSSTE con monto &gt;= $100k puede avanzar&quot;</span><span class="p">,</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>    <span class="n">orden</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="p">)</span>
+</code></pre></div>
+<p><strong>Security:</strong> The <code>python_path</code> backend only imports from modules listed in <code>SINPAPEL_PREDICATE_MODULES</code> (Django setting). An empty whitelist blocks all imports by default.</p>
+<hr />
+<h2 id="10-structured-metadata-capture">10. Structured Metadata Capture<a class="headerlink" href="#10-structured-metadata-capture" title="Permanent link">&para;</a></h2>
+<p>Models inheriting from <code>MetadatosCapturables</code> declare a schema of capturable metadata fields:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">CampoMetadato</span><span class="p">,</span> <span class="n">MetadatosCapturables</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">MiModelo</span><span class="p">(</span><span class="n">MetadatosCapturables</span><span class="p">):</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>    <span class="n">SCHEMA_METADATOS</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;rfc&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">requerido</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">etiqueta</span><span class="o">=</span><span class="s2">&quot;RFC&quot;</span><span class="p">),</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;monto&quot;</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)),</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>        <span class="n">CampoMetadato</span><span class="p">(</span><span class="s2">&quot;tipo&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">],</span> <span class="n">requerido</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>    <span class="p">]</span>
+</code></pre></div>
+<p>Runtime usage:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">obj</span> <span class="o">=</span> <span class="n">MiModelo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">obj</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">rfc</span> <span class="o">=</span> <span class="s2">&quot;ABCD010101ABC&quot;</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="n">obj</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">monto</span> <span class="o">=</span> <span class="n">Decimal</span><span class="p">(</span><span class="s2">&quot;500000&quot;</span><span class="p">)</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="n">obj</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">tipo</span> <span class="o">=</span> <span class="s2">&quot;A&quot;</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>  <span class="c1"># validates schema automatically</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># Serialization</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="n">obj</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="c1"># → {&quot;rfc&quot;: &quot;ABCD010101ABC&quot;, &quot;monto&quot;: Decimal(&quot;500000&quot;), &quot;tipo&quot;: &quot;A&quot;}</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="n">obj</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">incluir_defaults</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="c1"># → only fields explicitly set</span>
+</code></pre></div>
+<p>Validation:</p>
+<ul>
+<li>Unknown fields raise <code>AttributeError</code></li>
+<li>Wrong types raise <code>TypeError</code></li>
+<li>Invalid choices raise <code>ValueError</code></li>
+<li>Missing required fields raise <code>ValidationError</code> on <code>save()</code></li>
+</ul>
+<p>Supported types: <code>str</code>, <code>int</code>, <code>bool</code>, <code>Decimal</code>, <code>date</code>.</p>
+<hr />
+<h2 id="11-formserializer-factory">11. Form/Serializer Factory<a class="headerlink" href="#11-formserializer-factory" title="Permanent link">&para;</a></h2>
+<p>Generate Django Forms and DRF Serializers dynamically from <code>SCHEMA_METADATOS</code> — no need to write matching Form/Serializer classes manually.</p>
+<h3 id="django-forms">Django Forms<a class="headerlink" href="#django-forms" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.forms</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetaFormFactory</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="n">MetaForm</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_form</span><span class="p">(</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="n">Solicitud</span><span class="o">.</span><span class="n">SCHEMA_METADATOS</span><span class="p">,</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;SolicitudMetaForm&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="p">)</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="c1"># In a view</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="n">form</span> <span class="o">=</span> <span class="n">MetaForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span> <span class="n">initial</span><span class="o">=</span><span class="n">solicitud</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>        <span class="nb">setattr</span><span class="p">(</span><span class="n">solicitud</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>    <span class="n">solicitud</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="drf-serializers">DRF Serializers<a class="headerlink" href="#drf-serializers" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.forms</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetaFormFactory</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="n">MetaSerializer</span> <span class="o">=</span> <span class="n">MetaFormFactory</span><span class="o">.</span><span class="n">build_serializer</span><span class="p">(</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>    <span class="n">Solicitud</span><span class="o">.</span><span class="n">SCHEMA_METADATOS</span><span class="p">,</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;SolicitudMetaSerializer&quot;</span><span class="p">,</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="p">)</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="c1"># In a viewset</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="n">serializer</span> <span class="o">=</span> <span class="n">MetaSerializer</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="k">if</span> <span class="n">serializer</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">serializer</span><span class="o">.</span><span class="n">validated_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>        <span class="nb">setattr</span><span class="p">(</span><span class="n">solicitud</span><span class="o">.</span><span class="n">meta</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>    <span class="n">solicitud</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</code></pre></div>
+<blockquote>
+<p><strong>Note:</strong> DRF is an optional dependency. <code>build_serializer()</code> raises <code>ImportError</code> with installation instructions if <code>djangorestframework</code> is not installed.</p>
+</blockquote>
+<h3 id="field-mapping">Field Mapping<a class="headerlink" href="#field-mapping" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th><code>CampoMetadato.tipo</code></th>
+<th>Django Form Field</th>
+<th>DRF Field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>str</code> (no choices)</td>
+<td><code>CharField</code></td>
+<td><code>CharField</code></td>
+</tr>
+<tr>
+<td><code>str</code> (with choices)</td>
+<td><code>ChoiceField</code></td>
+<td><code>ChoiceField</code></td>
+</tr>
+<tr>
+<td><code>int</code></td>
+<td><code>IntegerField</code></td>
+<td><code>IntegerField</code></td>
+</tr>
+<tr>
+<td><code>bool</code></td>
+<td><code>BooleanField</code></td>
+<td><code>BooleanField</code></td>
+</tr>
+<tr>
+<td><code>Decimal</code></td>
+<td><code>DecimalField(max_digits=15, decimal_places=2)</code></td>
+<td><code>DecimalField(max_digits=15, decimal_places=2)</code></td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td><code>DateField</code></td>
+<td><code>DateField</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Mapped metadata:</strong>
+- <code>requerido</code> → <code>required</code>
+- <code>default</code> → <code>initial</code> (Django) / <code>default</code> (DRF)
+- <code>etiqueta</code> → <code>label</code>
+- <code>ayuda</code> → <code>help_text</code></p>
+<hr />
+<h2 id="12-signing-backends">12. Signing Backends<a class="headerlink" href="#12-signing-backends" title="Permanent link">&para;</a></h2>
+<p><code>sinpapel.signing</code> defines a <code>SignatureBackend</code> Protocol with three operations: <code>request_signature</code>, <code>verify</code>, <code>revoke</code>. Three implementations are shipped:</p>
+<table>
+<thead>
+<tr>
+<th>Backend</th>
+<th>Identifier</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FielBackend</code></td>
+<td><code>fiel</code></td>
+<td>Production Mexico: RSA-SHA256 signature with X.509 certificate issued by SAT (Servicio de Administración Tributaria). Verifies signature + extracts RFC from subject.</td>
+</tr>
+<tr>
+<td><code>ManualBackend</code></td>
+<td><code>manual</code></td>
+<td>Universal: manual registration with scanned image + witness name + timestamp. No cryptography. Ideal for flows where signature is in-person / paper scanned.</td>
+</tr>
+<tr>
+<td><code>FakeBackend</code></td>
+<td><code>fake</code></td>
+<td>Tests / CI: deterministic (fixed SHA-256 hash). Never use in production.</td>
+</tr>
+</tbody>
+</table>
+<p>Backend selection at runtime via <code>SINPAPEL_SIGNATURE_BACKEND</code> setting (see §4) or direct instantiation:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.signing.factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_signature_backend</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.signing.backends.fiel</span><span class="w"> </span><span class="kn">import</span> <span class="n">FielBackend</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Via settings (recommended)</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="n">backend</span> <span class="o">=</span> <span class="n">get_signature_backend</span><span class="p">()</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="c1"># Or direct instantiation</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="n">backend</span> <span class="o">=</span> <span class="n">FielBackend</span><span class="p">()</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="c1"># Sign (FIEL): content to sign + RSA signature + SAT certificate</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="n">registro</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">request_signature</span><span class="p">(</span>
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>    <span class="n">content</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;canonical content to sign&quot;</span><span class="p">,</span>
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>    <span class="n">signer</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>                        <span class="c1"># optional, recommended</span>
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>    <span class="n">firma_b64</span><span class="o">=</span><span class="n">request_data</span><span class="p">[</span><span class="s2">&quot;firma_b64&quot;</span><span class="p">],</span>        <span class="c1"># client-generated signature</span>
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>    <span class="n">certificado_cer_b64</span><span class="o">=</span><span class="n">request_data</span><span class="p">[</span><span class="s2">&quot;cer_b64&quot;</span><span class="p">],</span>
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>    <span class="n">is_required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="p">)</span>
+<a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a><span class="c1"># → RegistroFirma persisted with verification_result=&quot;VALIDA&quot; + FIEL backend_metadata</span>
+<a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a>
+<a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a><span class="c1"># Verify</span>
+<a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a><span class="n">result</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">verify</span><span class="p">(</span><span class="n">registro</span><span class="p">)</span>
+<a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a><span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">valid</span> <span class="ow">is</span> <span class="kc">True</span>
+<a id="__codelineno-16-23" name="__codelineno-16-23" href="#__codelineno-16-23"></a>
+<a id="__codelineno-16-24" name="__codelineno-16-24" href="#__codelineno-16-24"></a><span class="c1"># Revoke</span>
+<a id="__codelineno-16-25" name="__codelineno-16-25" href="#__codelineno-16-25"></a><span class="n">backend</span><span class="o">.</span><span class="n">revoke</span><span class="p">(</span><span class="n">registro</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="s2">&quot;compromised certificate&quot;</span><span class="p">)</span>
+<a id="__codelineno-16-26" name="__codelineno-16-26" href="#__codelineno-16-26"></a><span class="c1"># → verification_result=&quot;INVALIDA&quot; + history audit entry</span>
+</code></pre></div>
+<p>For <code>ManualBackend</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="n">backend</span> <span class="o">=</span> <span class="n">ManualBackend</span><span class="p">()</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="n">registro</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">request_signature</span><span class="p">(</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>    <span class="n">content</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;document signed in person&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>    <span class="n">signer</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>    <span class="n">scanned_image_path</span><span class="o">=</span><span class="s2">&quot;/media/signatures/doc_42.jpg&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>    <span class="n">witness_name</span><span class="o">=</span><span class="s2">&quot;Mtra. Pérez&quot;</span><span class="p">,</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="13-audit-trail">13. Audit Trail<a class="headerlink" href="#13-audit-trail" title="Permanent link">&para;</a></h2>
+<p>All changes on 5 key models (<code>RegistroFirma</code>, <code>InstanciaDocumento</code>, <code>ConfiguracionTransicion</code>, <code>VersionFlujo</code>, <code>RequisitoEstadoDocumento</code>) automatically generate entries in <code>historical_*</code> tables.</p>
+<p>Query history via standard queryset API:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">RegistroFirma</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="n">rf</span> <span class="o">=</span> <span class="n">RegistroFirma</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="c1"># Full history</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">rf</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">history_date</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">history_type</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">history_user</span><span class="si">}</span><span class="s2"> → </span><span class="si">{</span><span class="n">entry</span><span class="o">.</span><span class="n">verification_result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="c1"># Output:</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="c1"># 2026-04-27 10:30 ~ admin → INVALIDA   (revoke)</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="c1"># 2026-04-27 10:25 + carlos → VALIDA    (creation)</span>
+<a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a>
+<a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="c1"># Diff between versions</span>
+<a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a><span class="n">latest</span> <span class="o">=</span> <span class="n">rf</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="n">previous</span> <span class="o">=</span> <span class="n">latest</span><span class="o">.</span><span class="n">prev_record</span>
+<a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="n">delta</span> <span class="o">=</span> <span class="n">latest</span><span class="o">.</span><span class="n">diff_against</span><span class="p">(</span><span class="n">previous</span><span class="p">)</span>
+<a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="k">for</span> <span class="n">change</span> <span class="ow">in</span> <span class="n">delta</span><span class="o">.</span><span class="n">changes</span><span class="p">:</span>
+<a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">change</span><span class="o">.</span><span class="n">field</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">change</span><span class="o">.</span><span class="n">old</span><span class="si">}</span><span class="s2"> → </span><span class="si">{</span><span class="n">change</span><span class="o">.</span><span class="n">new</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><code>history_user</code> is automatically populated from the request via <code>HistoryRequestMiddleware</code> (§4). In contexts without a request (management commands, Celery tasks), <code>history_user</code> will be <code>None</code> unless you use <code>bulk_create_with_history</code> or <code>update_change_reason</code> explicitly.</p>
+<blockquote>
+<p><strong>Trazable vs simple-history:</strong> Both coexist without redundancy. <code>Trazable</code> maintains last-write metadata (<code>autor</code>, <code>modificador</code>) optimized for fast queries. <code>simple-history</code> captures every change as a separate immutable row. Different consumers.</p>
+</blockquote>
+<hr />
+<h2 id="14-state-timers-sla">14. State Timers / SLA<a class="headerlink" href="#14-state-timers-sla" title="Permanent link">&para;</a></h2>
+<p>Configure time limits per state and automatic actions when instances exceed them. <code>SLAConfiguracion</code> links to <code>Estado</code> and defines <code>dias_maximos</code> plus an action to execute on expiration.</p>
+<p><strong>Actions:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th><code>accion_vencimiento</code></th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Notify</strong></td>
+<td><code>notificar</code></td>
+<td>Returns notification target (group, template) for the caller to dispatch</td>
+</tr>
+<tr>
+<td><strong>Escalate</strong></td>
+<td><code>escalar</code></td>
+<td>Returns target state for automatic escalation</td>
+</tr>
+<tr>
+<td><strong>Reject</strong></td>
+<td><code>rechazar</code></td>
+<td>Returns rejection target state</td>
+</tr>
+<tr>
+<td><strong>Flag</strong></td>
+<td><code>alertar</code></td>
+<td>Sets a boolean field on the instance (e.g., <code>alerta_sla=True</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Estado</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.models.sla</span><span class="w"> </span><span class="kn">import</span> <span class="n">SLAConfiguracion</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="n">revision</span> <span class="o">=</span> <span class="n">Estado</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nombre</span><span class="o">=</span><span class="s2">&quot;EN_REVISION&quot;</span><span class="p">)</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="n">SLAConfiguracion</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>    <span class="n">estado</span><span class="o">=</span><span class="n">revision</span><span class="p">,</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>    <span class="n">dias_maximos</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>    <span class="n">accion_vencimiento</span><span class="o">=</span><span class="s2">&quot;notificar&quot;</span><span class="p">,</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>    <span class="n">configuracion_accion</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;grupo_id&quot;</span><span class="p">:</span> <span class="n">grupo_revisores</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s2">&quot;template&quot;</span><span class="p">:</span> <span class="s2">&quot;sla_vencido&quot;</span><span class="p">},</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="p">)</span>
+</code></pre></div>
+<p>Evaluate SLAs for a single instance:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.services.sla_engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">SLAEngine</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="n">acciones</span> <span class="o">=</span> <span class="n">SLAEngine</span><span class="o">.</span><span class="n">evaluar_instancia</span><span class="p">(</span><span class="n">solicitud</span><span class="p">)</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># → [{&quot;accion&quot;: &quot;notificar&quot;, &quot;grupo&quot;: &quot;Revisores&quot;, &quot;template&quot;: &quot;sla_vencido&quot;}]</span>
+</code></pre></div>
+<p>Run the management command to check all active SLAs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>python<span class="w"> </span>manage.py<span class="w"> </span>sinpapel_verificar_slas
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="c1"># Dry run (report only, no actions)</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>python<span class="w"> </span>manage.py<span class="w"> </span>sinpapel_verificar_slas<span class="w"> </span>--dry-run
+</code></pre></div>
+<p>Inactive SLAs (<code>activo=False</code>) are skipped. The engine uses <code>instance.creado</code> as the time reference; if the instance lacks this field, the SLA is never considered expired.</p>
+<hr />
+<h2 id="15-preview-transition">15. Preview Transition<a class="headerlink" href="#15-preview-transition" title="Permanent link">&para;</a></h2>
+<p>Simulate a transition without executing it. <code>preview_transition()</code> returns a detailed impact report that UI layers can use to show the user why a transition is blocked (or what will happen if they proceed).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.services.workflow_engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorkflowEngine</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="n">reporte</span> <span class="o">=</span> <span class="n">WorkflowEngine</span><span class="p">()</span><span class="o">.</span><span class="n">preview_transition</span><span class="p">(</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>    <span class="n">solicitud</span><span class="p">,</span> <span class="s2">&quot;APROBADA&quot;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="p">)</span>
+</code></pre></div>
+<p><strong>Report structure:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="p">{</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>    <span class="s2">&quot;permitido&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>    <span class="s2">&quot;razones_bloqueo&quot;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>        <span class="p">{</span><span class="s2">&quot;tipo&quot;</span><span class="p">:</span> <span class="s2">&quot;permiso&quot;</span><span class="p">,</span> <span class="s2">&quot;mensaje&quot;</span><span class="p">:</span> <span class="s2">&quot;No tiene permisos para realizar esta acción&quot;</span><span class="p">},</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>        <span class="p">{</span><span class="s2">&quot;tipo&quot;</span><span class="p">:</span> <span class="s2">&quot;predicado&quot;</span><span class="p">,</span> <span class="s2">&quot;mensaje&quot;</span><span class="p">:</span> <span class="s2">&quot;Monto debe ser al menos $100,000&quot;</span><span class="p">},</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>    <span class="p">],</span>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a>    <span class="s2">&quot;documentos_faltantes&quot;</span><span class="p">:</span> <span class="p">[],</span>
+<a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>    <span class="s2">&quot;predicados_fallidos&quot;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a>        <span class="p">{</span><span class="s2">&quot;condicion_id&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;tipo&quot;</span><span class="p">:</span> <span class="s2">&quot;json_logic&quot;</span><span class="p">,</span> <span class="s2">&quot;mensaje&quot;</span><span class="p">:</span> <span class="s2">&quot;Monto debe ser al menos $100,000&quot;</span><span class="p">},</span>
+<a id="__codelineno-23-10" name="__codelineno-23-10" href="#__codelineno-23-10"></a>    <span class="p">],</span>
+<a id="__codelineno-23-11" name="__codelineno-23-11" href="#__codelineno-23-11"></a>    <span class="s2">&quot;side_effects&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;APROBADA&quot;</span><span class="p">],</span>  <span class="c1"># registered side effects for target state</span>
+<a id="__codelineno-23-12" name="__codelineno-23-12" href="#__codelineno-23-12"></a>    <span class="s2">&quot;aprobadores_requeridos&quot;</span><span class="p">:</span> <span class="p">[],</span>
+<a id="__codelineno-23-13" name="__codelineno-23-13" href="#__codelineno-23-13"></a>    <span class="s2">&quot;historial_reciente&quot;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-23-14" name="__codelineno-23-14" href="#__codelineno-23-14"></a>        <span class="p">{</span>
+<a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a>            <span class="s2">&quot;fecha&quot;</span><span class="p">:</span> <span class="s2">&quot;2026-05-15T10:30:00+00:00&quot;</span><span class="p">,</span>
+<a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a>            <span class="s2">&quot;transicion&quot;</span><span class="p">:</span> <span class="s2">&quot;CAPTURA → EN_REVISION&quot;</span><span class="p">,</span>
+<a id="__codelineno-23-17" name="__codelineno-23-17" href="#__codelineno-23-17"></a>            <span class="s2">&quot;usuario&quot;</span><span class="p">:</span> <span class="s2">&quot;analista1&quot;</span><span class="p">,</span>
+<a id="__codelineno-23-18" name="__codelineno-23-18" href="#__codelineno-23-18"></a>            <span class="s2">&quot;comentarios&quot;</span><span class="p">:</span> <span class="s2">&quot;Documentos completos&quot;</span><span class="p">,</span>
+<a id="__codelineno-23-19" name="__codelineno-23-19" href="#__codelineno-23-19"></a>        <span class="p">},</span>
+<a id="__codelineno-23-20" name="__codelineno-23-20" href="#__codelineno-23-20"></a>    <span class="p">],</span>
+<a id="__codelineno-23-21" name="__codelineno-23-21" href="#__codelineno-23-21"></a><span class="p">}</span>
+</code></pre></div>
+<p>The preview <strong>never mutates</strong> the instance. <code>puede_cambiar_estado()</code> delegates to <code>preview_transition()</code> internally, so both methods share the same validation logic.</p>
+<hr />
+<h2 id="16-side-effects">16. Side Effects<a class="headerlink" href="#16-side-effects" title="Permanent link">&para;</a></h2>
+<p>Associate handlers to specific transitions via decorator. Handlers execute <strong>inside</strong> the atomic transaction of <code>transition()</code>, after persisting the <code>SeguimientoWorkflow</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># your_app/services/side_effects.py</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sinpapel.services.side_effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_side_effect</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="nd">@register_side_effect</span><span class="p">(</span><span class="s2">&quot;APROBADA&quot;</span><span class="p">)</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">generar_oficio_aprobacion</span><span class="p">(</span><span class="n">solicitud</span><span class="p">,</span> <span class="n">usuario</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Side effect executed after transition to APROBADA state.&quot;&quot;&quot;</span>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">your_app.services.oficios</span><span class="w"> </span><span class="kn">import</span> <span class="n">OficioService</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;oficio_id&quot;</span><span class="p">:</span> <span class="n">OficioService</span><span class="o">.</span><span class="n">generar</span><span class="p">(</span><span class="n">solicitud</span><span class="o">=</span><span class="n">solicitud</span><span class="p">,</span> <span class="n">autor</span><span class="o">=</span><span class="n">usuario</span><span class="p">)}</span>
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a><span class="nd">@register_side_effect</span><span class="p">(</span><span class="s2">&quot;RECHAZADA&quot;</span><span class="p">)</span>
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="k">def</span><span class="w"> </span><span class="nf">notificar_rechazo</span><span class="p">(</span><span class="n">solicitud</span><span class="p">,</span> <span class="n">usuario</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">your_app.services.notificaciones</span><span class="w"> </span><span class="kn">import</span> <span class="n">enviar_email</span>
+<a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a>    <span class="n">enviar_email</span><span class="p">(</span>
+<a id="__codelineno-24-16" name="__codelineno-24-16" href="#__codelineno-24-16"></a>        <span class="n">to</span><span class="o">=</span><span class="n">solicitud</span><span class="o">.</span><span class="n">solicitante</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
+<a id="__codelineno-24-17" name="__codelineno-24-17" href="#__codelineno-24-17"></a>        <span class="n">subject</span><span class="o">=</span><span class="s2">&quot;Your application was rejected&quot;</span><span class="p">,</span>
+<a id="__codelineno-24-18" name="__codelineno-24-18" href="#__codelineno-24-18"></a>        <span class="n">body</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;comentarios&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+<a id="__codelineno-24-19" name="__codelineno-24-19" href="#__codelineno-24-19"></a>    <span class="p">)</span>
+</code></pre></div>
+<p>Handlers receive <code>(instance, user, **kwargs)</code> where <code>kwargs</code> includes arguments passed to <code>transition()</code>. If a handler raises an exception, the entire transition rolls back (atomicity).</p>
+<p>To register them at app boot, import the module in <code>your_app/apps.py:ready()</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># your_app/apps.py</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.apps</span><span class="w"> </span><span class="kn">import</span> <span class="n">AppConfig</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">YourAppConfig</span><span class="p">(</span><span class="n">AppConfig</span><span class="p">):</span>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;your_app&quot;</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ready</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">your_app.services</span><span class="w"> </span><span class="kn">import</span> <span class="n">side_effects</span>  <span class="c1"># noqa — registers handlers</span>
+</code></pre></div>
+<hr />
+<h2 id="17-testing">17. Testing<a class="headerlink" href="#17-testing" title="Permanent link">&para;</a></h2>
+<h3 id="running-sinpapels-own-test-suite">Running sinpapel's own test suite<a class="headerlink" href="#running-sinpapels-own-test-suite" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>pytest<span class="w"> </span>tests/<span class="w"> </span>--ds<span class="o">=</span>tests.settings
+</code></pre></div>
+<h3 id="testing-with-fakebackend">Testing with FakeBackend<a class="headerlink" href="#testing-with-fakebackend" title="Permanent link">&para;</a></h3>
+<p>For tests that need signatures to "work" without real cryptography:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># settings_test.py</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="n">SINPAPEL_SIGNATURE_BACKEND</span> <span class="o">=</span> <span class="s2">&quot;sinpapel.signing.backends.fake.FakeBackend&quot;</span>
+</code></pre></div>
+<p><code>FakeBackend</code> produces a <code>RegistroFirma</code> with a deterministic hash, without generating a real keypair — much faster in large suites.</p>
+<h3 id="testing-with-real-rsa-self-signed-certificate">Testing with real RSA + self-signed certificate<a class="headerlink" href="#testing-with-real-rsa-self-signed-certificate" title="Permanent link">&para;</a></h3>
+<p>For tests that need real signatures (without a SAT sandbox):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># your_app/tests/conftest.py</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_dt</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">cryptography</span><span class="w"> </span><span class="kn">import</span> <span class="n">x509</span>
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">cryptography.hazmat.primitives</span><span class="w"> </span><span class="kn">import</span> <span class="n">hashes</span><span class="p">,</span> <span class="n">serialization</span>
+<a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">cryptography.hazmat.primitives.asymmetric</span><span class="w"> </span><span class="kn">import</span> <span class="n">rsa</span>
+<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">cryptography.x509.oid</span><span class="w"> </span><span class="kn">import</span> <span class="n">NameOID</span>
+<a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a>
+<a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a>
+<a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a><span class="k">def</span><span class="w"> </span><span class="nf">keypair_and_cert</span><span class="p">():</span>
+<a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;RSA private key + self-signed cert DER, in-memory (no sandbox).&quot;&quot;&quot;</span>
+<a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a>    <span class="n">private_key</span> <span class="o">=</span> <span class="n">rsa</span><span class="o">.</span><span class="n">generate_private_key</span><span class="p">(</span><span class="n">public_exponent</span><span class="o">=</span><span class="mi">65537</span><span class="p">,</span> <span class="n">key_size</span><span class="o">=</span><span class="mi">2048</span><span class="p">)</span>
+<a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a>    <span class="n">subject</span> <span class="o">=</span> <span class="n">issuer</span> <span class="o">=</span> <span class="n">x509</span><span class="o">.</span><span class="n">Name</span><span class="p">([</span>
+<a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a>        <span class="n">x509</span><span class="o">.</span><span class="n">NameAttribute</span><span class="p">(</span><span class="n">NameOID</span><span class="o">.</span><span class="n">COMMON_NAME</span><span class="p">,</span> <span class="s2">&quot;TEST SIGNER&quot;</span><span class="p">),</span>
+<a id="__codelineno-28-16" name="__codelineno-28-16" href="#__codelineno-28-16"></a>        <span class="n">x509</span><span class="o">.</span><span class="n">NameAttribute</span><span class="p">(</span><span class="n">NameOID</span><span class="o">.</span><span class="n">SERIAL_NUMBER</span><span class="p">,</span> <span class="s2">&quot;TESTRFC000&quot;</span><span class="p">),</span>
+<a id="__codelineno-28-17" name="__codelineno-28-17" href="#__codelineno-28-17"></a>    <span class="p">])</span>
+<a id="__codelineno-28-18" name="__codelineno-28-18" href="#__codelineno-28-18"></a>    <span class="n">now</span> <span class="o">=</span> <span class="n">_dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">_dt</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<a id="__codelineno-28-19" name="__codelineno-28-19" href="#__codelineno-28-19"></a>    <span class="n">cert</span> <span class="o">=</span> <span class="p">(</span><span class="n">x509</span><span class="o">.</span><span class="n">CertificateBuilder</span><span class="p">()</span>
+<a id="__codelineno-28-20" name="__codelineno-28-20" href="#__codelineno-28-20"></a>        <span class="o">.</span><span class="n">subject_name</span><span class="p">(</span><span class="n">subject</span><span class="p">)</span><span class="o">.</span><span class="n">issuer_name</span><span class="p">(</span><span class="n">issuer</span><span class="p">)</span>
+<a id="__codelineno-28-21" name="__codelineno-28-21" href="#__codelineno-28-21"></a>        <span class="o">.</span><span class="n">public_key</span><span class="p">(</span><span class="n">private_key</span><span class="o">.</span><span class="n">public_key</span><span class="p">())</span>
+<a id="__codelineno-28-22" name="__codelineno-28-22" href="#__codelineno-28-22"></a>        <span class="o">.</span><span class="n">serial_number</span><span class="p">(</span><span class="n">x509</span><span class="o">.</span><span class="n">random_serial_number</span><span class="p">())</span>
+<a id="__codelineno-28-23" name="__codelineno-28-23" href="#__codelineno-28-23"></a>        <span class="o">.</span><span class="n">not_valid_before</span><span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">_dt</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<a id="__codelineno-28-24" name="__codelineno-28-24" href="#__codelineno-28-24"></a>        <span class="o">.</span><span class="n">not_valid_after</span><span class="p">(</span><span class="n">now</span> <span class="o">+</span> <span class="n">_dt</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">365</span><span class="p">))</span>
+<a id="__codelineno-28-25" name="__codelineno-28-25" href="#__codelineno-28-25"></a>        <span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">private_key</span><span class="p">,</span> <span class="n">hashes</span><span class="o">.</span><span class="n">SHA256</span><span class="p">()))</span>
+<a id="__codelineno-28-26" name="__codelineno-28-26" href="#__codelineno-28-26"></a>    <span class="k">return</span> <span class="n">private_key</span><span class="p">,</span> <span class="n">cert</span><span class="o">.</span><span class="n">public_bytes</span><span class="p">(</span><span class="n">serialization</span><span class="o">.</span><span class="n">Encoding</span><span class="o">.</span><span class="n">DER</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="testing-history_user-population">Testing history_user population<a class="headerlink" href="#testing-history_user-population" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">django.test</span><span class="w"> </span><span class="kn">import</span> <span class="n">RequestFactory</span>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">simple_history.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">HistoryRequestMiddleware</span>
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">django_db</span>
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_history_user_populated</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>    <span class="n">factory</span> <span class="o">=</span> <span class="n">RequestFactory</span><span class="p">()</span>
+<a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a>    <span class="n">request</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+<a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a>    <span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span>
+<a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a>
+<a id="__codelineno-29-12" name="__codelineno-29-12" href="#__codelineno-29-12"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_do_mutation</span><span class="p">(</span><span class="n">req</span><span class="p">):</span>
+<a id="__codelineno-29-13" name="__codelineno-29-13" href="#__codelineno-29-13"></a>        <span class="c1"># Your mutation within the request lifecycle</span>
+<a id="__codelineno-29-14" name="__codelineno-29-14" href="#__codelineno-29-14"></a>        <span class="o">...</span>
+<a id="__codelineno-29-15" name="__codelineno-29-15" href="#__codelineno-29-15"></a>
+<a id="__codelineno-29-16" name="__codelineno-29-16" href="#__codelineno-29-16"></a>    <span class="n">HistoryRequestMiddleware</span><span class="p">(</span><span class="n">_do_mutation</span><span class="p">)(</span><span class="n">request</span><span class="p">)</span>
+<a id="__codelineno-29-17" name="__codelineno-29-17" href="#__codelineno-29-17"></a>    <span class="c1"># Your assertions on obj.history.first().history_user</span>
+</code></pre></div>
+<hr />
+<h2 id="18-api-reference">18. API Reference<a class="headerlink" href="#18-api-reference" title="Permanent link">&para;</a></h2>
+<h3 id="workflow_enabledstate_field-workflow_key-expose_endpointsfalse"><code>@workflow_enabled(state_field, workflow_key, expose_endpoints=False)</code><a class="headerlink" href="#workflow_enabledstate_field-workflow_key-expose_endpointsfalse" title="Permanent link">&para;</a></h3>
+<p>Class decorator that registers the model in <code>WorkflowRegistry</code> and injects workflow methods.</p>
+<p><strong>Parameters:</strong>
+- <code>state_field</code> (str): Name of the ForeignKey to <code>sinpapel.Estado</code>.
+- <code>workflow_key</code> (str): Unique identifier for this workflow in the registry.
+- <code>expose_endpoints</code> (bool): Whether to auto-register REST endpoints (future feature).</p>
+<p><strong>Requires:</strong> <code>resolve_workflow_version()</code> method on the decorated class.</p>
+<h3 id="workflowengine"><code>WorkflowEngine</code><a class="headerlink" href="#workflowengine" title="Permanent link">&para;</a></h3>
+<p>Core service for transition validation and execution.</p>
+<p><strong>Methods:</strong>
+- <code>puede_cambiar_estado(instance, target_state_name, user) → (bool, str | None)</code>
+- <code>cambiar_estado(instance, target_state_name, user, comentarios="", firma_payload=None) → dict</code>
+- <code>available_transitions(instance, user) → list[Estado]</code>
+- <code>preview_transition(instance, target_state_name, user) → dict</code> — simulates transition, returns impact report</p>
+<h3 id="condiciontransicion"><code>CondicionTransicion</code><a class="headerlink" href="#condiciontransicion" title="Permanent link">&para;</a></h3>
+<p>Model storing a configurable predicate for a transition.</p>
+<p><strong>Fields:</strong>
+- <code>transicion: ForeignKey[ConfiguracionTransicion]</code> — the transition this condition applies to
+- <code>tipo: str</code> — backend type: <code>python_path</code>, <code>json_logic</code>, <code>django_orm</code>
+- <code>configuracion: JSONField</code> — backend-specific parameters
+- <code>mensaje_error: str</code> — error message shown when condition fails
+- <code>orden: int</code> — evaluation order (lower first)
+- <code>activo: bool</code> — whether this condition is evaluated</p>
+<h3 id="predicateengine"><code>PredicateEngine</code><a class="headerlink" href="#predicateengine" title="Permanent link">&para;</a></h3>
+<p>Pluggable engine for evaluating transition conditions.</p>
+<p><strong>Class Methods:</strong>
+- <code>registrar_backend(tipo: str, funcion: callable) → None</code> — register a custom backend
+- <code>evaluar(condicion, instance, user) → (bool, str | None)</code> — evaluate a single condition</p>
+<p><strong>Built-in backends:</strong>
+- <code>python_path</code> — imports and calls a Python function from a whitelisted module
+- <code>json_logic</code> — evaluates a JSON Logic rule against instance metadata
+- <code>django_orm</code> — evaluates a Django ORM lookup against the instance</p>
+<p><strong>Settings:</strong>
+- <code>SINPAPEL_PREDICATE_MODULES: list[str]</code> — whitelist of modules for <code>python_path</code> backend</p>
+<h3 id="slaconfiguracion"><code>SLAConfiguracion</code><a class="headerlink" href="#slaconfiguracion" title="Permanent link">&para;</a></h3>
+<p>Per-state SLA configuration model.</p>
+<p><strong>Fields:</strong>
+- <code>estado: ForeignKey[Estado]</code> — the state this SLA applies to
+- <code>dias_maximos: int</code> — maximum allowed days in this state before triggering action
+- <code>accion_vencimiento: str</code> — action on expiration: <code>notificar</code>, <code>escalar</code>, <code>rechazar</code>, <code>alertar</code>
+- <code>configuracion_accion: JSONField</code> — action-specific parameters (group ID, target field, etc.)
+- <code>activo: bool</code> — whether this SLA is evaluated</p>
+<p><strong>Constraints:</strong>
+- <code>unique_together = ("estado", "accion_vencimiento")</code></p>
+<h3 id="slaengine"><code>SLAEngine</code><a class="headerlink" href="#slaengine" title="Permanent link">&para;</a></h3>
+<p>Evaluates SLA rules and dispatches configured actions.</p>
+<p><strong>Class Methods:</strong>
+- <code>evaluar_instancia(instance) → list[dict]</code> — evaluates all active SLAs for the instance, returns executed actions
+- <code>verificar_todos() → dict[str, int]</code> — stub for batch evaluation across all workflow-enabled models</p>
+<p><strong>Actions:</strong>
+- <code>_accion_notificar</code> — returns <code>{"accion": "notificar", "grupo": "...", "template": "..."}</code>
+- <code>_accion_escalar</code> — returns <code>{"accion": "escalar", "estado_destino": "..."}</code>
+- <code>_accion_rechazar</code> — returns <code>{"accion": "rechazar", "estado_destino": "..."}</code>
+- <code>_accion_alertar</code> — sets instance field via <code>setattr</code>, returns <code>{"accion": "alertar", "campo": "...", "valor": ...}</code></p>
+<h3 id="metaformfactory"><code>MetaFormFactory</code><a class="headerlink" href="#metaformfactory" title="Permanent link">&para;</a></h3>
+<p>Factory for generating Django Forms and DRF Serializers from <code>SCHEMA_METADATOS</code>.</p>
+<p><strong>Class Methods:</strong>
+- <code>build_form(schema, name=None, **kwargs) → type[forms.Form]</code> — generate a Django Form
+- <code>build_serializer(schema, name=None, **kwargs) → type[serializers.Serializer]</code> — generate a DRF Serializer (raises <code>ImportError</code> if DRF not installed)</p>
+<h3 id="metadatoscapturables"><code>MetadatosCapturables</code><a class="headerlink" href="#metadatoscapturables" title="Permanent link">&para;</a></h3>
+<p>Abstract Django model mixin. Add to your model alongside <code>Trazable</code>.</p>
+<p><strong>Class attributes:</strong>
+- <code>SCHEMA_METADATOS: list[CampoMetadato]</code></p>
+<p><strong>Instance properties:</strong>
+- <code>meta: MetadatosProxy</code> — type-safe read/write proxy</p>
+<p><strong>Methods:</strong>
+- <code>clean()</code> — validates required fields
+- <code>save()</code> — calls <code>clean()</code> before persisting</p>
+<h3 id="campometadato"><code>CampoMetadato</code><a class="headerlink" href="#campometadato" title="Permanent link">&para;</a></h3>
+<p>Frozen dataclass defining a metadata field schema.</p>
+<p><strong>Fields:</strong>
+- <code>nombre: str</code>
+- <code>tipo: type</code> — <code>str</code>, <code>int</code>, <code>bool</code>, <code>Decimal</code>, <code>date</code>
+- <code>requerido: bool = False</code>
+- <code>default: Any = None</code>
+- <code>choices: list[str] | None = None</code>
+- <code>etiqueta: str = ""</code>
+- <code>ayuda: str = ""</code></p>
+<h3 id="metadatosproxy"><code>MetadatosProxy</code><a class="headerlink" href="#metadatosproxy" title="Permanent link">&para;</a></h3>
+<p>Runtime proxy attached to <code>instance.meta</code>.</p>
+<p><strong>Methods:</strong>
+- <code>errores() → dict[str, str]</code> — validates all required fields
+- <code>to_dict(incluir_defaults=True) → dict[str, Any]</code> — serializes all schema fields</p>
+<hr />
+<h2 id="19-contributing">19. Contributing<a class="headerlink" href="#19-contributing" title="Permanent link">&para;</a></h2>
+<p>Contributions are welcome. Please open an issue before large changes.</p>
+<ol>
+<li>Fork the repository</li>
+<li>Create a feature branch (<code>git checkout -b feature/my-feature</code>)</li>
+<li>Make your changes with tests</li>
+<li>Ensure the test suite passes: <code>pytest tests/ -q</code></li>
+<li>Commit with clear messages</li>
+<li>Push and open a Pull Request</li>
+</ol>
+<p>Development setup:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>git<span class="w"> </span>clone<span class="w"> </span>&lt;repository-url&gt;
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="nb">cd</span><span class="w"> </span>sinpapel
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>pytest<span class="w"> </span>tests/<span class="w"> </span>-q
+</code></pre></div>
+<hr />
+<h2 id="20-license-versioning">20. License &amp; Versioning<a class="headerlink" href="#20-license-versioning" title="Permanent link">&para;</a></h2>
+<p><strong>License:</strong> MIT (see <code>LICENSE</code>). Commercial and institutional use permitted. No warranty.</p>
+<p><strong>Versioning:</strong> <a href="https://semver.org">SemVer 2.0</a>. Pre-1.0 (<code>0.y.z</code>):</p>
+<ul>
+<li><strong><code>y</code> (minor)</strong> changes may include breaking changes in public API.</li>
+<li><strong><code>z</code> (patch)</strong> changes are bug fixes / internal changes without breaking API.</li>
+</ul>
+<p>When the API stabilizes (v1.0.0), the contract will be:</p>
+<ul>
+<li><code>MAJOR</code>: breaking changes.</li>
+<li><code>MINOR</code>: new backwards-compatible features.</li>
+<li><code>PATCH</code>: bug fixes.</li>
+</ul>
+<p><strong>Visible Roadmap:</strong></p>
+<ul>
+<li>v0.2 — i18n via <code>gettext_lazy</code>, <code>py.typed</code>, <code>sinpapel_*</code> tables, <code>Etapa</code> model, standalone tests, <code>MetadatosCapturables</code> mixin. <strong>(DONE)</strong></li>
+<li>v0.3 — Transition Predicates (<code>CondicionTransicion</code> + <code>PredicateEngine</code>), Form/Serializer Factory (<code>MetaFormFactory</code>), JSON Logic evaluator, pluggable predicate backends. <strong>(DONE)</strong></li>
+<li>v0.4 — State Timers / SLA (<code>SLAConfiguracion</code> + <code>SLAEngine</code>), Preview Transition (<code>preview_transition()</code>), SLA export/import in schema v0.2+. <strong>(DONE)</strong></li>
+<li>v0.5 — PAdES support (universal PDF signing via endesive) as an additional adapter.</li>
+<li>v1.0 — Stable API + PyPI public release (final naming and licensing decision).</li>
+</ul>
+<p><strong>Report issues / propose changes:</strong> see the project repository.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
