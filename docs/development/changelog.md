@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-06-28
+
+### Removed
+- **Campo residual `SeguimientoWorkflow.monto_aprobado`.** Era un concepto de
+  dominio (montos de aprobación) filtrado en el framework genérico. Se elimina
+  del modelo (migración `0006`), del parámetro `monto_aprobado` de
+  `WorkflowEngine.cambiar_estado()` y de la propagación a side-effects.
+  **Breaking:** `transition()` / `cambiar_estado()` ya no aceptan
+  `monto_aprobado`; las apps que necesiten datos de dominio deben usar
+  metadatos (`MetadatosCapturables`) o `condiciones` / `comentarios`.
+
 ## [0.6.0] — 2026-06-25
 
 ### Added
@@ -146,7 +157,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `django-simple-history` integration for full change history.
 - PEP 561 `py.typed` marker for type-checker downstream consumers.
 
-[Unreleased]: https://github.com/OWNER/REPO/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/OWNER/REPO/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/OWNER/REPO/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/OWNER/REPO/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/OWNER/REPO/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/OWNER/REPO/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/OWNER/REPO/compare/v0.4.1...v0.4.2

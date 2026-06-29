@@ -59,7 +59,7 @@ def ejecutar_side_effects(
         estado_nombre: nombre del Estado destino post-transición.
         instance: la instancia que transicionó (cualquier modelo workflow-enabled).
         usuario: User que ejecutó la transición.
-        **kwargs: parámetros adicionales pasados al handler (ej. monto_aprobado).
+        **kwargs: parámetros adicionales pasados al handler (ej. condiciones).
 
     Returns:
         dict del handler si existe y retorna dict; {} si no hay handler;

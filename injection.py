@@ -76,8 +76,8 @@ def transition(self, target_state_name: str, user: "User", **kwargs: Any) -> Any
     Args:
         target_state_name: nombre del Estado destino
         user: usuario que ejecuta la transición
-        **kwargs: parámetros adicionales (comentarios, monto_aprobado,
-                  condiciones, ip_address, firma_payload)
+        **kwargs: parámetros adicionales (comentarios, condiciones,
+                  ip_address, firma_payload)
 
     Returns:
         dict con keys: success, instance_id, estado_anterior, estado_nuevo,

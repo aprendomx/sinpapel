@@ -63,10 +63,10 @@ def test_dispatch_passes_kwargs_to_handler():
         "TEST_SE_KWARGS",
         _F(),
         _F(),
-        monto_aprobado=100,
+        condiciones="aprobado con reservas",
         comentarios="x",
     )
-    assert result["kwargs"] == {"monto_aprobado": 100, "comentarios": "x"}
+    assert result["kwargs"] == {"condiciones": "aprobado con reservas", "comentarios": "x"}
 
 
 def test_dispatch_returns_empty_dict_for_unknown_state():

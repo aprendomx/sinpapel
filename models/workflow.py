@@ -214,15 +214,6 @@ class SeguimientoWorkflow(Trazable):
         help_text=_("Lista de documentos asociados a esta acción"),
     )
 
-    monto_aprobado = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        verbose_name=_("Monto Aprobado"),
-        help_text=_("Monto aprobado (puede diferir del solicitado)"),
-    )
-
     condiciones = models.TextField(
         blank=True,
         null=True,

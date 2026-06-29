@@ -423,7 +423,6 @@ class WorkflowEngine:
         target_state_name: str,
         user: "User",
         comentarios: str = "",
-        monto_aprobado: Any = None,
         condiciones: str | None = None,
         ip_address: str | None = None,
         firma_payload: dict | None = None,
@@ -435,7 +434,6 @@ class WorkflowEngine:
             target_state_name: nombre del Estado destino
             user: User que ejecuta
             comentarios: justificación
-            monto_aprobado: opcional, propagado al SeguimientoWorkflow + side_effects
             condiciones: opcional
             ip_address: opcional
             firma_payload: opcional, dual shape (S13.6):
@@ -493,7 +491,6 @@ class WorkflowEngine:
             estado_nuevo=estado_nuevo,
             usuario_accion=user,
             comentarios=comentarios,
-            monto_aprobado=monto_aprobado,
             condiciones=condiciones,
             ip_address=ip_address,
             firma_registro=registro_firma,
@@ -510,7 +507,6 @@ class WorkflowEngine:
             target_state_name,
             instance,
             user,
-            monto_aprobado=monto_aprobado,
         )
 
         return {
