@@ -1,6 +1,6 @@
 # sinpapel
 
-> **v0.6.0** — Versioned state machines, immutable audit trail, and pluggable electronic signatures for Django.
+> **v0.7.0** — Versioned state machines, immutable audit trail, and pluggable electronic signatures for Django.
 
 [![PyPI](https://img.shields.io/pypi/v/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Python](https://img.shields.io/pypi/pyversions/sinpapel.svg)](https://pypi.org/project/sinpapel/)
@@ -160,7 +160,7 @@ CI runs the test suite across the full matrix.
 
 ## Versioning & Stability
 
-sinpapel follows [Semantic Versioning](https://semver.org/). The current release is **v0.6.0 (Beta)**. Public APIs (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, model fields, schema JSON v0.2) are stable in the 0.x series; breaking changes will bump the minor version and be flagged in `docs/development/changelog.md` until 1.0.0. **Upgrading from 0.5.x:** transitions now enforce any `RequisitoEstadoDocumento` rules that were previously configured but never evaluated — review existing flows before upgrading.
+sinpapel follows [Semantic Versioning](https://semver.org/). The current release is **v0.7.0 (Beta)**. Public APIs (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, model fields, schema JSON v0.2) are stable in the 0.x series; breaking changes will bump the minor version and be flagged in `docs/development/changelog.md` until 1.0.0. **Upgrading to 0.7.0:** `transition()` / `cambiar_estado()` no longer accept the `monto_aprobado` parameter (removed in 0.7.0) — carry domain data via metadata (`MetadatosCapturables`) or `condiciones` / `comentarios` instead. Since 0.6.0, transitions also enforce any `RequisitoEstadoDocumento` rules that were previously configured but never evaluated — review existing flows before upgrading.
 
 ## Contributing
 

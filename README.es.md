@@ -1,6 +1,6 @@
 # sinpapel
 
-> **v0.6.0** — Máquinas de estado versionadas, auditoría inmutable y firmas electrónicas plugables para Django.
+> **v0.7.0** — Máquinas de estado versionadas, auditoría inmutable y firmas electrónicas plugables para Django.
 
 [![PyPI](https://img.shields.io/pypi/v/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Python](https://img.shields.io/pypi/pyversions/sinpapel.svg)](https://pypi.org/project/sinpapel/)
@@ -160,7 +160,7 @@ CI corre el suite de tests contra la matriz completa.
 
 ## Versionado y Estabilidad
 
-sinpapel sigue [Semantic Versioning](https://semver.org/). La release actual es **v0.6.0 (Beta)**. Las APIs públicas (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, campos de modelos, schema JSON v0.2) son estables en la serie 0.x; los breaking changes incrementarán el minor y serán marcados en `docs/development/changelog.md` hasta 1.0.0. **Al actualizar desde 0.5.x:** las transiciones ahora enforzan las reglas `RequisitoEstadoDocumento` que antes se configuraban pero nunca se evaluaban — revisa tus flujos existentes antes de actualizar.
+sinpapel sigue [Semantic Versioning](https://semver.org/). La release actual es **v0.7.0 (Beta)**. Las APIs públicas (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, campos de modelos, schema JSON v0.2) son estables en la serie 0.x; los breaking changes incrementarán el minor y serán marcados en `docs/development/changelog.md` hasta 1.0.0. **Al actualizar a 0.7.0:** `transition()` / `cambiar_estado()` ya no aceptan el parámetro `monto_aprobado` (eliminado en 0.7.0) — usa metadatos (`MetadatosCapturables`) o `condiciones` / `comentarios` para los datos de dominio. Desde 0.6.0, las transiciones además enforzan las reglas `RequisitoEstadoDocumento` que antes se configuraban pero nunca se evaluaban — revisa tus flujos existentes antes de actualizar.
 
 ## Contribuir
 

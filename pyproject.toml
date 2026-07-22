@@ -52,13 +52,11 @@ docs = [
     "mkdocstrings[python]>=0.25",
 ]
 
-# URLs intentionally omitted until a public repo URL is decided.
-# Before the first PyPI publish, uncomment and fill in:
-# [project.urls]
-# Homepage  = "https://example.com/sinpapel"
-# Source    = "https://example.com/sinpapel"
-# Issues    = "https://example.com/sinpapel/issues"
-# Changelog = "https://example.com/sinpapel/blob/main/CHANGELOG.md"
+[project.urls]
+Homepage  = "https://github.com/aprendomx/sinpapel"
+Source    = "https://github.com/aprendomx/sinpapel"
+Issues    = "https://github.com/aprendomx/sinpapel/issues"
+Changelog = "https://github.com/aprendomx/sinpapel/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["setuptools>=77"]
