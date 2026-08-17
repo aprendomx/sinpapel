@@ -80,7 +80,7 @@ Las transiciones, requisitos documentales, auditoría, firmas y metadatos son **
 pip install sinpapel
 
 # O con versión fija:
-pip install "sinpapel==0.5.0"
+pip install "sinpapel==0.7.0"
 ```
 
 **Requisitos:**

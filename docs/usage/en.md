@@ -82,7 +82,7 @@ Transitions, document requirements, audit, signatures, and metadata are **data, 
 pip install sinpapel
 
 # Or with a fixed version:
-pip install "sinpapel==0.5.0"
+pip install "sinpapel==0.7.0"
 ```
 
 **Requirements:**
