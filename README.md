@@ -5,10 +5,10 @@
 [![PyPI](https://img.shields.io/pypi/v/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Python](https://img.shields.io/pypi/pyversions/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Django](https://img.shields.io/badge/django-5.0%20%7C%205.1-blue)](https://www.djangoproject.com/)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/aprendomx/sinpapel/blob/main/LICENSE)
 [![Tests](https://img.shields.io/badge/tests-268%20passing-brightgreen)](#)
 
-🇪🇸 [Leer en Español](README.es.md)
+🇪🇸 [Leer en Español](https://github.com/aprendomx/sinpapel/blob/main/README.es.md)
 
 ---
 
@@ -112,21 +112,21 @@ def on_sla_breach(sender, instance, sla, **kwargs):
     notify_team(instance, sla)
 ```
 
-Full end-to-end examples, schema seeding, predicate cookbook, signing backend setup, and admin integration live in [`docs/usage/en.md`](docs/usage/en.md).
+Full end-to-end examples, schema seeding, predicate cookbook, signing backend setup, and admin integration live in [`docs/usage/en.md`](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md).
 
 ## What's Inside
 
 | Subsystem | Module | Docs |
 |---|---|---|
-| Workflow Engine | `sinpapel.services.workflow_engine` | [USAGE §State Transitions](docs/usage/en.md#8-state-transitions) |
-| Predicates | `sinpapel.services.predicate_engine` | [USAGE §Transition Predicates](docs/usage/en.md#9-transition-predicates) |
-| Metadata | `sinpapel.mixins` | [USAGE §Metadata](docs/usage/en.md#10-structured-metadata-capture) |
-| Forms Factory | `sinpapel.forms` | [USAGE §Forms](docs/usage/en.md#11-formserializer-factory) |
-| Signing | `sinpapel.signing` | [USAGE §Signing](docs/usage/en.md#12-signing-backends) |
-| Audit Trail | `sinpapel.models` + `sinpapel.mixins.Trazable` | [USAGE §Audit](docs/usage/en.md#13-audit-trail) |
-| SLA Engine | `sinpapel.services.sla_engine` | [USAGE §SLA](docs/usage/en.md) |
-| Custom Signals | `sinpapel.signals` | [USAGE §Signals](docs/usage/en.md) |
-| Schema Export/Import | `sinpapel.schemas` + management commands | [USAGE §Schema](docs/usage/en.md) |
+| Workflow Engine | `sinpapel.services.workflow_engine` | [USAGE §State Transitions](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md#8-state-transitions) |
+| Predicates | `sinpapel.services.predicate_engine` | [USAGE §Transition Predicates](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md#9-transition-predicates) |
+| Metadata | `sinpapel.mixins` | [USAGE §Metadata](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md#10-structured-metadata-capture) |
+| Forms Factory | `sinpapel.forms` | [USAGE §Forms](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md#11-formserializer-factory) |
+| Signing | `sinpapel.signing` | [USAGE §Signing](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md#12-signing-backends) |
+| Audit Trail | `sinpapel.models` + `sinpapel.mixins.Trazable` | [USAGE §Audit](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md#13-audit-trail) |
+| SLA Engine | `sinpapel.services.sla_engine` | [USAGE §SLA](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md) |
+| Custom Signals | `sinpapel.signals` | [USAGE §Signals](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md) |
+| Schema Export/Import | `sinpapel.schemas` + management commands | [USAGE §Schema](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md) |
 
 ## Configuration
 
@@ -140,7 +140,7 @@ SINPAPEL_ALLOW_SERVER_SIGNING = False  # gate FIEL server-side signing (legal re
 SINPAPEL_EMIT_PREVIEW_EVENTS = False   # set True to fire transition_preview_requested signal
 ```
 
-See [USAGE §Settings](docs/usage/en.md#4-settings) for the full reference.
+See [USAGE §Settings](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md#4-settings) for the full reference.
 
 ## Compatibility
 
@@ -152,11 +152,11 @@ CI runs the test suite across the full matrix.
 
 ## Documentation
 
-- [Usage Guide](docs/usage/en.md) — full reference (EN)
-- [Guía de Uso](docs/usage/es.md) — full reference (ES)
-- [Changelog](docs/development/changelog.md)
-- [Contributing](docs/development/contributing.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Usage Guide](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md) — full reference (EN)
+- [Guía de Uso](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md) — full reference (ES)
+- [Changelog](https://github.com/aprendomx/sinpapel/blob/main/docs/development/changelog.md)
+- [Contributing](https://github.com/aprendomx/sinpapel/blob/main/docs/development/contributing.md)
+- [Code of Conduct](https://github.com/aprendomx/sinpapel/blob/main/CODE_OF_CONDUCT.md)
 
 ## Versioning & Stability
 
@@ -164,7 +164,7 @@ sinpapel follows [Semantic Versioning](https://semver.org/). The current release
 
 ## Contributing
 
-Pull requests are welcome. Please read [docs/development/contributing.md](docs/development/contributing.md) for development setup, commit conventions, and the Developer Certificate of Origin (DCO) sign-off requirement.
+Pull requests are welcome. Please read [docs/development/contributing.md](https://github.com/aprendomx/sinpapel/blob/main/docs/development/contributing.md) for development setup, commit conventions, and the Developer Certificate of Origin (DCO) sign-off requirement.
 
 ## License
 
@@ -172,4 +172,4 @@ Copyright (C) 2024-2026 Julio Adrián.
 
 sinpapel is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
-sinpapel is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU General Public License](LICENSE) for more details.
+sinpapel is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU General Public License](https://github.com/aprendomx/sinpapel/blob/main/LICENSE) for more details.

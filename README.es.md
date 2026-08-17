@@ -5,10 +5,10 @@
 [![PyPI](https://img.shields.io/pypi/v/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Python](https://img.shields.io/pypi/pyversions/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Django](https://img.shields.io/badge/django-5.0%20%7C%205.1-blue)](https://www.djangoproject.com/)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/aprendomx/sinpapel/blob/main/LICENSE)
 [![Tests](https://img.shields.io/badge/tests-268%20passing-brightgreen)](#)
 
-🇺🇸 [Read in English](README.md)
+🇺🇸 [Read in English](https://github.com/aprendomx/sinpapel/blob/main/README.md)
 
 ---
 
@@ -112,21 +112,21 @@ def on_sla_breach(sender, instance, sla, **kwargs):
     notify_team(instance, sla)
 ```
 
-Ejemplos end-to-end completos, seeding de schema, cookbook de predicados, setup de backends de firma e integración con admin viven en [`docs/usage/es.md`](docs/usage/es.md).
+Ejemplos end-to-end completos, seeding de schema, cookbook de predicados, setup de backends de firma e integración con admin viven en [`docs/usage/es.md`](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md).
 
 ## Qué Incluye
 
 | Subsistema | Módulo | Docs |
 |---|---|---|
-| Motor de Workflow | `sinpapel.services.workflow_engine` | [USAGE §Transiciones](docs/usage/es.md#8-transiciones-de-estado) |
-| Predicados | `sinpapel.services.predicate_engine` | [USAGE §Predicados](docs/usage/es.md#9-predicados-de-transición) |
-| Metadatos | `sinpapel.mixins` | [USAGE §Metadatos](docs/usage/es.md#10-captura-estructurada-de-metadatos) |
-| Forms Factory | `sinpapel.forms` | [USAGE §Forms](docs/usage/es.md#11-formserializer-factory) |
-| Firmas | `sinpapel.signing` | [USAGE §Firmas](docs/usage/es.md#12-backends-de-firma) |
-| Auditoría | `sinpapel.models` + `sinpapel.mixins.Trazable` | [USAGE §Auditoría](docs/usage/es.md#13-pista-de-auditoría) |
-| Motor SLA | `sinpapel.services.sla_engine` | [USAGE §SLA](docs/usage/es.md) |
-| Signals Personalizados | `sinpapel.signals` | [USAGE §Signals](docs/usage/es.md) |
-| Export/Import de Schema | `sinpapel.schemas` + management commands | [USAGE §Schema](docs/usage/es.md) |
+| Motor de Workflow | `sinpapel.services.workflow_engine` | [USAGE §Transiciones](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#8-transiciones-de-estado) |
+| Predicados | `sinpapel.services.predicate_engine` | [USAGE §Predicados](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#9-predicados-de-transición) |
+| Metadatos | `sinpapel.mixins` | [USAGE §Metadatos](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#10-captura-estructurada-de-metadatos) |
+| Forms Factory | `sinpapel.forms` | [USAGE §Forms](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#11-formserializer-factory) |
+| Firmas | `sinpapel.signing` | [USAGE §Firmas](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#12-backends-de-firma) |
+| Auditoría | `sinpapel.models` + `sinpapel.mixins.Trazable` | [USAGE §Auditoría](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#13-pista-de-auditoría) |
+| Motor SLA | `sinpapel.services.sla_engine` | [USAGE §SLA](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md) |
+| Signals Personalizados | `sinpapel.signals` | [USAGE §Signals](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md) |
+| Export/Import de Schema | `sinpapel.schemas` + management commands | [USAGE §Schema](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md) |
 
 ## Configuración
 
@@ -140,7 +140,7 @@ SINPAPEL_ALLOW_SERVER_SIGNING = False  # habilita firma FIEL server-side (revisi
 SINPAPEL_EMIT_PREVIEW_EVENTS = False   # poner True para disparar el signal transition_preview_requested
 ```
 
-Ver [USAGE §Settings](docs/usage/es.md#4-settings) para la referencia completa.
+Ver [USAGE §Settings](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#4-settings) para la referencia completa.
 
 ## Compatibilidad
 
@@ -152,11 +152,11 @@ CI corre el suite de tests contra la matriz completa.
 
 ## Documentación
 
-- [Guía de Uso](docs/usage/es.md) — referencia completa (ES)
-- [Usage Guide](docs/usage/en.md) — referencia completa (EN)
-- [Changelog](docs/development/changelog.md)
-- [Contributing](docs/development/contributing.md)
-- [Código de Conducta](CODE_OF_CONDUCT.md)
+- [Guía de Uso](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md) — referencia completa (ES)
+- [Usage Guide](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md) — referencia completa (EN)
+- [Changelog](https://github.com/aprendomx/sinpapel/blob/main/docs/development/changelog.md)
+- [Contributing](https://github.com/aprendomx/sinpapel/blob/main/docs/development/contributing.md)
+- [Código de Conducta](https://github.com/aprendomx/sinpapel/blob/main/CODE_OF_CONDUCT.md)
 
 ## Versionado y Estabilidad
 
@@ -164,7 +164,7 @@ sinpapel sigue [Semantic Versioning](https://semver.org/). La release actual es 
 
 ## Contribuir
 
-Los pull requests son bienvenidos. Por favor lee [docs/development/contributing.md](docs/development/contributing.md) para setup de desarrollo, convenciones de commits y el requisito de sign-off DCO (Developer Certificate of Origin).
+Los pull requests son bienvenidos. Por favor lee [docs/development/contributing.md](https://github.com/aprendomx/sinpapel/blob/main/docs/development/contributing.md) para setup de desarrollo, convenciones de commits y el requisito de sign-off DCO (Developer Certificate of Origin).
 
 ## Licencia
 
@@ -172,4 +172,4 @@ Copyright (C) 2024-2026 Julio Adrián.
 
 sinpapel es software libre: puedes redistribuirlo y/o modificarlo bajo los términos de la GNU General Public License publicada por la Free Software Foundation, ya sea la versión 3 de la Licencia, o (a tu elección) cualquier versión posterior.
 
-sinpapel se distribuye con la esperanza de ser útil, pero **SIN NINGUNA GARANTÍA**; sin siquiera la garantía implícita de COMERCIABILIDAD o IDONEIDAD PARA UN PROPÓSITO PARTICULAR. Ver la [GNU General Public License](LICENSE) para más detalles.
+sinpapel se distribuye con la esperanza de ser útil, pero **SIN NINGUNA GARANTÍA**; sin siquiera la garantía implícita de COMERCIABILIDAD o IDONEIDAD PARA UN PROPÓSITO PARTICULAR. Ver la [GNU General Public License](https://github.com/aprendomx/sinpapel/blob/main/LICENSE) para más detalles.
