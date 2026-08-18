@@ -44,7 +44,7 @@ When the process changes, you publish a new `VersionFlujo` (flow version). Exist
 2. **Immutable audit trail** — every transition writes a `SeguimientoWorkflow` record (who, when, from where, with which signature), and the `Trazable` mixin (built on `django-simple-history`) versions field-level changes on the model itself.
 3. **Pluggable electronic signature** — a Port/Adapter design. Ships with `FielBackend` for Mexico's SAT FIEL (client-side and server-side modes), plus manual and fake backends for development and tests. Writing your own means implementing a small `Protocol`.
 4. **Transition predicates** — business rules that block a transition: whitelisted Python functions, restricted JSON Logic, or declarative ORM checks. Configured per transition, as data.
-5. **Watched SLAs** — maximum time per state; on breach, the engine detects it and fires the `sla_breached` signal with the full case context, onto which you hang your actions (notify, escalate, reject). A management command on cron as the entry point. Built-in action execution lands in 1.0 — today the pattern is subscribing to the signal.
+5. **SLAs with teeth** — maximum time per state, measured as time-in-state since the last transition. On breach, the engine executes the configured action: escalate/reject run the automatic transition (as a system user), flag persists the marker, notify dispatches to your handler. A management command on cron as the entry point, plus the `sla_breached` signal to hang anything else on.
 
 On top of that: structured per-instance metadata capture without migrations (`MetadatosCapturables`), domain signals, and full flow export/import as portable JSON.
 
@@ -67,7 +67,7 @@ The full loop: draw the process in the designer, import the JSON with a manageme
 
 Honesty first:
 
-- **It's 0.x.** The public API is stable in practice but still beta; pin exact versions (`sinpapel==0.7.1`).
+- **It's 0.x.** The public API is stable in practice but still beta; pin the minor (`sinpapel~=0.8.2`).
 - **i18n:** the framework's messages and verbose names are in Spanish. If your product ships in another language, you'll override strings in forms/serializers.
 - **GPL-3.0.** Real copyleft. A great fit for government and public software; evaluate carefully if your business model is closed SaaS.
 - **The FIEL signature backend is Mexico-specific** (SAT). For other schemes, the `SignatureBackend` contract is small and documented.
