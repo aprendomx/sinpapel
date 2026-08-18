@@ -78,6 +78,8 @@ def serialize_flujo(flujo: "VersionFlujo", *, inline_catalogs: bool = False) -> 
             "grupos_permitidos": sorted(
                 t.grupos_permitidos.values_list("name", flat=True)
             ),
+            # 0.8.2: key aditiva (JSONs viejos no la traen → default False)
+            "requiere_firma": t.requiere_firma,
         }
         condiciones = [
             {
@@ -449,6 +451,7 @@ def deserialize_flujo(
             flujo=flujo,
             estado_origen=estado_lookup[t_data["estado_origen"]],
             estado_destino=estado_lookup[t_data["estado_destino"]],
+            requiere_firma=t_data.get("requiere_firma", False),
         )
         for group_name in t_data["grupos_permitidos"]:
             ct.grupos_permitidos.add(Group.objects.get(name=group_name))

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.2] — 2026-08-18
+
+### Fixed
+- **`requiere_firma` sobrevive el round-trip export/import.** `serialize_flujo`
+  no serializaba el campo nuevo de 0.8.0 y `deserialize_flujo` lo perdía
+  (quedaba en False al importar). Key aditiva al schema v0.2 — JSONs viejos
+  sin la key importan con default False; el número de schema no cambia.
+
 ## [0.8.1] — 2026-08-18
 
 ### Added
@@ -271,7 +279,8 @@ lee la [guía de upgrade](upgrading.md#07x--080) antes de actualizar.
 - `django-simple-history` integration for full change history.
 - PEP 561 `py.typed` marker for type-checker downstream consumers.
 
-[Unreleased]: https://github.com/aprendomx/sinpapel/compare/v0.8.1...HEAD
+[Unreleased]: https://github.com/aprendomx/sinpapel/compare/v0.8.2...HEAD
+[0.8.2]: https://github.com/aprendomx/sinpapel/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/aprendomx/sinpapel/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/aprendomx/sinpapel/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/aprendomx/sinpapel/compare/v0.7.0...v0.7.1

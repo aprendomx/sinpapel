@@ -368,6 +368,36 @@ def test_requisitos_documentales_una_sola_query(setup_reg, django_assert_num_que
     assert all(r["porcentaje_actual"] == 0 for r in resultado)
 
 
+@pytest.mark.django_db
+def test_requiere_firma_sobrevive_round_trip_export_import(setup_reg):
+    """0.8.2: requiere_firma se serializa y se restaura en el import."""
+    from sinpapel.models import ConfiguracionTransicion
+    from sinpapel.schemas.flujo_export import deserialize_flujo, serialize_flujo
+
+    ConfiguracionTransicion.objects.filter(flujo=setup_reg["flujo"]).update(
+        requiere_firma=True
+    )
+    data = serialize_flujo(setup_reg["flujo"])
+    assert all(t["requiere_firma"] is True for t in data["flujo"]["transiciones"])
+
+    data["flujo"]["nombre"] = "REG_FLUJO_IMPORTADO"
+    importado = deserialize_flujo(data)
+    assert importado is not None
+    assert all(
+        t.requiere_firma
+        for t in ConfiguracionTransicion.objects.filter(flujo=importado)
+    )
+    # JSONs viejos sin la key siguen importando (default False)
+    for t in data["flujo"]["transiciones"]:
+        t.pop("requiere_firma")
+    data["flujo"]["nombre"] = "REG_FLUJO_LEGACY"
+    legacy = deserialize_flujo(data)
+    assert not any(
+        t.requiere_firma
+        for t in ConfiguracionTransicion.objects.filter(flujo=legacy)
+    )
+
+
 @pytest.mark.django_db(transaction=True)
 def test_side_effects_corren_post_commit(setup_reg, sinpapel_migrated):
     """El handler de side effect debe ejecutarse fuera de la transacción."""

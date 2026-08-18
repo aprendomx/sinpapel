@@ -1,6 +1,6 @@
 # sinpapel
 
-> **v0.8.1** — Máquinas de estado versionadas, auditoría inmutable y firmas electrónicas plugables para Django.
+> **v0.8.2** — Máquinas de estado versionadas, auditoría inmutable y firmas electrónicas plugables para Django.
 
 [![PyPI](https://img.shields.io/pypi/v/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Python](https://img.shields.io/pypi/pyversions/sinpapel.svg)](https://pypi.org/project/sinpapel/)
