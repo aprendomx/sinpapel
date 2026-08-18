@@ -16,11 +16,6 @@ from django.test import override_settings
 @override_settings(DEBUG=True)
 def test_workflow_engine_uses_cache_in_consecutive_transitions():
     """S13.1 AC2 E2E: 2da llamada a available_transitions usa cache."""
-    from tests.models import (
-        TestProducto,
-        TestProductoVersionFlujo,
-        TestSolicitud,
-    )
     from sinpapel.cache import clear_all
     from sinpapel.models import (
         ConfiguracionTransicion,
@@ -28,6 +23,11 @@ def test_workflow_engine_uses_cache_in_consecutive_transitions():
         VersionFlujo,
     )
     from sinpapel.services.workflow_engine import WorkflowEngine
+    from tests.models import (
+        TestProducto,
+        TestProductoVersionFlujo,
+        TestSolicitud,
+    )
 
     # Setup mínimo (similar a setup_engine_basico fixture)
     estado_origen, _ = Estado.objects.get_or_create(nombre="CACHE_INT_ORIGEN")

@@ -212,8 +212,9 @@ def test_engine_atomic_transaction(setup_engine_basico):
 
 @pytest.mark.django_db
 def test_engine_accepts_pre_created_registro_firma(setup_engine_basico):
-    from sinpapel.models import RegistroFirma, SeguimientoWorkflow
     import datetime
+
+    from sinpapel.models import RegistroFirma, SeguimientoWorkflow
 
     superuser = User.objects.create_superuser("eng_modo_b", password="x")
     rf = RegistroFirma.objects.create(
@@ -242,17 +243,19 @@ def test_engine_accepts_pre_created_registro_firma(setup_engine_basico):
 
 
 @pytest.mark.django_db
-def test_engine_modo_a_verify_fields_uses_fiel_backend(setup_engine_basico, monkeypatch):
+def test_engine_modo_a_usa_backend_configurado(setup_engine_basico, monkeypatch):
+    """0.8.0: modo A resuelve el backend vía get_signature_backend() (factory),
+    ya no instancia FielBackend hardcodeado, y pasa los kwargs del payload."""
     from sinpapel.models import RegistroFirma
-    from sinpapel.signing.backends import fiel as fiel_module
+    from sinpapel.signing import factory as factory_module
 
     captured = {}
 
-    class _MockFielBackend:
+    class _MockBackend:
         def request_signature(self, **kwargs):
             captured.update(kwargs)
             return RegistroFirma.objects.create(
-                backend_name="fiel",
+                backend_name="mock",
                 backend_metadata={"mock": True},
                 content_hash="sha256:mock",
                 signer=kwargs.get("signer"),
@@ -262,7 +265,9 @@ def test_engine_modo_a_verify_fields_uses_fiel_backend(setup_engine_basico, monk
                 signed_at=__import__("datetime").datetime.now(__import__("datetime").timezone.utc),
             )
 
-    monkeypatch.setattr(fiel_module, "FielBackend", _MockFielBackend)
+    monkeypatch.setattr(
+        factory_module, "get_signature_backend", lambda: _MockBackend()
+    )
 
     superuser = User.objects.create_superuser("eng_modo_a", password="x")
     payload = {
@@ -307,6 +312,7 @@ def test_preview_transition_permitido():
 def test_preview_transition_bloqueado_permiso():
     """Preview returns permitido=False with permission error."""
     from django.contrib.auth.models import Group
+
     from sinpapel.models import ConfiguracionTransicion, Estado, VersionFlujo
     from tests.models import TestSolicitud
 

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import pytest
 from django.contrib.auth.models import User
-from django.db import models
 
 from sinpapel import (
     WorkflowConfigurationError,
@@ -11,7 +10,6 @@ from sinpapel import (
     WorkflowRegistry,
     workflow_enabled,
 )
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Mock models — usados en tests unitarios sin tocar DB
@@ -31,15 +29,35 @@ class _MockModelMeta:
         return object()  # placeholder field
 
 
-def _make_mock_model_class(name: str, fields: list[str]):
-    """Construye una clase mock con _meta.get_field para tests del decorator."""
-    cls = type(name, (), {"_meta": _MockModelMeta(fields)})
+def _make_mock_model_class(name: str, fields: list[str], *, trazable: bool = True):
+    """Construye una clase mock con _meta.get_field para tests del decorator.
+
+    Por default incluye 'actualizado' (contrato Trazable que el decorator
+    valida); pasar trazable=False para probar la validación de ese contrato.
+    """
+    effective = fields + ["actualizado"] if trazable else fields
+    cls = type(name, (), {"_meta": _MockModelMeta(effective)})
     return cls
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Decorator validation tests — unit, no DB
 # ──────────────────────────────────────────────────────────────────────────────
+
+
+def test_decorator_validates_trazable_contract():
+    """Modelo sin campo 'actualizado' (contrato Trazable) → error en decoración."""
+    import pytest
+
+    from sinpapel.exceptions import WorkflowConfigurationError
+
+    NoTrazable = _make_mock_model_class(
+        "NoTrazable", fields=["estado"], trazable=False
+    )
+    with pytest.raises(WorkflowConfigurationError, match="actualizado"):
+        workflow_enabled(state_field="estado", workflow_key="no_trazable_test")(
+            NoTrazable
+        )
 
 
 def test_decorator_validates_state_field_exists():
@@ -187,12 +205,12 @@ def test_available_transitions_with_no_estado_returns_empty():
 @pytest.mark.django_db
 def test_available_transitions_queries_db():
     """AC4: con ConfiguracionTransicion configurada, retorna estados destino."""
-    from tests.models import TestSolicitud
     from sinpapel.models import (
         ConfiguracionTransicion,
         Estado,
         VersionFlujo,
     )
+    from tests.models import TestSolicitud
 
     user = User.objects.create_user("test_avail_db", password="x")
     estado_origen, _ = Estado.objects.get_or_create(nombre="ORIGEN_AVAIL")
@@ -212,8 +230,8 @@ def test_available_transitions_queries_db():
 @pytest.mark.django_db
 def test_can_transition_to_returns_tuple():
     """AC5: can_transition_to retorna (bool, str | None)."""
-    from tests.models import TestSolicitud
     from sinpapel.models import Estado
+    from tests.models import TestSolicitud
 
     user = User.objects.create_user("test_can_trans", password="x")
     estado_origen, _ = Estado.objects.get_or_create(nombre="CAPTURA")
@@ -230,13 +248,13 @@ def test_can_transition_to_returns_tuple():
 @pytest.mark.django_db
 def test_transition_delegates_to_workflow_service():
     """AC6: transition() delega a WorkflowEngine y crea SeguimientoWorkflow."""
-    from tests.models import TestSolicitud, TestProducto, TestProductoVersionFlujo
     from sinpapel.models import (
         ConfiguracionTransicion,
         Estado,
         SeguimientoWorkflow,
         VersionFlujo,
     )
+    from tests.models import TestProducto, TestProductoVersionFlujo, TestSolicitud
 
     superuser = User.objects.create_superuser("test_trans_super", password="x")
     estado_origen, _ = Estado.objects.get_or_create(nombre="CAPTURA")

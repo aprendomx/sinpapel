@@ -1,10 +1,10 @@
 # sinpapel
 
-> **v0.7.1** — Máquinas de estado versionadas, auditoría inmutable y firmas electrónicas plugables para Django.
+> **v0.8.0** — Máquinas de estado versionadas, auditoría inmutable y firmas electrónicas plugables para Django.
 
 [![PyPI](https://img.shields.io/pypi/v/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Python](https://img.shields.io/pypi/pyversions/sinpapel.svg)](https://pypi.org/project/sinpapel/)
-[![Django](https://img.shields.io/badge/django-5.0%20%7C%205.1-blue)](https://www.djangoproject.com/)
+[![Django](https://img.shields.io/badge/django-5.0%E2%80%936.0-blue)](https://www.djangoproject.com/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/aprendomx/sinpapel/blob/main/LICENSE)
 [![Tests](https://img.shields.io/badge/tests-280%20passing-brightgreen)](#)
 
@@ -25,7 +25,7 @@ Construir procesos sin papel en Django suele significar pegar una librería de m
 - **Formularios y Serializers Dinámicos** — `MetaFormFactory` construye Django Forms desde el schema de metadatos; modo DRF Serializer también soportado.
 - **Backends de Firma Plugables** — interfaz strategy `SignatureBackend` más backends de referencia: `FakeBackend` (tests), `ManualBackend` (default) y `FielBackend` (FIEL/SAT, RSA-SHA256 + X.509).
 - **Pista de Auditoría Inmutable** — mixin `Trazable`, historial `SeguimientoWorkflow`, `RegistroFirma`, más integración con `django-simple-history`.
-- **Timers SLA y Preview de Transiciones** — `SLAConfiguracion` modela tiempos máximos por estado y `SLAEngine` detecta vencimientos, emitiendo la señal `sla_breached`. ⚠️ **Estado en 0.7.x:** las acciones integradas (notificar / escalar / rechazar / alertar) son stubs informativos — describen la acción configurada pero no la ejecutan; suscríbete a `sla_breached` / `sla_action_executed` para implementar el comportamiento real por ahora (ejecución completa planeada para 1.0). `preview_transition()` retorna un reporte de impacto (razones de bloqueo, documentos faltantes, predicados fallidos) sin mutar el estado — disponible tanto como `WorkflowEngine.preview_transition()` como método en la instancia.
+- **Timers SLA y Preview de Transiciones** — `SLAConfiguracion` modela tiempos máximos por estado (medidos como tiempo-en-estado desde la última transición) y `SLAEngine` ejecuta las acciones configuradas al vencer: notificar (vía `SINPAPEL_SLA_NOTIFY_HANDLER`), escalar/rechazar (transición automática del `SINPAPEL_SLA_SYSTEM_USER`) o alertar (bandera persistida). El cron se conecta con el comando `sinpapel_verificar_slas` (`--dry-run` soportado). `preview_transition()` retorna un reporte de impacto (razones de bloqueo, documentos faltantes, predicados fallidos, si exige firma) sin mutar el estado.
 - **Signals de Dominio Personalizados** — `predicate_failed`, `sla_breached`, `sla_action_executed`, `transition_preview_requested` para observabilidad y cableado de side-effects.
 
 ## Instalación
@@ -120,10 +120,10 @@ Ejemplos end-to-end completos, seeding de schema, cookbook de predicados, setup 
 |---|---|---|
 | Motor de Workflow | `sinpapel.services.workflow_engine` | [USAGE §Transiciones](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#8-transiciones-de-estado) |
 | Predicados | `sinpapel.services.predicate_engine` | [USAGE §Predicados](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#9-predicados-de-transición) |
-| Metadatos | `sinpapel.mixins` | [USAGE §Metadatos](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#10-captura-estructurada-de-metadatos) |
-| Forms Factory | `sinpapel.forms` | [USAGE §Forms](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#11-formserializer-factory) |
+| Metadatos | `sinpapel.mixins` | [USAGE §Metadatos](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#10-captura-de-metadatos-estructurados) |
+| Forms Factory | `sinpapel.forms` | [USAGE §Forms](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#11-factory-de-formsserializers) |
 | Firmas | `sinpapel.signing` | [USAGE §Firmas](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#12-backends-de-firma) |
-| Auditoría | `sinpapel.models` + `sinpapel.mixins.Trazable` | [USAGE §Auditoría](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#13-pista-de-auditoría) |
+| Auditoría | `sinpapel.models` + `sinpapel.mixins.Trazable` | [USAGE §Auditoría](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#13-auditoría-audit-trail) |
 | Motor SLA | `sinpapel.services.sla_engine` | [USAGE §SLA](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md) |
 | Signals Personalizados | `sinpapel.signals` | [USAGE §Signals](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md) |
 | Export/Import de Schema | `sinpapel.schemas` + management commands | [USAGE §Schema](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md) |
@@ -138,15 +138,20 @@ Settings opcionales de Django:
 SINPAPEL_SIGNATURE_BACKEND = "sinpapel.signing.backends.fiel.FielBackend"
 SINPAPEL_ALLOW_SERVER_SIGNING = False  # habilita firma FIEL server-side (revisión legal)
 SINPAPEL_EMIT_PREVIEW_EVENTS = False   # poner True para disparar el signal transition_preview_requested
+# Bundle de ACs del SAT para cadena de confianza FIEL (path PEM o lista).
+# Sin bundle, las firmas FIEL se guardan como VALIDA_SIN_CADENA.
+SINPAPEL_FIEL_TRUSTED_CA_BUNDLE = "/etc/ssl/sat/acs.pem"
+SINPAPEL_SLA_SYSTEM_USER = "sla-bot"          # usuario de transiciones automáticas SLA
+SINPAPEL_SLA_NOTIFY_HANDLER = "miapp.notify.sla_handler"  # hook de notificación SLA
 ```
 
-Ver [USAGE §Settings](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#4-settings) para la referencia completa.
+Ver [USAGE §Settings](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/es.md#4-configuración) para la referencia completa.
 
 ## Compatibilidad
 
 | Python | Django |
 |---|---|
-| 3.10, 3.11, 3.12, 3.13 | 5.0, 5.1 |
+| 3.10, 3.11, 3.12, 3.13 | 5.0 – 6.0 (CI: 5.0, 5.2 LTS, 6.0) |
 
 CI corre el suite de tests contra la matriz completa.
 
@@ -160,7 +165,7 @@ CI corre el suite de tests contra la matriz completa.
 
 ## Versionado y Estabilidad
 
-sinpapel sigue [Semantic Versioning](https://semver.org/). La release actual es **v0.7.1 (Beta)**. Las APIs públicas (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, campos de modelos, schema JSON v0.2) son estables en la serie 0.x; los breaking changes incrementarán el minor y serán marcados en `docs/development/changelog.md` hasta 1.0.0. **Al actualizar a 0.7.0:** `transition()` / `cambiar_estado()` ya no aceptan el parámetro `monto_aprobado` (eliminado en 0.7.0) — usa metadatos (`MetadatosCapturables`) o `condiciones` / `comentarios` para los datos de dominio. Desde 0.6.0, las transiciones además enforzan las reglas `RequisitoEstadoDocumento` que antes se configuraban pero nunca se evaluaban — revisa tus flujos existentes antes de actualizar.
+sinpapel sigue [Semantic Versioning](https://semver.org/). La release actual es **v0.8.0 (Beta)**. La superficie pública estable está definida explícitamente en [docs/development/api-publica.md](https://github.com/aprendomx/sinpapel/blob/main/docs/development/api-publica.md). Contrato pre-1.0: **los minors PUEDEN incluir breaking changes** (cada uno documentado en la [guía de upgrade](https://github.com/aprendomx/sinpapel/blob/main/docs/development/upgrading.md) y el changelog); los patch son solo fixes. Pinea el minor (`sinpapel~=0.8.0`) hasta 1.0.0.
 
 ## Contribuir
 

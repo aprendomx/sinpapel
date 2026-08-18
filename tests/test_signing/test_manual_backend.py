@@ -4,7 +4,7 @@ from __future__ import annotations
 import pytest
 from django.contrib.auth.models import User
 
-from sinpapel.signing import SignatureBackend, VerificationResult
+from sinpapel.signing import SignatureBackend
 from sinpapel.signing.backends.manual import ManualBackend
 
 

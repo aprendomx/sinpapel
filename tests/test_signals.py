@@ -10,7 +10,6 @@ from django.contrib.auth.models import Group
 from django.db import connection, transaction
 from django.test import override_settings
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # T1 — Happy-path tests (post_save + post_delete)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -36,7 +35,7 @@ def test_post_save_estado_invalidates_cache():
 
     # 2da llamada: cache hit
     n0 = len(connection.queries)
-    s2 = get_estado_by_name("SIG_EST_INV_TEST")
+    get_estado_by_name("SIG_EST_INV_TEST")
     assert len(connection.queries) == n0  # cache hit confirmed
 
     # Mutate: post_save signal fire → on_commit invalida
@@ -173,7 +172,7 @@ def test_transaction_rollback_does_not_invalidate_cache():
 
     # 2da llamada confirma cache hit pre-rollback
     n0 = len(connection.queries)
-    s_pre = get_estado_by_name("ROLLBACK_TEST_ESTADO")
+    get_estado_by_name("ROLLBACK_TEST_ESTADO")
     assert len(connection.queries) == n0  # cache hit
 
     # Forzar rollback dentro de atomic block
@@ -267,6 +266,7 @@ def test_estado_save_bumps_version_invalidating_transitions_cascade():
     invalida transitions cache (over-invalidation aceptado por simplicidad).
     """
     from django.core.cache import caches
+
     from sinpapel.cache import _cache_alias, clear_all
 
     clear_all()
@@ -274,7 +274,7 @@ def test_estado_save_bumps_version_invalidating_transitions_cascade():
     cache = caches[_cache_alias()]
 
     # Pre-condition: version key no existe o = 0
-    initial_version = cache.get("sinpapel:cache_version")
+    cache.get("sinpapel:cache_version")
 
     # Crear Estado y mutarlo dispara signal handler
     from sinpapel.models import Estado

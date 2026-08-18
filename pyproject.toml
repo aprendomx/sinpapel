@@ -1,6 +1,6 @@
 [project]
 name = "sinpapel"
-version = "0.7.1"
+version = "0.8.0"
 description = "Versioned workflows, immutable audit, and pluggable e-signatures for Django."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -23,6 +23,8 @@ classifiers = [
     "Framework :: Django",
     "Framework :: Django :: 5.0",
     "Framework :: Django :: 5.1",
+    "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
@@ -93,6 +95,15 @@ sinpapel = "."
 [tool.setuptools.package-data]
 sinpapel = ["py.typed"]
 "sinpapel.migrations" = ["*.py"]
+
+[tool.ruff]
+target-version = "py310"
+extend-exclude = ["migrations", "docs", "site", ".venv"]
+
+[tool.ruff.lint]
+# Gate alcanzable hoy: errores pycodestyle, pyflakes e imports ordenados.
+# Ampliar el set (UP/RUF/SIM/…) es trabajo post-1.0 con reformat dedicado.
+select = ["E4", "E7", "E9", "F", "I"]
 
 [tool.pyright]
 include = ["."]

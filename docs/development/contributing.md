@@ -64,7 +64,7 @@ contribute the change under the project license (GPL-3.0-or-later).
 
 - [ ] Tests pass locally (`python -m pytest tests/ -q`).
 - [ ] New behavior covered by tests.
-- [ ] `CHANGELOG.md` updated under `## [Unreleased]` when the change is
+- [ ] `docs/development/changelog.md` updated under `## [Unreleased]` when the change is
       user-visible.
 - [ ] Commits follow Conventional Commits and are signed off (`-s`).
 - [ ] Documentation (`docs/usage/en.md` and `docs/usage/es.md`) updated when

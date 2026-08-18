@@ -25,9 +25,11 @@ Usage:
     flujo = get_active_version_flujo("solicitud")
     transitions = get_transitions_for(flujo.id, estado.id)
 
-CAVEAT: Sin S13.2 (signal invalidation), mutaciones admin de Estado/
-VersionFlujo/ConfiguracionTransicion NO invalidan cache automáticamente.
-TTL 1h limita stale data al peor escenario. S13.2 resuelve con signals.
+Invalidación (S13.2, sinpapel.signals): post_save/post_delete/m2m_changed
+borran las keys puntuales, y las mutaciones de Estado bumpean
+`sinpapel:cache_version`, que forma parte de las keys de transitions/
+requisitos — el bump invalida en cascada todo lo que embebía Estados.
+TTL 1h como red de seguridad adicional.
 """
 from __future__ import annotations
 
@@ -68,6 +70,16 @@ def _cache_timeout() -> int:
 def _cache():
     """Retorna el cache backend configurado."""
     return caches[_cache_alias()]
+
+
+def _cache_version(cache) -> int:
+    """Versión global de cascada (bumpeada por signals al mutar Estado).
+
+    Forma parte de las keys de transitions/requisitos: un bump invalida en
+    cascada todas las entradas que embeben objetos Estado pickled, sin
+    necesidad de delete_pattern (no portable fuera de django-redis).
+    """
+    return cache.get(f"{_KEY_PREFIX}:cache_version") or 0
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -117,8 +129,11 @@ def get_transitions_for(
     prefetch_related("grupos_permitidos") para evitar N+1 queries en callers
     (engine, permissions S13.6).
     """
-    key = f"{_KEY_PREFIX}:transitions:{flujo_id}:{estado_origen_id}"
     cache = _cache()
+    key = (
+        f"{_KEY_PREFIX}:v{_cache_version(cache)}:"
+        f"transitions:{flujo_id}:{estado_origen_id}"
+    )
     items = cache.get(key)
     if items is None:
         from sinpapel.models import ConfiguracionTransicion
@@ -137,8 +152,8 @@ def get_transitions_for(
 
 def get_requisitos_for(estado_id: int) -> "list[RequisitoEstadoDocumento]":
     """Get RequisitoEstadoDocumento list por estado con select_related."""
-    key = f"{_KEY_PREFIX}:requisitos:{estado_id}"
     cache = _cache()
+    key = f"{_KEY_PREFIX}:v{_cache_version(cache)}:requisitos:{estado_id}"
     items = cache.get(key)
     if items is None:
         from sinpapel.models import RequisitoEstadoDocumento

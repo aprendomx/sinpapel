@@ -27,7 +27,6 @@ from sinpapel.cache import (
     get_transitions_for,
 )
 from sinpapel.models import (
-    CondicionTransicion,
     ConfiguracionTransicion,
     Estado,
     SeguimientoWorkflow,
@@ -209,7 +208,6 @@ class WorkflowEngine:
         errors in receivers do not abort the workflow.
         """
         from sinpapel.models.predicates import CondicionTransicion
-        from sinpapel.services.predicate_engine import PredicateEngine
         from sinpapel.signals import predicate_failed
 
         fallidas = []
@@ -219,7 +217,20 @@ class WorkflowEngine:
         ).order_by("orden")
 
         for condicion in condiciones:
-            pasa, msg = PredicateEngine.evaluar(condicion, instance, user)
+            try:
+                pasa, msg = PredicateEngine.evaluar(condicion, instance, user)
+            except Exception:
+                # Config inválida (path fuera de whitelist, key faltante,
+                # backend desconocido…) = bloqueo controlado, nunca un 500.
+                logger.exception(
+                    "CondicionTransicion id=%s mal configurada (tipo=%s)",
+                    condicion.id,
+                    condicion.tipo,
+                )
+                pasa, msg = False, (
+                    "Condición de transición mal configurada; "
+                    "contacta al administrador del flujo."
+                )
             if not pasa:
                 fallidas.append({
                     "condicion_id": condicion.id,
@@ -251,7 +262,6 @@ class WorkflowEngine:
             historial_reciente
         """
         from sinpapel.services.side_effects import SIDE_EFFECTS
-        from sinpapel.models import SeguimientoWorkflow
 
         config = self._get_config(instance)
         estado_actual = getattr(instance, config.state_field, None)
@@ -264,6 +274,7 @@ class WorkflowEngine:
             "predicados_fallidos": [],
             "aprobadores_requeridos": [],
             "historial_reciente": [],
+            "firma_requerida": False,
         }
 
         # 1. Validar estado actual
@@ -335,6 +346,12 @@ class WorkflowEngine:
             name for name in SIDE_EFFECTS.keys()
             if name == target_state_name
         ]
+
+        # 7b. Firma requerida (0.8.0): el preview informa si la transición
+        # exigirá firma_payload, para que la UI pida la firma antes de ejecutar.
+        reporte["firma_requerida"] = bool(
+            config_transicion is not None and config_transicion.requiere_firma
+        )
 
         # 8. Historial reciente
         reporte["historial_reciente"] = self._obtener_historial_reciente(instance)
@@ -507,25 +524,47 @@ class WorkflowEngine:
                 # No debería pasar — puede_cambiar_estado ya validó arriba.
                 raise ValueError(f"Estado '{target_state_name}' no existe")
 
-            # 3. Procesar firma si aplica (S13.6: dual shape)
-            # Modo A — dict con verify-fields → FielBackend.request_signature
+            # 2b. Enforce de firma requerida (0.8.0): la exigencia vive en la
+            # configuración de la transición, no en la buena fe del caller.
+            flujo = self._resolve_flujo(instance, config)
+            config_transicion, _err = self._validar_configuracion_transicion(
+                estado_anterior, estado_nuevo, flujo
+            )
+            firma_requerida = bool(
+                config_transicion is not None
+                and config_transicion.requiere_firma
+            )
+            if firma_requerida and firma_payload is None:
+                raise PermissionError(
+                    f"La transición a '{target_state_name}' requiere firma "
+                    f"electrónica (firma_payload)."
+                )
+
+            # 3. Procesar firma si aplica (dual shape, 0.8.0: vía factory)
+            # Modo A — dict con 'contenido' (+ kwargs backend-specific) →
+            #          get_signature_backend().request_signature(...)
             # Modo B — dict {"registro_firma_id": int} → RegistroFirma
-            #          pre-creado por el caller (sign_server_side previo)
+            #          pre-creado por el caller (sign_server_side previo),
+            #          validado: firmante == user, VALIDA y no vinculado.
             registro_firma = None
             if firma_payload is not None:
                 if "registro_firma_id" in firma_payload:
-                    from sinpapel.models import RegistroFirma
-                    registro_firma = RegistroFirma.objects.get(
-                        pk=firma_payload["registro_firma_id"]
+                    registro_firma = self._resolver_registro_firma(
+                        firma_payload["registro_firma_id"], user
                     )
                 elif "contenido" in firma_payload:
-                    from sinpapel.signing.backends.fiel import FielBackend
-                    registro_firma = FielBackend().request_signature(
+                    from sinpapel.signing.factory import get_signature_backend
+
+                    extra = {
+                        k: v
+                        for k, v in firma_payload.items()
+                        if k != "contenido"
+                    }
+                    registro_firma = get_signature_backend().request_signature(
                         content=firma_payload["contenido"],
                         signer=user,
-                        firma_b64=firma_payload["firma_b64"],
-                        certificado_cer_b64=firma_payload["certificado_cer_b64"],
-                        is_required=True,
+                        is_required=firma_requerida,
+                        **extra,
                     )
 
             # 4. Crear SeguimientoWorkflow (target via GFK)
@@ -565,6 +604,39 @@ class WorkflowEngine:
         }
 
     # ─── Helpers privados ──────────────────────────────────────────────────
+
+    def _resolver_registro_firma(self, registro_id: int, user: "User"):
+        """Valida un RegistroFirma pre-creado (modo B) antes de vincularlo.
+
+        Rechaza (PermissionError) si:
+        - no existe,
+        - el firmante no es el usuario que ejecuta la transición,
+        - la firma no está en estado VALIDA,
+        - ya está vinculado a otro SeguimientoWorkflow.
+        """
+        from sinpapel.models import RegistroFirma, SeguimientoWorkflow
+
+        registro = RegistroFirma.objects.filter(pk=registro_id).first()
+        if registro is None:
+            raise PermissionError(
+                f"RegistroFirma id={registro_id} no existe."
+            )
+        if registro.signer_id != getattr(user, "id", None):
+            raise PermissionError(
+                "El RegistroFirma pertenece a otro firmante; no puede "
+                "vincularse a una transición ejecutada por este usuario."
+            )
+        if registro.verification_result not in RegistroFirma.RESULTADOS_VALIDOS:
+            raise PermissionError(
+                f"El RegistroFirma id={registro_id} no está en estado válido "
+                f"(actual: {registro.verification_result})."
+            )
+        if SeguimientoWorkflow.objects.filter(firma_registro=registro).exists():
+            raise PermissionError(
+                f"El RegistroFirma id={registro_id} ya respalda otra "
+                f"transición; una firma no puede reutilizarse."
+            )
+        return registro
 
     def _get_config(self, instance: "models.Model") -> "WorkflowConfig":
         """Recupera _workflow_config de la clase del instance.

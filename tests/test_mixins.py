@@ -7,15 +7,18 @@ from decimal import Decimal
 
 import pytest
 from django.core.exceptions import ValidationError
-from django.db import models
 
-from sinpapel.mixins import CampoMetadato, Catalogo, MetadatosCapturables, MetadatosProxy, Trazable
+from sinpapel.mixins import (
+    CampoMetadato,
+    MetadatosProxy,
+)
 
 
 @pytest.mark.django_db
 def test_trazable_fields_exist():
     """Trazable model instances have creado, actualizado, autor, modificador."""
     from django.contrib.auth.models import User
+
     from tests.models import TestTrazableModel
 
     user = User.objects.create_user("traz_test", password="x")
@@ -258,8 +261,8 @@ def test_capturable_meta_property():
 @pytest.mark.django_db
 def test_integration_workflow_and_metadatos():
     """Modelo con workflow_enabled + MetadatosCapturables funciona end-to-end."""
-    from tests.models import TestSolicitudConMetadatos
     from sinpapel.models import Estado
+    from tests.models import TestSolicitudConMetadatos
 
     estado = Estado.objects.create(nombre="META_CAPTURA", activo=True)
     obj = TestSolicitudConMetadatos(
@@ -286,8 +289,8 @@ def test_integration_workflow_and_metadatos():
 @pytest.mark.django_db
 def test_integration_validation_blocks_save():
     """Faltan campos requeridos → ValidationError en save."""
-    from tests.models import TestSolicitudConMetadatos
     from sinpapel.models import Estado
+    from tests.models import TestSolicitudConMetadatos
 
     estado = Estado.objects.create(nombre="META_INVALID", activo=True)
     obj = TestSolicitudConMetadatos(folio="META-002", estado=estado)

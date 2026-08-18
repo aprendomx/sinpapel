@@ -5,11 +5,11 @@ from datetime import timedelta
 from io import StringIO
 
 import pytest
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
 from django.core.management import call_command
 from django.utils import timezone
 
-from sinpapel.models import Estado, VersionFlujo
+from sinpapel.models import Estado
 from sinpapel.models.sla import SLAConfiguracion
 from sinpapel.services.sla_engine import SLAEngine
 

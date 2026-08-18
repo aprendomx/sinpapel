@@ -27,7 +27,7 @@ from django.db.models.signals import (
 )
 from django.dispatch import Signal, receiver
 
-from sinpapel.cache import _KEY_PREFIX, _cache_alias
+from sinpapel.cache import _KEY_PREFIX, _cache_alias, _cache_version
 
 
 def _cache():
@@ -130,7 +130,8 @@ def invalidate_transitions_cache(sender, instance, **kwargs):
 
     def _invalidate():
         c = _cache()
-        c.delete(f"{_KEY_PREFIX}:transitions:{flujo_id}:{estado_origen_id}")
+        ver = _cache_version(c)
+        c.delete(f"{_KEY_PREFIX}:v{ver}:transitions:{flujo_id}:{estado_origen_id}")
 
     transaction.on_commit(_invalidate)
 
@@ -147,7 +148,8 @@ def invalidate_requisitos_cache(sender, instance, **kwargs):
 
     def _invalidate():
         c = _cache()
-        c.delete(f"{_KEY_PREFIX}:requisitos:{estado_id}")
+        ver = _cache_version(c)
+        c.delete(f"{_KEY_PREFIX}:v{ver}:requisitos:{estado_id}")
 
     transaction.on_commit(_invalidate)
 
@@ -177,8 +179,9 @@ def _connect_m2m_handler():
 
         def _invalidate():
             c = _cache()
+            ver = _cache_version(c)
             c.delete(
-                f"{_KEY_PREFIX}:transitions:{flujo_id}:{estado_origen_id}"
+                f"{_KEY_PREFIX}:v{ver}:transitions:{flujo_id}:{estado_origen_id}"
             )
 
         transaction.on_commit(_invalidate)

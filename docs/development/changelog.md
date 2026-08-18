@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-08-18
+
+Release de endurecimiento post-auditoría. **Contiene breaking changes** —
+lee la [guía de upgrade](upgrading.md#07x--080) antes de actualizar.
+
+### Added
+- **Firma exigible por transición:** campo
+  `ConfiguracionTransicion.requiere_firma` (default False, migración 0008).
+  Con True, `transition()` sin `firma_payload` lanza `PermissionError`, y
+  `preview_transition()` reporta `firma_requerida`.
+- **Cadena de confianza FIEL:** setting `SINPAPEL_FIEL_TRUSTED_CA_BUNDLE`
+  (paths PEM de ACs del SAT). Con bundle, un certificado no emitido por una
+  AC de confianza se rechaza; sin bundle, la firma se persiste como
+  `VALIDA_SIN_CADENA` (nuevo estado, migración 0009) — íntegra pero con
+  identidad del emisor no verificada. `RegistroFirma.RESULTADOS_VALIDOS`
+  agrupa los estados utilizables.
+- **SLA real:** las acciones ejecutan — `escalar`/`rechazar` corren la
+  transición automática como `SINPAPEL_SLA_SYSTEM_USER`, `alertar` persiste
+  la bandera, `notificar` despacha a `SINPAPEL_SLA_NOTIFY_HANDLER`.
+  `SLAEngine.verificar_todos()` escanea el `WorkflowRegistry` y el comando
+  `sinpapel_verificar_slas` lo invoca (con `--dry-run` sin efectos). El plazo
+  ahora mide **tiempo-en-estado** (última transición), no edad de la
+  instancia.
+- **API pública explícita** (`docs/development/api-publica.md`) con política
+  de nomenclatura documentada, y **guía de upgrade**
+  (`docs/development/upgrading.md`).
+
+### Changed
+- **Constraints de integridad (breaking, migración 0007):** `Estado.nombre`
+  único; solo una `VersionFlujo` activa por nombre; `Trazable.autor` /
+  `modificador` pasan de CASCADE a SET_NULL (borrar un User ya no arrasa sus
+  registros); PROTECT en `Documento.tipo_documento`,
+  `InstanciaDocumento.documento` y `SeguimientoWorkflow.firma_registro`.
+- **Inmutabilidad enforceada:** `SeguimientoWorkflow` es append-only
+  (`save()` de update y `delete()` lanzan) y `RegistroFirma.delete()` lanza
+  (revocar vía `backend.revoke()`).
+- **Modo A de firma usa el backend configurado** (`get_signature_backend()`)
+  en lugar de `FielBackend` hardcodeado; **modo B valida** que el
+  `registro_firma_id` pertenezca al usuario, esté en estado válido y no esté
+  ya vinculado.
+- **Predicados robustos:** una `CondicionTransicion` mal configurada bloquea
+  la transición con mensaje controlado en lugar de lanzar excepción; los
+  backends validan su `configuracion` con errores accionables.
+- **Invalidación de cache real:** las keys de transitions/requisitos
+  incorporan `sinpapel:cache_version`, así el bump por mutación de `Estado`
+  sí invalida en cascada (antes el bump era un no-op).
+- **`@workflow_enabled` valida el contrato `Trazable`** (campo
+  `actualizado`) en tiempo de decoración.
+- **Import de flujos:** payload estructuralmente inválido produce
+  `ValueError` accionable (antes `KeyError` → 500 en los endpoints).
+- CI: matriz Django 5.0 / 5.2 LTS / 6.0 (con exclusiones por versión de
+  Python), DRF instalado (los 13 tests del modo serializer ya corren), job
+  de ruff (config `[tool.ruff]` nueva), Postgres con Django 6. Classifiers
+  de Django 5.2/6.0.
+
 ## [0.7.1] — 2026-08-18
 
 ### Fixed
@@ -196,7 +251,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `django-simple-history` integration for full change history.
 - PEP 561 `py.typed` marker for type-checker downstream consumers.
 
-[Unreleased]: https://github.com/aprendomx/sinpapel/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/aprendomx/sinpapel/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/aprendomx/sinpapel/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/aprendomx/sinpapel/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/aprendomx/sinpapel/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/aprendomx/sinpapel/compare/v0.5.1...v0.6.0

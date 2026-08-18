@@ -5,7 +5,6 @@ import sys
 
 import pytest
 from django.contrib.auth.models import Group, User
-from django.db import models
 from django.test import override_settings
 
 from sinpapel.json_logic import evaluar

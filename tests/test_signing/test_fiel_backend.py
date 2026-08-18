@@ -64,7 +64,7 @@ def test_fiel_backend_valid_signature():
         certificado_cer_b64=base64.b64encode(cert_der).decode(),
     )
     assert rf.backend_name == "fiel"
-    assert rf.verification_result == "VALIDA"
+    assert rf.verification_result == "VALIDA_SIN_CADENA"  # sin CA bundle configurado
     assert "firma_pkcs7_b64" in rf.backend_metadata
     assert "certificado_cer_b64" in rf.backend_metadata
 
@@ -211,7 +211,7 @@ def test_sign_server_side_persists_registro_firma(fiel_keypair_pem, settings):
         is_required=True,
     )
     assert rf.backend_name == "fiel"
-    assert rf.verification_result == "VALIDA"
+    assert rf.verification_result == "VALIDA_SIN_CADENA"  # sin CA bundle configurado
     assert rf.backend_metadata.get("mode") == "server-side"
 
 

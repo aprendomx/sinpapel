@@ -6,7 +6,7 @@ on:
     paths:
       - "docs/**"
       - "mkdocs.yml"
-      - "sinpapel/**"
+      - "**/*.py"
 
 permissions:
   contents: write

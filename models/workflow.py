@@ -9,8 +9,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-
 from simple_history.models import HistoricalRecords
+
 from sinpapel.mixins import Catalogo, Trazable
 
 
@@ -58,6 +58,14 @@ class Estado(Catalogo):
         verbose_name = _("Estado")
         verbose_name_plural = _("Estados")
         ordering = ["orden"]
+        constraints = [
+            # El motor y el cache direccionan Estados POR NOMBRE
+            # (get_estado_by_name, transition("APROBADA")): dos estados
+            # homónimos = comportamiento indefinido. Único a nivel BD.
+            models.UniqueConstraint(
+                fields=["nombre"], name="sin_estado_nombre_uniq"
+            ),
+        ]
 
 
 class VersionFlujo(models.Model):
@@ -98,6 +106,16 @@ class VersionFlujo(models.Model):
         app_label = "sinpapel"
         verbose_name = _("Versión de Flujo")
         verbose_name_plural = _("Versiones de Flujo")
+        constraints = [
+            # get_active_version_flujo resuelve por (nombre, activo=True) con
+            # .first(): más de una versión activa del mismo flujo = pick
+            # arbitrario. Se garantiza a nivel BD: solo una activa por nombre.
+            models.UniqueConstraint(
+                fields=["nombre"],
+                condition=models.Q(activo=True),
+                name="sin_versionflujo_activa_uniq",
+            ),
+        ]
 
     def __str__(self) -> str:
         estado = "activo" if self.activo else "inactivo"
@@ -136,6 +154,14 @@ class ConfiguracionTransicion(models.Model):
         blank=True,
         verbose_name=_("Grupos permitidos"),
         help_text=_("Vacío = cualquier grupo puede ejecutar la transición."),
+    )
+    requiere_firma: models.BooleanField = models.BooleanField(
+        default=False,
+        verbose_name=_("Requiere firma electrónica"),
+        help_text=_(
+            "Si es True, la transición exige firma_payload: el motor rechaza "
+            "ejecutarla sin firma electrónica del usuario."
+        ),
     )
 
     history = HistoricalRecords(m2m_fields=[grupos_permitidos])
@@ -225,7 +251,9 @@ class SeguimientoWorkflow(Trazable):
 
     firma_registro = models.OneToOneField(
         "sinpapel.RegistroFirma",
-        on_delete=models.SET_NULL,
+        # PROTECT: borrar un RegistroFirma no puede desenganchar silenciosamente
+        # la evidencia de firma del audit trail (antes SET_NULL).
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name="seguimiento",
@@ -247,6 +275,26 @@ class SeguimientoWorkflow(Trazable):
             models.Index(fields=["estado_nuevo", "fecha_accion"]),
             models.Index(fields=["usuario_accion", "-fecha_accion"]),
         ]
+
+    def save(self, *args, **kwargs):
+        """Append-only: un SeguimientoWorkflow no se modifica una vez creado.
+
+        La inmutabilidad del audit trail deja de ser convención: cualquier
+        intento de UPDATE vía ORM lanza. (Correcciones legítimas se modelan
+        como NUEVOS registros, nunca editando la bitácora.)
+        """
+        if self.pk is not None and not self._state.adding:
+            raise ValueError(
+                "SeguimientoWorkflow es inmutable (append-only): no se puede "
+                "modificar un registro de auditoría existente."
+            )
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValueError(
+            "SeguimientoWorkflow es inmutable: los registros de auditoría "
+            "no se borran."
+        )
 
     def __str__(self):
         anterior = self.estado_anterior.nombre if self.estado_anterior else "Nuevo"

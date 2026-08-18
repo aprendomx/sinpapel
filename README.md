@@ -1,10 +1,10 @@
 # sinpapel
 
-> **v0.7.1** — Versioned state machines, immutable audit trail, and pluggable electronic signatures for Django.
+> **v0.8.0** — Versioned state machines, immutable audit trail, and pluggable electronic signatures for Django.
 
 [![PyPI](https://img.shields.io/pypi/v/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Python](https://img.shields.io/pypi/pyversions/sinpapel.svg)](https://pypi.org/project/sinpapel/)
-[![Django](https://img.shields.io/badge/django-5.0%20%7C%205.1-blue)](https://www.djangoproject.com/)
+[![Django](https://img.shields.io/badge/django-5.0%E2%80%936.0-blue)](https://www.djangoproject.com/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/aprendomx/sinpapel/blob/main/LICENSE)
 [![Tests](https://img.shields.io/badge/tests-280%20passing-brightgreen)](#)
 
@@ -25,7 +25,7 @@ Building paperless processes in Django usually means stitching together a state-
 - **Dynamic Forms & Serializers** — `MetaFormFactory` builds Django Forms from metadata schema; DRF Serializer mode also supported.
 - **Pluggable Signing Backends** — `SignatureBackend` strategy interface plus reference backends: `FakeBackend` (tests), `ManualBackend` (default), and `FielBackend` (FIEL/SAT, RSA-SHA256 + X.509).
 - **Immutable Audit Trail** — `Trazable` mixin, `SeguimientoWorkflow` history, `RegistroFirma`, plus `django-simple-history` integration.
-- **SLA Timers & Preview Transitions** — `SLAConfiguracion` models per-state time limits and `SLAEngine` detects breaches, firing the `sla_breached` signal. ⚠️ **0.7.x status:** the built-in actions (notify / escalate / reject / flag) are reporting stubs — they describe the configured action but do not execute it; subscribe to `sla_breached` / `sla_action_executed` to implement real behavior for now (full execution planned for 1.0). `preview_transition()` returns an impact report (blocking reasons, missing documents, failed predicates) without mutating state — available both as `WorkflowEngine.preview_transition()` and as a method on the instance.
+- **SLA Timers & Preview Transitions** — `SLAConfiguracion` models per-state time limits (measured as time-in-state since the last transition) and `SLAEngine` executes the configured actions on breach: notify (via `SINPAPEL_SLA_NOTIFY_HANDLER`), escalate/reject (automatic transition by the `SINPAPEL_SLA_SYSTEM_USER`), or flag (persisted). Wire the cron with the `sinpapel_verificar_slas` command (`--dry-run` supported). `preview_transition()` returns an impact report (blocking reasons, missing documents, failed predicates, whether signature is required) without mutating state.
 - **Custom Domain Signals** — `predicate_failed`, `sla_breached`, `sla_action_executed`, `transition_preview_requested` for observability and side-effect wiring.
 
 ## Installation
@@ -138,6 +138,11 @@ Optional Django settings:
 SINPAPEL_SIGNATURE_BACKEND = "sinpapel.signing.backends.fiel.FielBackend"
 SINPAPEL_ALLOW_SERVER_SIGNING = False  # gate FIEL server-side signing (legal review)
 SINPAPEL_EMIT_PREVIEW_EVENTS = False   # set True to fire transition_preview_requested signal
+# Trusted SAT CA bundle for FIEL chain-of-trust (PEM path or list of paths).
+# Without it, FIEL signatures are stored as VALIDA_SIN_CADENA.
+SINPAPEL_FIEL_TRUSTED_CA_BUNDLE = "/etc/ssl/sat/acs.pem"
+SINPAPEL_SLA_SYSTEM_USER = "sla-bot"          # user for automatic SLA transitions
+SINPAPEL_SLA_NOTIFY_HANDLER = "myapp.notify.sla_handler"  # SLA notification hook
 ```
 
 See [USAGE §Settings](https://github.com/aprendomx/sinpapel/blob/main/docs/usage/en.md#4-settings) for the full reference.
@@ -146,7 +151,7 @@ See [USAGE §Settings](https://github.com/aprendomx/sinpapel/blob/main/docs/usag
 
 | Python | Django |
 |---|---|
-| 3.10, 3.11, 3.12, 3.13 | 5.0, 5.1 |
+| 3.10, 3.11, 3.12, 3.13 | 5.0 – 6.0 (CI: 5.0, 5.2 LTS, 6.0) |
 
 CI runs the test suite across the full matrix.
 
@@ -160,7 +165,7 @@ CI runs the test suite across the full matrix.
 
 ## Versioning & Stability
 
-sinpapel follows [Semantic Versioning](https://semver.org/). The current release is **v0.7.1 (Beta)**. Public APIs (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, model fields, schema JSON v0.2) are stable in the 0.x series; breaking changes will bump the minor version and be flagged in `docs/development/changelog.md` until 1.0.0. **Upgrading to 0.7.0:** `transition()` / `cambiar_estado()` no longer accept the `monto_aprobado` parameter (removed in 0.7.0) — carry domain data via metadata (`MetadatosCapturables`) or `condiciones` / `comentarios` instead. Since 0.6.0, transitions also enforce any `RequisitoEstadoDocumento` rules that were previously configured but never evaluated — review existing flows before upgrading.
+sinpapel follows [Semantic Versioning](https://semver.org/). The current release is **v0.8.0 (Beta)**. The stable public surface is defined explicitly in [docs/development/api-publica.md](https://github.com/aprendomx/sinpapel/blob/main/docs/development/api-publica.md). Pre-1.0 contract: **minor releases may include breaking changes** (each one documented in the [upgrade guide](https://github.com/aprendomx/sinpapel/blob/main/docs/development/upgrading.md) and the changelog); patch releases are fixes only. Pin the minor (`sinpapel~=0.8.0`) until 1.0.0.
 
 ## Contributing
 

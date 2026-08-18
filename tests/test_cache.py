@@ -2,10 +2,8 @@
 from __future__ import annotations
 
 import pytest
-from django.core.cache import caches
 from django.db import connection
 from django.test import override_settings
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Fixtures

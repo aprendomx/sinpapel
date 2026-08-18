@@ -26,7 +26,7 @@ def test_registro_firma_create_appends_history_entry():
     assert rf.history.count() == 1
     entry = rf.history.first()
     assert entry.history_type == "+"
-    assert entry.verification_result == "VALIDA"
+    assert entry.verification_result == "VALIDA_SIN_CADENA"
 
 
 @pytest.mark.django_db
@@ -50,7 +50,7 @@ def test_registro_firma_revoke_appends_update_entry():
     assert latest.history_type == "~"
     assert latest.verification_result == "INVALIDA"
     assert earliest.history_type == "+"
-    assert earliest.verification_result == "VALIDA"
+    assert earliest.verification_result == "VALIDA_SIN_CADENA"
 
 
 @pytest.mark.django_db

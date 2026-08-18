@@ -46,7 +46,7 @@ def flujo_con_requisito(db):
 
 @pytest.mark.django_db
 def test_typed_faltante_shape_completa(flujo_con_requisito):
-    user = User.objects.create_superuser("evr1", password="x")
+    User.objects.create_superuser("evr1", password="x")
     items = WorkflowEngine().evaluar_requisitos_documentales(
         flujo_con_requisito["solicitud"]
     )

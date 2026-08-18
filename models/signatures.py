@@ -22,9 +22,12 @@ class RegistroFirma(models.Model):
 
     RESULTADO_CHOICES: list[tuple[str, str]] = [
         ("VALIDA", "Válida"),
+        ("VALIDA_SIN_CADENA", "Válida (cadena de confianza no verificada)"),
         ("INVALIDA", "Inválida"),
         ("PENDIENTE", "Pendiente de verificación"),
     ]
+    # Estados que cuentan como firma utilizable para respaldar una transición.
+    RESULTADOS_VALIDOS: frozenset[str] = frozenset({"VALIDA", "VALIDA_SIN_CADENA"})
 
     backend_name = models.CharField(
         max_length=50,
@@ -79,7 +82,7 @@ class RegistroFirma(models.Model):
         help_text=_("True si la transición exigía firma obligatoria"),
     )
     verification_result = models.CharField(
-        max_length=10,
+        max_length=20,
         choices=RESULTADO_CHOICES,
         default="PENDIENTE",
         verbose_name=_("Resultado de validación"),
@@ -90,6 +93,13 @@ class RegistroFirma(models.Model):
     )
 
     history = HistoricalRecords()
+
+    def delete(self, *args, **kwargs):
+        """La evidencia de firma no se borra; se revoca vía backend.revoke()."""
+        raise ValueError(
+            "RegistroFirma es evidencia probatoria y no se borra. "
+            "Para invalidar una firma usa el backend: backend.revoke(registro, razon)."
+        )
 
     class Meta:
         # Preserva tabla SQL existente — extracción a sinpapel sin data migration

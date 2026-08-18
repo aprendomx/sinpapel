@@ -27,8 +27,11 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 def catalog_setup(db):
     """Crea Estados + TipoDocumentos + Groups + VersionFlujo con transitions+requisitos."""
     from sinpapel.models import (
-        ConfiguracionTransicion, Estado, RequisitoEstadoDocumento,
-        TipoDocumento, VersionFlujo,
+        ConfiguracionTransicion,
+        Estado,
+        RequisitoEstadoDocumento,
+        TipoDocumento,
+        VersionFlujo,
     )
 
     e_orig = Estado.objects.create(nombre="FP_CAPTURA")
@@ -294,6 +297,7 @@ def _v0_2_minimal_data(flujo_nombre: str = "FP_FLUJO_S27_2") -> dict:
 def test_deserialize_v0_2_creates_inline_catalogs(db):
     """S27.2 AC3: v0.2 import con create_catalogs=True crea Estados/Etapas/Grupos missing."""
     from django.contrib.auth.models import Group
+
     from sinpapel.models import Estado, Etapa, VersionFlujo
     from sinpapel.schemas.flujo_export import deserialize_flujo
 
@@ -321,6 +325,7 @@ def test_deserialize_v0_2_creates_inline_catalogs(db):
 def test_deserialize_v0_2_update_existing_emits_warning(db, caplog):
     """S27.2 AC4 + D5: upsert update existing Estado emite WARNING (no exception)."""
     import logging
+
     from sinpapel.models import Estado
     from sinpapel.schemas.flujo_export import deserialize_flujo
 
@@ -351,18 +356,21 @@ def test_deserialize_v0_2_no_create_catalogs_rejects_missing(db):
 
 
 @pytest.mark.django_db
-def test_deserialize_v0_2_ambiguous_estado_rejects(db):
-    """S27.2 AC7: ambiguity check preservado en v0.2 (PAT-E-523)."""
+def test_estado_nombre_es_unico_a_nivel_bd(db):
+    """0.8.0: la ambigüedad de Estados homónimos es imposible por constraint.
+
+    (Reemplaza el antiguo test de ambiguity check AC7/PAT-E-523: el motor
+    direcciona Estados por nombre, así que el nombre es único en BD —
+    `sin_estado_nombre_uniq`. El ambiguity check del import sigue existiendo
+    como defensa para TipoDocumento, que no es único.)
+    """
+    from django.db import IntegrityError
+
     from sinpapel.models import Estado
-    from sinpapel.schemas.flujo_export import deserialize_flujo
 
-    # Create AMBIGUITY: 2 Estados con mismo nombre (Catalogo.nombre NOT unique)
     Estado.objects.create(nombre="EST_NUEVO_A", color="#one")
-    Estado.objects.create(nombre="EST_NUEVO_A", color="#two")
-
-    data = _v0_2_minimal_data()
-    with pytest.raises(ValueError, match="AMBIGUOUS"):
-        deserialize_flujo(data)
+    with pytest.raises(IntegrityError):
+        Estado.objects.create(nombre="EST_NUEVO_A", color="#two")
 
 
 @pytest.mark.django_db
@@ -494,7 +502,9 @@ def test_deserialize_flujo_dry_run_does_not_persist(catalog_setup):
 @pytest.mark.django_db
 def test_deserialize_flujo_creates_entities_atomically(catalog_setup):
     from sinpapel.models import (
-        ConfiguracionTransicion, RequisitoEstadoDocumento, VersionFlujo,
+        ConfiguracionTransicion,
+        RequisitoEstadoDocumento,
+        VersionFlujo,
     )
     from sinpapel.schemas.flujo_export import deserialize_flujo, serialize_flujo
 
@@ -652,6 +662,7 @@ def _export_to_tmp(catalog_setup_fixture, tmp_path, rename_to: str | None = None
 def test_import_command_happy_path(catalog_setup, tmp_path):
     """call_command import → VersionFlujo creado con activo=False default."""
     from django.core.management import call_command
+
     from sinpapel.models import VersionFlujo
 
     file_path = _export_to_tmp(catalog_setup, tmp_path, rename_to="FP_IMPORT_HAPPY")
@@ -667,6 +678,7 @@ def test_import_command_happy_path(catalog_setup, tmp_path):
 def test_import_command_dry_run_does_not_persist(catalog_setup, tmp_path):
     """--dry-run → DB unchanged."""
     from django.core.management import call_command
+
     from sinpapel.models import VersionFlujo
 
     file_path = _export_to_tmp(catalog_setup, tmp_path, rename_to="FP_IMPORT_DRY")
@@ -683,6 +695,7 @@ def test_import_command_dry_run_does_not_persist(catalog_setup, tmp_path):
 def test_import_command_activo_flag_overrides_default(catalog_setup, tmp_path):
     """--activo → activo=True override."""
     from django.core.management import call_command
+
     from sinpapel.models import VersionFlujo
 
     file_path = _export_to_tmp(catalog_setup, tmp_path, rename_to="FP_IMPORT_ACTIVO")
@@ -769,6 +782,7 @@ def test_import_command_file_not_found_raises(db):
 def test_import_command_v0_2_creates_inline_catalogs(db, tmp_path):
     """S27.3 AC4: default v0.2 import crea inline catalogos via CLI."""
     from django.core.management import call_command
+
     from sinpapel.models import Estado, VersionFlujo
 
     data = _v0_2_minimal_data(flujo_nombre="FP_S27_3_CREATE")
@@ -792,6 +806,7 @@ def test_import_command_no_create_catalogs_rejects_missing(db, tmp_path):
     """S27.3 AC3: --no-create-catalogs con v0.2 + missing entities → CommandError (PAT-E-523)."""
     from django.core.management import call_command
     from django.core.management.base import CommandError
+
     from sinpapel.models import Estado
 
     data = _v0_2_minimal_data(flujo_nombre="FP_S27_3_NOCREATE")
@@ -812,6 +827,7 @@ def test_import_command_no_create_catalogs_rejects_missing(db, tmp_path):
 def test_import_command_v0_2_dry_run_no_writes(db, tmp_path):
     """S27.3 AC6: --dry-run con v0.2 + catalogos missing → exit 0 + zero DB writes."""
     from django.core.management import call_command
+
     from sinpapel.models import Estado, Etapa, VersionFlujo
 
     data = _v0_2_minimal_data(flujo_nombre="FP_S27_3_DRY")
@@ -890,7 +906,6 @@ def test_round_trip_export_import_re_export_equivalent(catalog_setup):
 def test_atomic_rollback_on_mid_import_failure(catalog_setup, tmp_path, monkeypatch):
     """Mid-import error rolls back todo (transaction.atomic)."""
     from sinpapel.models import ConfiguracionTransicion, VersionFlujo
-    from sinpapel.schemas import flujo_export as fe_module
 
     file_path = _export_to_tmp(catalog_setup, tmp_path, rename_to="FP_ATOMIC_TEST")
 
@@ -923,18 +938,18 @@ def test_atomic_rollback_on_mid_import_failure(catalog_setup, tmp_path, monkeypa
 
 
 @pytest.mark.django_db
-def test_ambiguous_estado_lookup_raises(catalog_setup, tmp_path):
-    """Catalogo.nombre NOT unique — 2 Estados mismo nombre → AMBIGUOUS error."""
+def test_duplicate_estado_via_orm_raises(catalog_setup, tmp_path):
+    """0.8.0: crear un Estado homónimo revienta por constraint de BD.
+
+    (Reemplaza el test de import AMBIGUOUS: el escenario de dos Estados con
+    el mismo nombre ya no puede existir — `sin_estado_nombre_uniq`.)
+    """
+    from django.db import IntegrityError
+
     from sinpapel.models import Estado
-    from django.core.management import call_command
-    from django.core.management.base import CommandError
 
-    # Crear 2do Estado con MISMO nombre (Catalogo.nombre NOT unique)
-    Estado.objects.create(nombre="FP_CAPTURA")  # duplicate
-
-    file_path = _export_to_tmp(catalog_setup, tmp_path, rename_to="FP_AMBIGUITY_TEST")
-    with pytest.raises(CommandError, match="AMBIGUOUS"):
-        call_command("sinpapel_import_flujo", str(file_path), stdout=StringIO())
+    with pytest.raises(IntegrityError):
+        Estado.objects.create(nombre="FP_CAPTURA")  # duplicate
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1016,7 +1031,6 @@ def test_serialize_flujo_slas_empty_omitted(catalog_setup):
 @pytest.mark.django_db
 def test_deserialize_flujo_creates_condiciones(catalog_setup, tmp_path):
     """Import crea CondicionTransicion vinculadas a transitions."""
-    from sinpapel.models.predicates import CondicionTransicion
     from sinpapel.schemas.flujo_export import deserialize_flujo, serialize_flujo
 
     data = serialize_flujo(catalog_setup["flujo"])
@@ -1045,7 +1059,6 @@ def test_deserialize_flujo_creates_condiciones(catalog_setup, tmp_path):
 def test_deserialize_flujo_creates_slas_via_inline_catalogs(db, tmp_path):
     """v0.2 import con inline catalogos crea SLAConfiguracion."""
     from sinpapel.models import Estado
-    from sinpapel.models.sla import SLAConfiguracion
     from sinpapel.schemas.flujo_export import deserialize_flujo
 
     data = _v0_2_minimal_data(flujo_nombre="FP_SLA_TEST")

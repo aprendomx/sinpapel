@@ -61,7 +61,9 @@ def _backend_python_path(config: dict, instance: "models.Model | None", user: "U
     Returns:
         (pasa: bool, mensaje_error: str | None)
     """
-    path = config["path"]
+    path = config.get("path")
+    if not isinstance(path, str) or not path:
+        raise ValueError("python_path requiere configuracion['path'] (str)")
     if "." not in path:
         raise ValueError(f"python_path debe incluir módulo: {path}")
 
@@ -97,6 +99,8 @@ def _backend_json_logic(config: dict, instance: "models.Model | None", user: "Us
     Returns:
         (pasa: bool, mensaje_error: None)
     """
+    if "rule" not in config:
+        raise ValueError("json_logic requiere configuracion['rule']")
     data = _build_data_context(instance, user)
     result = evaluar_json_logic(config["rule"], data)
     return bool(result), None
@@ -114,7 +118,9 @@ def _backend_django_orm(config: dict, instance: "models.Model | None", user: "Us
     if instance is None:
         return False, "No hay instancia para evaluar lookup ORM"
 
-    lookup = config["lookup"]
+    lookup = config.get("lookup")
+    if not isinstance(lookup, dict) or not lookup:
+        raise ValueError("django_orm requiere configuracion['lookup'] (dict no vacío)")
     qs = type(instance).objects.filter(pk=instance.pk, **lookup)
     return qs.exists(), None
 

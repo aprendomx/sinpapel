@@ -174,16 +174,19 @@ class MetadatosCapturables(models.Model):
 class Trazable(models.Model):
     creado = models.DateTimeField(auto_now_add=True, null=True)
     actualizado = models.DateTimeField(auto_now=True, null=True)
+    # SET_NULL (no CASCADE): borrar un User jamás debe borrar en cascada los
+    # registros que autoró — catálogos, documentos, evidencia. La autoría se
+    # pierde (NULL) pero el registro sobrevive. (Fix de auditoría 0.8.0.)
     autor = models.ForeignKey(
         get_user_model(),
         null=True,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="%(class)s_autor",
     )
     modificador = models.ForeignKey(
         get_user_model(),
         null=True,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="%(class)s_modificador",
     )
     caducidad = models.DateTimeField(null=True, blank=True)

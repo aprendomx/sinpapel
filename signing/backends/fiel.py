@@ -103,6 +103,20 @@ class FielBackend:
         self._validate_cert_validity(cert)
         self._verify_signature(cert, content, firma_b64)
 
+        # Cadena de confianza (0.8.0): si hay bundle de ACs configurado
+        # (SINPAPEL_FIEL_TRUSTED_CA_BUNDLE), el cert DEBE estar emitido por
+        # una de ellas — un cert autofirmado se rechaza. Sin bundle, la firma
+        # se acepta pero se marca VALIDA_SIN_CADENA: criptográficamente
+        # íntegra, identidad del emisor NO verificada contra el SAT.
+        trusted_cas = self._load_trusted_cas()
+        if trusted_cas:
+            self._verify_issuer_chain(cert, trusted_cas)
+            resultado = "VALIDA"
+            cadena_verificada = True
+        else:
+            resultado = "VALIDA_SIN_CADENA"
+            cadena_verificada = False
+
         rfc = self._extract_subject_attr(cert, NameOID.SERIAL_NUMBER) or ""
         nombre = self._extract_subject_attr(cert, NameOID.COMMON_NAME) or ""
         serie = format(cert.serial_number, "x")
@@ -115,12 +129,14 @@ class FielBackend:
                 "certificado_cer_b64": certificado_cer_b64,
                 "rfc_firmante": rfc,
                 "numero_serie_cer": serie,
+                "cadena_verificada": cadena_verificada,
+                "emisor": cert.issuer.rfc4514_string(),
             },
             content_hash="sha256:" + hashlib.sha256(content).hexdigest(),
             signer=signer,
             signer_display_name=nombre,
             is_required=is_required,
-            verification_result="VALIDA",
+            verification_result=resultado,
             signed_at=now,
         )
 
@@ -228,6 +244,64 @@ class FielBackend:
         registro.save(update_fields=["verification_result", "backend_metadata"])
 
     # ─── helpers privados ──────────────────────────────────────────────
+
+    def _load_trusted_cas(self) -> list[x509.Certificate]:
+        """Carga el bundle de ACs de confianza (SAT) desde settings.
+
+        SINPAPEL_FIEL_TRUSTED_CA_BUNDLE: path (str) o lista de paths a
+        archivos PEM (uno o varios certificados por archivo) con las AC
+        raíz/intermedias del SAT. Sin setting → lista vacía (modo
+        VALIDA_SIN_CADENA).
+        """
+        from django.conf import settings
+
+        bundle = getattr(settings, "SINPAPEL_FIEL_TRUSTED_CA_BUNDLE", None)
+        if not bundle:
+            return []
+        paths = [bundle] if isinstance(bundle, (str, bytes)) else list(bundle)
+        cas: list[x509.Certificate] = []
+        for path in paths:
+            with open(path, "rb") as fh:
+                data = fh.read()
+            try:
+                cas.extend(x509.load_pem_x509_certificates(data))
+            except Exception:
+                try:
+                    cas.append(x509.load_der_x509_certificate(data))
+                except Exception as exc:
+                    raise SignatureBackendNotConfiguredError(
+                        f"SINPAPEL_FIEL_TRUSTED_CA_BUNDLE: '{path}' no "
+                        f"contiene certificados PEM/DER válidos"
+                    ) from exc
+        return cas
+
+    def _verify_issuer_chain(
+        self, cert: x509.Certificate, trusted_cas: list[x509.Certificate]
+    ) -> None:
+        """Verifica que cert esté emitido (firmado) por una AC del bundle.
+
+        Emparejamiento por subject == issuer + verificación criptográfica de
+        la firma del certificado con la llave pública de la AC. La AC además
+        debe estar vigente.
+        """
+        for ca in trusted_cas:
+            if ca.subject != cert.issuer:
+                continue
+            try:
+                self._validate_cert_validity(ca)
+                ca.public_key().verify(  # type: ignore[union-attr]
+                    cert.signature,
+                    cert.tbs_certificate_bytes,
+                    padding.PKCS1v15(),
+                    cert.signature_hash_algorithm,  # type: ignore[arg-type]
+                )
+                return
+            except Exception:
+                continue
+        raise SignatureValidationError(
+            "El certificado no está emitido por ninguna AC del bundle de "
+            "confianza (SINPAPEL_FIEL_TRUSTED_CA_BUNDLE)."
+        )
 
     def _load_cert(self, cert_b64: str) -> x509.Certificate:
         try:

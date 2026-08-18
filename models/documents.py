@@ -7,10 +7,10 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 from django.db.models import TextField
-
+from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
+
 from sinpapel.mixins import Catalogo, Trazable
 
 
@@ -24,8 +24,10 @@ class TipoDocumento(Catalogo):
 
 
 class Documento(Catalogo):
+    # PROTECT (antes CASCADE): borrar un TipoDocumento no debe arrasar en
+    # cascada Documentos ni sus InstanciaDocumento (evidencia subida).
     tipo_documento = models.ForeignKey(
-        TipoDocumento, null=True, on_delete=models.CASCADE
+        TipoDocumento, null=True, on_delete=models.PROTECT
     )
     valor = models.CharField(max_length=100)
     contenido = TextField(blank=True, null=True)
@@ -54,7 +56,9 @@ class Documento(Catalogo):
 
 
 class InstanciaDocumento(Trazable):
-    documento = models.ForeignKey(Documento, null=True, on_delete=models.CASCADE)
+    # PROTECT (antes CASCADE): la instancia es evidencia documental del
+    # expediente; no se borra por arrastre del catálogo.
+    documento = models.ForeignKey(Documento, null=True, on_delete=models.PROTECT)
 
     target_content_type = models.ForeignKey(
         ContentType,

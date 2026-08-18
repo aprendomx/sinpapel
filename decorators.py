@@ -98,6 +98,21 @@ def workflow_enabled(
                     f"(required by @workflow_enabled version_field=)"
                 ) from e
 
+        # 1b. Contrato Trazable: el motor persiste la transición con
+        # save(update_fields=[state_field, "actualizado"]). Sin ese campo,
+        # el error aparecería hasta la primera transición en runtime —
+        # mejor fallar aquí, en tiempo de decoración, con mensaje accionable.
+        try:
+            model_class._meta.get_field("actualizado")
+        except FieldDoesNotExist as e:
+            raise WorkflowConfigurationError(
+                f"Model {model_class.__name__} has no field 'actualizado'. "
+                f"@workflow_enabled models must inherit sinpapel.mixins.Trazable "
+                f"(or define an 'actualizado' DateTimeField) — the engine "
+                f"persists transitions with update_fields=['{state_field}', "
+                f"'actualizado']."
+            ) from e
+
         # 2. Registrar en singleton
         config = WorkflowConfig(
             model=model_class,

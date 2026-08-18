@@ -26,6 +26,7 @@ class TestSolicitud(Trazable):
         on_delete=models.CASCADE,
         null=True,
     )
+    alerta_sla = models.BooleanField(default=False)
 
     # GenericRelation expected by engine for expediente_obligatorio check
     expedientes = GenericRelation(

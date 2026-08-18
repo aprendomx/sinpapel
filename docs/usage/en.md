@@ -82,7 +82,7 @@ Transitions, document requirements, audit, signatures, and metadata are **data, 
 pip install sinpapel
 
 # Or with a fixed version:
-pip install "sinpapel==0.7.0"
+pip install "sinpapel~=0.8.0"
 ```
 
 **Requirements:**
@@ -94,7 +94,7 @@ Post-install verification:
 ```python
 >>> import sinpapel
 >>> sinpapel.__version__
-'0.5.0'
+'0.8.0'
 >>> from sinpapel import workflow_enabled, WorkflowRegistry
 >>> from sinpapel.signing.backends.fiel import FielBackend
 ```
@@ -532,7 +532,7 @@ for change in delta.changes:
 
 Configure time limits per state. `SLAConfiguracion` links to `Estado` and defines `dias_maximos` plus an action descriptor evaluated on expiration.
 
-> ⚠️ **Status in 0.7.x — the built-in actions are reporting stubs.** `SLAEngine` detects breaches and fires the `sla_breached` / `sla_action_executed` signals, but the handlers do **not** execute the described behavior: `escalar`/`rechazar` do not run any transition, `notificar` does not send anything, and `alertar` sets the flag in memory without saving it. `SLAEngine.verificar_todos()` and the `sinpapel_verificar_slas` command only report configured SLAs. To get real behavior today, subscribe to the signals and act there. Full action execution (time-in-state based) is planned for 1.0. Also note the current evaluation measures days since the instance's `creado` timestamp, **not** time in the current state.
+> ✅ **Since 0.8.0 actions execute for real.** The deadline is measured as **time in the current state** (since the last recorded transition; falls back to `creado` when there is no history). On breach, `SLAEngine` fires `sla_breached` and executes the configured action: `notificar` dispatches to the callable in `SINPAPEL_SLA_NOTIFY_HANDLER` (dotted path, `handler(instance, descriptor)`), `escalar`/`rechazar` run the automatic transition as the `SINPAPEL_SLA_SYSTEM_USER` (a username with permission for those transitions), and `alertar` persists the flag with `save(update_fields=[...])`. `SLAEngine.verificar_todos()` scans every registered workflow model; wire it to cron via `python manage.py sinpapel_verificar_slas` (`--dry-run` reports without acting or firing signals).
 
 **Actions (descriptors returned to the caller):**
 
@@ -903,12 +903,6 @@ When the API stabilizes (v1.0.0), the contract will be:
 - `MINOR`: new backwards-compatible features.
 - `PATCH`: bug fixes.
 
-**Visible Roadmap:**
-
-- v0.2 — i18n via `gettext_lazy`, `py.typed`, `sinpapel_*` tables, `Etapa` model, standalone tests, `MetadatosCapturables` mixin. **(DONE)**
-- v0.3 — Transition Predicates (`CondicionTransicion` + `PredicateEngine`), Form/Serializer Factory (`MetaFormFactory`), JSON Logic evaluator, pluggable predicate backends. **(DONE)**
-- v0.4 — State Timers / SLA (`SLAConfiguracion` + `SLAEngine`), Preview Transition (`preview_transition()`), SLA export/import in schema v0.2+. **(DONE)**
-- v0.5 — PAdES support (universal PDF signing via endesive) as an additional adapter.
-- v1.0 — Stable API + PyPI public release (final naming and licensing decision).
+The stable public surface is defined in [`development/api-publica.md`](../development/api-publica.md); breaking changes per version are documented in [`development/upgrading.md`](../development/upgrading.md). sinpapel is published on [PyPI](https://pypi.org/project/sinpapel/).
 
 **Report issues / propose changes:** see the project repository.

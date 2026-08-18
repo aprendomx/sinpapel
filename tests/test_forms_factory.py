@@ -8,7 +8,7 @@ import pytest
 from django import forms
 
 from sinpapel.forms import MetaFormFactory
-from sinpapel.mixins import CampoMetadato, MetadatosCapturables
+from sinpapel.mixins import CampoMetadato
 
 
 def test_build_form_str_field():

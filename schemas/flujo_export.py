@@ -172,6 +172,7 @@ def _serialize_catalogos(flujo: "VersionFlujo") -> dict:
     para round-trip equivalence.
     """
     from django.contrib.auth.models import Group
+
     from sinpapel.models import Estado, Etapa, RequisitoEstadoDocumento, TipoDocumento
 
     estado_names: set[str] = set()
@@ -275,12 +276,29 @@ def validate_schema_version(data: dict) -> None:
         )
 
 
+def _validate_payload_structure(data: dict) -> None:
+    """Valida la estructura mínima del payload post-versión.
+
+    Convierte payloads malformados en ValueError con mensaje accionable
+    (los callers HTTP los mapean a 400) en lugar de KeyError/TypeError (500).
+    """
+    flujo_data = data.get("flujo")
+    if not isinstance(flujo_data, dict):
+        raise ValueError("Payload inválido: falta el objeto 'flujo'")
+    if not isinstance(flujo_data.get("nombre"), str) or not flujo_data["nombre"]:
+        raise ValueError("Payload inválido: falta 'flujo.nombre' (str)")
+    for key in ("transiciones", "requisitos"):
+        if not isinstance(flujo_data.get(key), list):
+            raise ValueError(f"Payload inválido: falta 'flujo.{key}' (lista)")
+
+
 def find_missing_entities(data: dict) -> dict[str, list[str]]:
     """Returns {Estado, TipoDocumento, Group: [...]} con missing names sorted.
 
     PAT-E-523: pre-validation explícita ANTES de import — sysadmin sabe qué falta.
     """
     from django.contrib.auth.models import Group
+
     from sinpapel.models import Estado, TipoDocumento
 
     flujo_data = data["flujo"]
@@ -347,6 +365,7 @@ def deserialize_flujo(
     Si dry_run=False → crea entities y retorna VersionFlujo.
     """
     from django.contrib.auth.models import Group
+
     from sinpapel.models import (
         CondicionTransicion,
         ConfiguracionTransicion,
@@ -357,6 +376,7 @@ def deserialize_flujo(
     )
 
     validate_schema_version(data)
+    _validate_payload_structure(data)
     flujo_data = data["flujo"]
 
     # S27.2: v0.2 + create_catalogs=True → upsert inline catalogos primero
