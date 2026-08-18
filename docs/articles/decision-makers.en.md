@@ -12,7 +12,7 @@ There is a third way: **sinpapel** (Spanish for "paperless"), an open-source too
 
 **Rules that change without reprogramming.** The steps of a procedure, who may authorize what, the documents required at each stage, and the amounts or conditions that block a decision are not written into the code: they are configuration. When the regulation changes, a new version of the flow is published. And something auditors appreciate: cases opened under the previous rules keep their rules — the system knows exactly which regulation governed each file.
 
-**Deadlines that enforce themselves.** Each stage carries a maximum time. When it expires, the system acts automatically: it notifies the person responsible, escalates to their superior, alerts the oversight office, or even resolves the case as the regulation dictates. Response times stop depending on someone checking an inbox.
+**Deadlines watched by the system.** Each stage carries a maximum time. When it expires, the system detects it automatically and triggers the responses your institution configures: notifying the person responsible, escalating to their superior, or alerting the oversight office. Response times stop depending on someone checking an inbox.
 
 **Documents that generate themselves.** Official letters, receipts and certificates are produced automatically from institutional templates, filled with the case data. Less manual capture, fewer errors, uniform formatting.
 

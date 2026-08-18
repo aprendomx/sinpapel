@@ -44,7 +44,7 @@ Cuando el proceso cambia, publicas una nueva `VersionFlujo`. Los expedientes vie
 2. **Audit trail inmutable** — cada transición genera un `SeguimientoWorkflow` (quién, cuándo, desde dónde, con qué firma), y el mixin `Trazable` (sobre `django-simple-history`) versiona los cambios de campo del modelo.
 3. **Firma electrónica pluggable** — patrón Port/Adapter. Incluye `FielBackend` para la FIEL del SAT (México), con modo client-side y server-side, más backends manual y fake para desarrollo y tests. Implementar el tuyo es cumplir un `Protocol`.
 4. **Predicados de transición** — reglas de negocio que bloquean una transición: funciones Python whitelisteadas, JSON Logic restringido o consultas ORM declarativas. Se configuran por transición, en datos.
-5. **SLA con dientes** — plazos máximos por estado con acciones automáticas: notificar, escalar, rechazar, alertar. Un management command en cron y el signal `sla_breached` para lo que quieras colgar encima.
+5. **SLA vigilados** — plazos máximos por estado; al vencer, el motor lo detecta y dispara el signal `sla_breached` con toda la información del caso, sobre el que cuelgas tus acciones (notificar, escalar, rechazar). Un management command en cron como punto de entrada. La ejecución integrada de acciones llega en 1.0 — hoy el patrón es suscribirse a la señal.
 
 Además: captura de metadatos estructurados por instancia sin migraciones (`MetadatosCapturables`), signals de dominio, y export/import de flujos completos en JSON portable.
 
@@ -67,7 +67,7 @@ El flujo de trabajo completo: dibujas el proceso en el designer, importas el JSO
 
 Honestidad primero:
 
-- **Es 0.x.** La API pública es estable en la práctica pero sigue en beta; pinea versiones exactas (`sinpapel==0.7.0`).
+- **Es 0.x.** La API pública es estable en la práctica pero sigue en beta; pinea versiones exactas (`sinpapel==0.7.1`).
 - **i18n:** los mensajes y verbose_names del framework están en español. Si tu producto es en otro idioma, harás overrides en forms/serializers.
 - **GPL-3.0.** Copyleft real. Perfecto para gobierno y software público; evalúalo si tu modelo de negocio es SaaS cerrado.
 - **La firma FIEL es específica de México** (SAT). Para otros esquemas, el contrato `SignatureBackend` es pequeño y está documentado.

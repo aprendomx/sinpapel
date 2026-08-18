@@ -12,7 +12,7 @@ Existe una tercera vía: **sinpapel**, un conjunto de herramientas de código ab
 
 **Reglas que cambian sin reprogramar.** Los pasos del trámite, quién puede autorizar qué, los requisitos documentales de cada etapa y los montos o condiciones que bloquean una decisión no están escritos en el código: son configuración. Cuando el reglamento cambia, se publica una nueva versión del flujo. Y algo que los auditores agradecen: los expedientes iniciados bajo las reglas anteriores conservan sus reglas — el sistema sabe exactamente bajo qué normativa se tramitó cada caso.
 
-**Plazos que se cumplen solos.** A cada etapa se le asigna un tiempo máximo. Si se vence, el sistema actúa automáticamente: notifica al responsable, escala al superior, alerta al área de control o incluso resuelve en el sentido que la norma indique. Los tiempos de respuesta dejan de depender de que alguien revise una bandeja.
+**Plazos vigilados por el sistema.** A cada etapa se le asigna un tiempo máximo. Si se vence, el sistema lo detecta automáticamente y activa las respuestas que la institución configure: notificar al responsable, escalar al superior o alertar al área de control. Los tiempos de respuesta dejan de depender de que alguien revise una bandeja.
 
 **Documentos que se generan solos.** Oficios, acuses y constancias se producen automáticamente a partir de plantillas institucionales, con los datos del expediente. Menos captura manual, menos errores, formato uniforme.
 
