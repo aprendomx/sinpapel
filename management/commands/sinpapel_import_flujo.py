@@ -94,6 +94,7 @@ class Command(BaseCommand):
                 f"{n_transiciones} transiciones, {n_requisitos} requisitos.{inline_catalogs_msg}"
             ))
         else:
+            assert flujo is not None  # dry_run=False → deserialize retorna la instancia
             self.stdout.write(self.style.SUCCESS(
                 f"Imported VersionFlujo '{flujo.nombre}' (id={flujo.pk}, schema v{version}): "
                 f"{n_transiciones} transiciones, {n_requisitos} requisitos.{inline_catalogs_msg}"
