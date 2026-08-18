@@ -49,13 +49,18 @@ jobs:
       - name: Install dependencies
         # En .venv para que pyright (venvPath="." / venv=".venv" en
         # pyproject) resuelva imports igual que en desarrollo local.
+        # UNA sola invocación de pip con el pin de Django presente: en
+        # invocaciones separadas el resolver puede "upgradear" Django
+        # silenciosamente (p.ej. DRF 3.18 arrastraba Django 6.1 a los jobs
+        # "5.0"). DRF >= 3.16 requiere Django >= 5.1 → constraint en 5.0.
         run: |
           python -m venv .venv
           .venv/bin/pip install --upgrade pip
-          .venv/bin/pip install "Django~=${{ matrix.django-version }}.0"
-          # DRF: habilita los tests del modo serializer de MetaFormFactory
-          .venv/bin/pip install djangorestframework
-          .venv/bin/pip install -e ".[dev]"
+          if [ "${{ matrix.django-version }}" = "5.0" ]; then
+            .venv/bin/pip install -e ".[dev]" "Django~=5.0.0" "djangorestframework<3.16"
+          else
+            .venv/bin/pip install -e ".[dev]" "Django~=${{ matrix.django-version }}.0" djangorestframework
+          fi
 
       - name: Run tests
         run: .venv/bin/python -m pytest tests/ -v
@@ -92,8 +97,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install "Django~=6.0.0" psycopg2-binary djangorestframework
-          pip install -e ".[dev]"
+          pip install -e ".[dev]" "Django~=6.0.0" psycopg2-binary djangorestframework
 
       - name: Run tests with PostgreSQL
         env:
