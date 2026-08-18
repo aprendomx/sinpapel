@@ -1,12 +1,12 @@
 # sinpapel
 
-> **v0.7.0** — Versioned state machines, immutable audit trail, and pluggable electronic signatures for Django.
+> **v0.7.1** — Versioned state machines, immutable audit trail, and pluggable electronic signatures for Django.
 
 [![PyPI](https://img.shields.io/pypi/v/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Python](https://img.shields.io/pypi/pyversions/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Django](https://img.shields.io/badge/django-5.0%20%7C%205.1-blue)](https://www.djangoproject.com/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/aprendomx/sinpapel/blob/main/LICENSE)
-[![Tests](https://img.shields.io/badge/tests-268%20passing-brightgreen)](#)
+[![Tests](https://img.shields.io/badge/tests-280%20passing-brightgreen)](#)
 
 🇪🇸 [Leer en Español](https://github.com/aprendomx/sinpapel/blob/main/README.es.md)
 
@@ -25,7 +25,7 @@ Building paperless processes in Django usually means stitching together a state-
 - **Dynamic Forms & Serializers** — `MetaFormFactory` builds Django Forms from metadata schema; DRF Serializer mode also supported.
 - **Pluggable Signing Backends** — `SignatureBackend` strategy interface plus reference backends: `FakeBackend` (tests), `ManualBackend` (default), and `FielBackend` (FIEL/SAT, RSA-SHA256 + X.509).
 - **Immutable Audit Trail** — `Trazable` mixin, `SeguimientoWorkflow` history, `RegistroFirma`, plus `django-simple-history` integration.
-- **SLA Timers & Preview Transitions** — `SLAEngine` with notify / escalate / reject / flag actions; `preview_transition()` returns an impact report (blocking reasons, missing documents, failed predicates) without mutating state — available both as `WorkflowEngine.preview_transition()` and as a method on the instance.
+- **SLA Timers & Preview Transitions** — `SLAConfiguracion` models per-state time limits and `SLAEngine` detects breaches, firing the `sla_breached` signal. ⚠️ **0.7.x status:** the built-in actions (notify / escalate / reject / flag) are reporting stubs — they describe the configured action but do not execute it; subscribe to `sla_breached` / `sla_action_executed` to implement real behavior for now (full execution planned for 1.0). `preview_transition()` returns an impact report (blocking reasons, missing documents, failed predicates) without mutating state — available both as `WorkflowEngine.preview_transition()` and as a method on the instance.
 - **Custom Domain Signals** — `predicate_failed`, `sla_breached`, `sla_action_executed`, `transition_preview_requested` for observability and side-effect wiring.
 
 ## Installation
@@ -160,7 +160,7 @@ CI runs the test suite across the full matrix.
 
 ## Versioning & Stability
 
-sinpapel follows [Semantic Versioning](https://semver.org/). The current release is **v0.7.0 (Beta)**. Public APIs (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, model fields, schema JSON v0.2) are stable in the 0.x series; breaking changes will bump the minor version and be flagged in `docs/development/changelog.md` until 1.0.0. **Upgrading to 0.7.0:** `transition()` / `cambiar_estado()` no longer accept the `monto_aprobado` parameter (removed in 0.7.0) — carry domain data via metadata (`MetadatosCapturables`) or `condiciones` / `comentarios` instead. Since 0.6.0, transitions also enforce any `RequisitoEstadoDocumento` rules that were previously configured but never evaluated — review existing flows before upgrading.
+sinpapel follows [Semantic Versioning](https://semver.org/). The current release is **v0.7.1 (Beta)**. Public APIs (`WorkflowEngine`, `PredicateEngine`, `SLAEngine`, signals, model fields, schema JSON v0.2) are stable in the 0.x series; breaking changes will bump the minor version and be flagged in `docs/development/changelog.md` until 1.0.0. **Upgrading to 0.7.0:** `transition()` / `cambiar_estado()` no longer accept the `monto_aprobado` parameter (removed in 0.7.0) — carry domain data via metadata (`MetadatosCapturables`) or `condiciones` / `comentarios` instead. Since 0.6.0, transitions also enforce any `RequisitoEstadoDocumento` rules that were previously configured but never evaluated — review existing flows before upgrading.
 
 ## Contributing
 

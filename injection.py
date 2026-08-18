@@ -27,27 +27,22 @@ if TYPE_CHECKING:
 def available_transitions(self, user: "User") -> list["Estado"]:
     """Retorna lista de Estado destino válidos desde el estado actual.
 
-    Consulta ConfiguracionTransicion filtrando por estado_origen.
+    Delega a WorkflowEngine.available_transitions: filtra por el VersionFlujo
+    resuelto de la instancia (version_field / resolve_workflow_version) y usa
+    el cache de transiciones. Sin flujo resoluble, cae al fallback legacy sin
+    filtro (mismo comportamiento que WorkflowEngine).
+
     No filtra por user permissions — eso lo hace can_transition_to.
 
     Args:
-        user: usuario consultando (no se usa para filtrar en S12.3, reservado
-              para S12.4 cuando WorkflowEngine considere flujo activo + grupos)
+        user: usuario consultando.
 
     Returns:
         lista de instancias Estado destino válidos. Vacía si no hay estado actual.
     """
-    from sinpapel.models import ConfiguracionTransicion
+    from sinpapel.services.workflow_engine import WorkflowEngine
 
-    config = type(self)._workflow_config  # type: ignore[attr-defined]
-    estado_actual = getattr(self, config.state_field, None)
-    if estado_actual is None:
-        return []
-
-    transiciones = ConfiguracionTransicion.objects.filter(
-        estado_origen=estado_actual,
-    ).select_related("estado_destino")
-    return [t.estado_destino for t in transiciones]
+    return WorkflowEngine().available_transitions(self, user)
 
 
 def can_transition_to(self, target_state_name: str, user: "User") -> tuple[bool, str | None]:

@@ -1,6 +1,6 @@
 [project]
 name = "sinpapel"
-version = "0.7.0.post1"
+version = "0.7.1"
 description = "Versioned workflows, immutable audit, and pluggable e-signatures for Django."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -37,6 +37,7 @@ dependencies = [
     "Django>=5.0",
     "django-simple-history>=3.5",
     "cryptography>=42.0",
+    "Pillow>=10.0",
 ]
 
 [project.optional-dependencies]
@@ -56,7 +57,7 @@ docs = [
 Homepage  = "https://github.com/aprendomx/sinpapel"
 Source    = "https://github.com/aprendomx/sinpapel"
 Issues    = "https://github.com/aprendomx/sinpapel/issues"
-Changelog = "https://github.com/aprendomx/sinpapel/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/aprendomx/sinpapel/blob/main/docs/development/changelog.md"
 
 [build-system]
 requires = ["setuptools>=77"]
@@ -106,7 +107,7 @@ exclude = [
 pythonVersion = "3.10"
 pythonPlatform = "Linux"
 extraPaths = ["."]
-venvPath = ".venv"
+venvPath = "."
 venv = ".venv"
 reportMissingImports = "warning"
 reportAttributeAccessIssue = "warning"

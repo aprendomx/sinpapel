@@ -106,7 +106,11 @@ class SLAEngine:
 
     @classmethod
     def _accion_notificar(cls, instance: "models.Model", config: dict) -> dict[str, Any]:
-        """Envía notificación al grupo configurado."""
+        """Construye el descriptor de notificación (0.7.x: stub — NO envía nada).
+
+        El caller (o un receiver de `sla_action_executed`) debe despachar la
+        notificación real. Ejecución integrada planeada para 1.0.
+        """
         grupo_id = config.get("grupo_id")
         grupo = Group.objects.filter(id=grupo_id).first()
         return {
@@ -117,7 +121,11 @@ class SLAEngine:
 
     @classmethod
     def _accion_escalar(cls, instance: "models.Model", config: dict) -> dict[str, Any]:
-        """Ejecuta transición automática al estado destino."""
+        """Retorna el descriptor de escalamiento (0.7.x: stub — NO transiciona).
+
+        La transición real debe ejecutarla el caller o un receiver de
+        `sla_action_executed`. Ejecución integrada planeada para 1.0.
+        """
         estado_destino = config.get("estado_destino")
         return {
             "accion": "escalar",
@@ -126,7 +134,11 @@ class SLAEngine:
 
     @classmethod
     def _accion_rechazar(cls, instance: "models.Model", config: dict) -> dict[str, Any]:
-        """Ejecuta transición automática al estado de rechazo."""
+        """Retorna el descriptor de rechazo (0.7.x: stub — NO transiciona).
+
+        La transición real debe ejecutarla el caller o un receiver de
+        `sla_action_executed`. Ejecución integrada planeada para 1.0.
+        """
         estado_destino = config.get("estado_destino")
         return {
             "accion": "rechazar",
@@ -135,7 +147,10 @@ class SLAEngine:
 
     @classmethod
     def _accion_alertar(cls, instance: "models.Model", config: dict) -> dict[str, Any]:
-        """Activa bandera en la instancia."""
+        """Activa bandera en la instancia EN MEMORIA (0.7.x: no hace save()).
+
+        Persistir el cambio es responsabilidad del caller.
+        """
         campo = config.get("campo")
         valor = config.get("valor")
         if campo and hasattr(instance, campo):

@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] — 2026-08-18
+
+### Fixed
+- **`preview_transition()["historial_reciente"]` siempre regresaba `[]`.**
+  `_obtener_historial_reciente` filtraba `target=instance` sobre una
+  GenericForeignKey (FieldError silenciado por un `except` amplio). Ahora
+  filtra por `(target_content_type, target_object_id)` con `select_related`,
+  y los errores se loggean en vez de tragarse.
+- **`instance.available_transitions()` ignoraba la versión del flujo.** El
+  método inyectado consultaba `ConfiguracionTransicion` sin filtro de `flujo`
+  y sin cache; ahora delega a `WorkflowEngine.available_transitions` (filtra
+  por el `VersionFlujo` resuelto y usa el cache de transiciones). Si tu app
+  dependía de ver transiciones de todos los flujos, usa una consulta ORM
+  directa.
+- **Carrera check-then-act en `cambiar_estado`.** La transición ahora re-lee
+  el row con `SELECT ... FOR UPDATE` dentro de la transacción y revalida
+  sobre el estado fresco: dos transiciones concurrentes (o una copia stale en
+  memoria) ya no pueden ejecutarse ambas; la segunda recibe `PermissionError`.
+- **Side effects post-commit.** `ejecutar_side_effects` corre ahora DESPUÉS
+  de que la transacción del motor commiteó (antes corría dentro, y la
+  justificación del ADR-004 era incorrecta): un side effect con efectos
+  externos ya no puede dispararse para una transición que hace rollback.
+- **Packaging: `Pillow` declarado como dependencia.** `Catalogo.imagen` es un
+  `ImageField`; sin Pillow, `pip install sinpapel` en un proyecto limpio
+  fallaba `manage.py check` con 4 × `fields.E210`.
+- Docs: la guía de uso EN declaraba licencia **MIT** (es GPL-3.0-or-later
+  desde 0.5.1); el Quick Start de la home de MkDocs no ejecutaba (decorador
+  sin kwargs obligatorios, `CampoMetadato` con strings en vez de types) y
+  anunciaba backends inexistentes; URL de Changelog en los metadatos de PyPI
+  apuntaba a un archivo inexistente.
+
+### Changed
+- **Documentado el estado real del subsistema SLA en 0.7.x** (README, guías
+  de uso, docstrings): las acciones integradas (`notificar` / `escalar` /
+  `rechazar` / `alertar`) son stubs informativos — detectan el vencimiento y
+  emiten `sla_breached` / `sla_action_executed`, pero no ejecutan la acción
+  descrita. La ejecución real (basada en tiempo-en-estado) está planeada para
+  1.0.
+
 ## [0.7.0] — 2026-06-28
 
 ### Removed
@@ -157,14 +196,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `django-simple-history` integration for full change history.
 - PEP 561 `py.typed` marker for type-checker downstream consumers.
 
-[Unreleased]: https://github.com/OWNER/REPO/compare/v0.7.0...HEAD
-[0.7.0]: https://github.com/OWNER/REPO/compare/v0.6.0...v0.7.0
-[0.6.0]: https://github.com/OWNER/REPO/compare/v0.5.1...v0.6.0
-[0.5.1]: https://github.com/OWNER/REPO/compare/v0.5.0...v0.5.1
-[0.5.0]: https://github.com/OWNER/REPO/compare/v0.4.2...v0.5.0
-[0.4.2]: https://github.com/OWNER/REPO/compare/v0.4.1...v0.4.2
-[0.4.1]: https://github.com/OWNER/REPO/compare/v0.4.0...v0.4.1
-[0.4.0]: https://github.com/OWNER/REPO/compare/v0.1.1...v0.4.0
-[0.3.0]: https://github.com/OWNER/REPO/releases/tag/v0.3.0
-[0.2.0]: https://github.com/OWNER/REPO/releases/tag/v0.2.0
-[0.1.1]: https://github.com/OWNER/REPO/releases/tag/v0.1.1
+[Unreleased]: https://github.com/aprendomx/sinpapel/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/aprendomx/sinpapel/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/aprendomx/sinpapel/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/aprendomx/sinpapel/compare/v0.5.1...v0.6.0
+[0.5.1]: https://github.com/aprendomx/sinpapel/compare/v0.5.0...v0.5.1
+[0.5.0]: https://github.com/aprendomx/sinpapel/compare/v0.4.2...v0.5.0
+[0.4.2]: https://github.com/aprendomx/sinpapel/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/aprendomx/sinpapel/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/aprendomx/sinpapel/compare/v0.1.1...v0.4.0
+[0.3.0]: https://github.com/aprendomx/sinpapel/releases/tag/v0.3.0
+[0.2.0]: https://github.com/aprendomx/sinpapel/releases/tag/v0.2.0
+[0.1.1]: https://github.com/aprendomx/sinpapel/releases/tag/v0.1.1

@@ -529,9 +529,11 @@ for change in delta.changes:
 
 ## 14. Timers de Estado / SLA
 
-Configura límites de tiempo por estado y acciones automáticas cuando las instancias los exceden. `SLAConfiguracion` se vincula a `Estado` y define `dias_maximos` más una acción a ejecutar al vencer.
+Configura límites de tiempo por estado. `SLAConfiguracion` se vincula a `Estado` y define `dias_maximos` más un descriptor de acción evaluado al vencer.
 
-**Acciones:**
+> ⚠️ **Estado en 0.7.x — las acciones integradas son stubs informativos.** `SLAEngine` detecta vencimientos y emite las señales `sla_breached` / `sla_action_executed`, pero los handlers **no** ejecutan el comportamiento descrito: `escalar`/`rechazar` no ejecutan ninguna transición, `notificar` no envía nada, y `alertar` activa la bandera en memoria sin guardarla. `SLAEngine.verificar_todos()` y el comando `sinpapel_verificar_slas` solo reportan los SLAs configurados. Para comportamiento real hoy, suscríbete a las señales y actúa ahí. La ejecución completa de acciones (basada en tiempo-en-estado) está planeada para 1.0. Nota además que la evaluación actual mide días desde el `creado` de la instancia, **no** tiempo en el estado actual.
+
+**Acciones (descriptores retornados al caller):**
 
 | Acción | `accion_vencimiento` | Comportamiento |
 |--------|---------------------|---------------|

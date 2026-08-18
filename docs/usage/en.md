@@ -530,9 +530,11 @@ for change in delta.changes:
 
 ## 14. State Timers / SLA
 
-Configure time limits per state and automatic actions when instances exceed them. `SLAConfiguracion` links to `Estado` and defines `dias_maximos` plus an action to execute on expiration.
+Configure time limits per state. `SLAConfiguracion` links to `Estado` and defines `dias_maximos` plus an action descriptor evaluated on expiration.
 
-**Actions:**
+> ⚠️ **Status in 0.7.x — the built-in actions are reporting stubs.** `SLAEngine` detects breaches and fires the `sla_breached` / `sla_action_executed` signals, but the handlers do **not** execute the described behavior: `escalar`/`rechazar` do not run any transition, `notificar` does not send anything, and `alertar` sets the flag in memory without saving it. `SLAEngine.verificar_todos()` and the `sinpapel_verificar_slas` command only report configured SLAs. To get real behavior today, subscribe to the signals and act there. Full action execution (time-in-state based) is planned for 1.0. Also note the current evaluation measures days since the instance's `creado` timestamp, **not** time in the current state.
+
+**Actions (descriptors returned to the caller):**
 
 | Action | `accion_vencimiento` | Behavior |
 |--------|---------------------|----------|
@@ -888,7 +890,7 @@ pytest tests/ -q
 
 ## 20. License & Versioning
 
-**License:** MIT (see `LICENSE`). Commercial and institutional use permitted. No warranty.
+**License:** GPL-3.0-or-later (see `LICENSE`). Free software with copyleft: you may use, study, modify and redistribute it, including commercially and institutionally, provided derivative works are licensed under compatible terms. No warranty.
 
 **Versioning:** [SemVer 2.0](https://semver.org). Pre-1.0 (`0.y.z`):
 

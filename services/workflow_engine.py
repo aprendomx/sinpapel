@@ -17,6 +17,7 @@ Resolución de flujo activo:
 """
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 from django.db import transaction
@@ -40,6 +41,8 @@ if TYPE_CHECKING:
 
     from sinpapel.models import VersionFlujo
     from sinpapel.registry import WorkflowConfig
+
+logger = logging.getLogger(__name__)
 
 
 class WorkflowEngine:
@@ -351,11 +354,21 @@ class WorkflowEngine:
         return reporte
 
     def _obtener_historial_reciente(self, instance: "models.Model") -> list[dict]:
-        """Retorna últimos seguimientos de la instancia."""
+        """Retorna últimos seguimientos de la instancia.
+
+        Filtra por (target_content_type, target_object_id) — una GFK no admite
+        `filter(target=...)` directo.
+        """
+        from django.contrib.contenttypes.models import ContentType
+
         from sinpapel.models import SeguimientoWorkflow
         try:
+            content_type = ContentType.objects.get_for_model(type(instance))
             seguimientos = SeguimientoWorkflow.objects.filter(
-                target=instance
+                target_content_type=content_type,
+                target_object_id=instance.pk,
+            ).select_related(
+                "estado_anterior", "estado_nuevo", "usuario_accion"
             ).order_by("-fecha_accion")[:5]
             return [
                 {
@@ -367,6 +380,11 @@ class WorkflowEngine:
                 for seg in seguimientos
             ]
         except Exception:
+            logger.exception(
+                "No se pudo obtener historial reciente para %s pk=%s",
+                type(instance).__name__,
+                getattr(instance, "pk", "?"),
+            )
             return []
 
     def puede_cambiar_estado(
@@ -416,7 +434,6 @@ class WorkflowEngine:
         ).select_related("estado_destino")
         return [t.estado_destino for t in qs]
 
-    @transaction.atomic
     def cambiar_estado(
         self,
         instance: "models.Model",
@@ -428,6 +445,17 @@ class WorkflowEngine:
         firma_payload: dict | None = None,
     ) -> dict[str, Any]:
         """Ejecuta la transición a target_state_name (atómica).
+
+        Concurrencia: dentro de la transacción se re-lee el row con
+        SELECT ... FOR UPDATE y se refresca el estado actual antes de validar,
+        de modo que dos transiciones concurrentes desde el mismo estado no
+        puedan pasar ambas la validación (la segunda ve el estado ya mutado).
+
+        Side effects: se ejecutan DESPUÉS de que la transacción del motor
+        commiteó — un fallo de side effect nunca puede dejar efectos externos
+        de una transición que hizo rollback. Si el caller envuelve esta
+        llamada en su propia transacción exterior, esa garantía pasa a ser
+        responsabilidad del caller.
 
         Args:
             instance: instancia decorada con @workflow_enabled
@@ -449,60 +477,78 @@ class WorkflowEngine:
         Raises:
             PermissionError: si la transición no es válida (delega a puede_cambiar_estado)
         """
-        # 1. Validar permisos + transición válida
-        puede, mensaje = self.puede_cambiar_estado(instance, target_state_name, user)
-        if not puede:
-            raise PermissionError(mensaje)
-
-        # 2. Resolver estados (S13.1: cache helper para estado_nuevo)
         config = self._get_config(instance)
-        estado_anterior = getattr(instance, config.state_field)
-        estado_nuevo = get_estado_by_name(target_state_name)
-        if estado_nuevo is None:
-            # No debería pasar — puede_cambiar_estado ya validó arriba.
-            # Defensive: race condition entre check y resolve.
-            raise ValueError(f"Estado '{target_state_name}' no existe")
 
-        # 3. Procesar firma si aplica (S13.6: dual shape)
-        # Modo A — dict con verify-fields → FielBackend.request_signature (verifica + persiste)
-        # Modo B — dict {"registro_firma_id": int} → RegistroFirma pre-creado por viewset
-        #          (viewset invocó sign_server_side antes para descartar key inmediato)
-        registro_firma = None
-        if firma_payload is not None:
-            if "registro_firma_id" in firma_payload:
-                from sinpapel.models import RegistroFirma
-                registro_firma = RegistroFirma.objects.get(
-                    pk=firma_payload["registro_firma_id"]
-                )
-            elif "contenido" in firma_payload:
-                from sinpapel.signing.backends.fiel import FielBackend
-                registro_firma = FielBackend().request_signature(
-                    content=firma_payload["contenido"],
-                    signer=user,
-                    firma_b64=firma_payload["firma_b64"],
-                    certificado_cer_b64=firma_payload["certificado_cer_b64"],
-                    is_required=True,
-                )
+        with transaction.atomic():
+            # 0. Lock pesimista: re-lee el row bajo FOR UPDATE y refresca el
+            # estado actual en memoria. Cierra la carrera check-then-act:
+            # una transición concurrente ya commiteada se vuelve visible aquí
+            # y la validación del paso 1 la rechaza.
+            locked = (
+                type(instance).objects.select_for_update().get(pk=instance.pk)
+            )
+            setattr(
+                instance,
+                config.state_field,
+                getattr(locked, config.state_field),
+            )
 
-        # 4. Crear SeguimientoWorkflow (target via GFK)
-        seguimiento = SeguimientoWorkflow.objects.create(
-            target=instance,
-            estado_anterior=estado_anterior,
-            estado_nuevo=estado_nuevo,
-            usuario_accion=user,
-            comentarios=comentarios,
-            condiciones=condiciones,
-            ip_address=ip_address,
-            firma_registro=registro_firma,
-            autor=user,
-            modificador=user,
-        )
+            # 1. Validar permisos + transición válida (sobre el estado fresco)
+            puede, mensaje = self.puede_cambiar_estado(
+                instance, target_state_name, user
+            )
+            if not puede:
+                raise PermissionError(mensaje)
 
-        # 5. Actualizar estado en la instance
-        setattr(instance, config.state_field, estado_nuevo)
-        instance.save(update_fields=[config.state_field, "actualizado"])
+            # 2. Resolver estados (S13.1: cache helper para estado_nuevo)
+            estado_anterior = getattr(instance, config.state_field)
+            estado_nuevo = get_estado_by_name(target_state_name)
+            if estado_nuevo is None:
+                # No debería pasar — puede_cambiar_estado ya validó arriba.
+                raise ValueError(f"Estado '{target_state_name}' no existe")
 
-        # 6. Side-effects (errors logged, no re-raised — ADR-004)
+            # 3. Procesar firma si aplica (S13.6: dual shape)
+            # Modo A — dict con verify-fields → FielBackend.request_signature
+            # Modo B — dict {"registro_firma_id": int} → RegistroFirma
+            #          pre-creado por el caller (sign_server_side previo)
+            registro_firma = None
+            if firma_payload is not None:
+                if "registro_firma_id" in firma_payload:
+                    from sinpapel.models import RegistroFirma
+                    registro_firma = RegistroFirma.objects.get(
+                        pk=firma_payload["registro_firma_id"]
+                    )
+                elif "contenido" in firma_payload:
+                    from sinpapel.signing.backends.fiel import FielBackend
+                    registro_firma = FielBackend().request_signature(
+                        content=firma_payload["contenido"],
+                        signer=user,
+                        firma_b64=firma_payload["firma_b64"],
+                        certificado_cer_b64=firma_payload["certificado_cer_b64"],
+                        is_required=True,
+                    )
+
+            # 4. Crear SeguimientoWorkflow (target via GFK)
+            seguimiento = SeguimientoWorkflow.objects.create(
+                target=instance,
+                estado_anterior=estado_anterior,
+                estado_nuevo=estado_nuevo,
+                usuario_accion=user,
+                comentarios=comentarios,
+                condiciones=condiciones,
+                ip_address=ip_address,
+                firma_registro=registro_firma,
+                autor=user,
+                modificador=user,
+            )
+
+            # 5. Actualizar estado en la instance
+            setattr(instance, config.state_field, estado_nuevo)
+            instance.save(update_fields=[config.state_field, "actualizado"])
+
+        # 6. Side-effects — POST-commit de la transacción del motor.
+        # Errores se loggean sin re-raise (ADR-004): la transición ya
+        # persistió; el side effect fallido no debe revertirla.
         resultado_extra = ejecutar_side_effects(
             target_state_name,
             instance,

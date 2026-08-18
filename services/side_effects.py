@@ -4,9 +4,11 @@ Pattern: dict-based registry de handlers indexados por nombre de estado.
 Handlers concretos registran via SIDE_EFFECTS["NOMBRE"] = handler o vía
 @register_side_effect("NOMBRE") decorator.
 
-ADR-004 garantía clave: errores de handler se loggean pero NO se re-raisen
-porque el cambio de estado ya commiteó (transacción atómica del WorkflowEngine).
-Re-raisear rompería invariantes posteriores.
+ADR-004 garantía clave: errores de handler se loggean pero NO se re-raisen.
+El WorkflowEngine ejecuta los side effects DESPUÉS de commitear su
+transacción: la transición ya persistió, y un handler fallido no debe (ni
+puede) revertirla. Los handlers deben ser idempotentes o tolerar reintentos
+externos.
 """
 from __future__ import annotations
 
