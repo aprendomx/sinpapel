@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] — 2026-08-18
+
+### Added
+- **Side effects scoped por flujo:** `@register_side_effect("ESTADO",
+  workflow_key="mi_flujo")` limita el handler a ese flujo (precedencia sobre
+  el global). El registro global sigue funcionando igual (compat).
+- **`SINPAPEL_ENFORCE_ESTADO_ACTIVO`** (default False, opt-in): con True, un
+  `Estado` con `activo=False` deja de ser destino válido y desaparece de
+  `available_transitions`.
+
+### Changed
+- `evaluar_requisitos_documentales` agrega los porcentajes por tipo en UNA
+  query (antes: una por requisito — N+1 en previews).
+- sdist limpio: MANIFEST.in con rutas reales del flat layout (`prune
+  tests/docs/site`); el tarball baja a solo el paquete + metadata.
+  `.coverage` deja de estar trackeado en git.
+- CI: pyright corre contra un `.venv` real con `django-types` — de 8 falsos
+  positivos sin stubs a **0 errors** con imports resueltos; los 13 tests del
+  modo DRF corren también en local.
+
 ## [0.8.0] — 2026-08-18
 
 Release de endurecimiento post-auditoría. **Contiene breaking changes** —
@@ -251,7 +271,8 @@ lee la [guía de upgrade](upgrading.md#07x--080) antes de actualizar.
 - `django-simple-history` integration for full change history.
 - PEP 561 `py.typed` marker for type-checker downstream consumers.
 
-[Unreleased]: https://github.com/aprendomx/sinpapel/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/aprendomx/sinpapel/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/aprendomx/sinpapel/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/aprendomx/sinpapel/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/aprendomx/sinpapel/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/aprendomx/sinpapel/compare/v0.6.0...v0.7.0

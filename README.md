@@ -1,6 +1,6 @@
 # sinpapel
 
-> **v0.8.0** — Versioned state machines, immutable audit trail, and pluggable electronic signatures for Django.
+> **v0.8.1** — Versioned state machines, immutable audit trail, and pluggable electronic signatures for Django.
 
 [![PyPI](https://img.shields.io/pypi/v/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Python](https://img.shields.io/pypi/pyversions/sinpapel.svg)](https://pypi.org/project/sinpapel/)
@@ -26,6 +26,7 @@ Building paperless processes in Django usually means stitching together a state-
 - **Pluggable Signing Backends** — `SignatureBackend` strategy interface plus reference backends: `FakeBackend` (tests), `ManualBackend` (default), and `FielBackend` (FIEL/SAT, RSA-SHA256 + X.509).
 - **Immutable Audit Trail** — `Trazable` mixin, `SeguimientoWorkflow` history, `RegistroFirma`, plus `django-simple-history` integration.
 - **SLA Timers & Preview Transitions** — `SLAConfiguracion` models per-state time limits (measured as time-in-state since the last transition) and `SLAEngine` executes the configured actions on breach: notify (via `SINPAPEL_SLA_NOTIFY_HANDLER`), escalate/reject (automatic transition by the `SINPAPEL_SLA_SYSTEM_USER`), or flag (persisted). Wire the cron with the `sinpapel_verificar_slas` command (`--dry-run` supported). `preview_transition()` returns an impact report (blocking reasons, missing documents, failed predicates, whether signature is required) without mutating state.
+SINPAPEL_ENFORCE_ESTADO_ACTIVO = False # reject transitions into Estado.activo=False
 - **Custom Domain Signals** — `predicate_failed`, `sla_breached`, `sla_action_executed`, `transition_preview_requested` for observability and side-effect wiring.
 
 ## Installation

@@ -277,6 +277,97 @@ def test_modo_b_rechaza_firma_ajena_y_reuso(setup_reg):
         )
 
 
+@pytest.mark.django_db
+def test_side_effects_scoped_por_workflow_key(setup_reg):
+    """0.8.1: un handler scoped a otro flujo NO se ejecuta; el del flujo sí,
+    con precedencia sobre el global."""
+    from sinpapel.services.side_effects import (
+        SIDE_EFFECTS,
+        SIDE_EFFECTS_SCOPED,
+        register_side_effect,
+    )
+
+    superuser = User.objects.create_superuser("reg_scope", password="x")
+    llamadas: list[str] = []
+
+    @register_side_effect("REG_DESTINO")
+    def _global(instance, usuario, **kwargs):
+        llamadas.append("global")
+        return {"scope": "global"}
+
+    @register_side_effect("REG_DESTINO", workflow_key="test_solicitud")
+    def _scoped(instance, usuario, **kwargs):
+        llamadas.append("scoped")
+        return {"scope": "scoped"}
+
+    @register_side_effect("REG_DESTINO", workflow_key="otro_flujo")
+    def _ajeno(instance, usuario, **kwargs):
+        llamadas.append("ajeno")
+        return {"scope": "ajeno"}
+
+    try:
+        # TestSolicitud tiene workflow_key="test_solicitud"
+        result = setup_reg["solicitud"].transition("REG_DESTINO", superuser)
+    finally:
+        SIDE_EFFECTS.pop("REG_DESTINO", None)
+        SIDE_EFFECTS_SCOPED.pop(("test_solicitud", "REG_DESTINO"), None)
+        SIDE_EFFECTS_SCOPED.pop(("otro_flujo", "REG_DESTINO"), None)
+
+    assert llamadas == ["scoped"], (
+        "debe correr SOLO el handler scoped del flujo de la instancia"
+    )
+    assert result["scope"] == "scoped"
+
+
+@pytest.mark.django_db
+def test_estado_inactivo_bloqueado_con_enforce(setup_reg, settings):
+    """0.8.1: con SINPAPEL_ENFORCE_ESTADO_ACTIVO, destinos inactivos se
+    bloquean y desaparecen de available_transitions."""
+    superuser = User.objects.create_superuser("reg_activo", password="x")
+
+    # Default (flag off): Estado.activo=False no bloquea (compat)
+    assert setup_reg["destino"].activo is False
+    preview = setup_reg["solicitud"].preview_transition("REG_DESTINO", superuser)
+    assert preview["permitido"] is True
+
+    settings.SINPAPEL_ENFORCE_ESTADO_ACTIVO = True
+    preview = setup_reg["solicitud"].preview_transition("REG_DESTINO", superuser)
+    assert preview["permitido"] is False
+    assert any("inactivo" in r["mensaje"] for r in preview["razones_bloqueo"])
+    assert setup_reg["solicitud"].available_transitions(superuser) == []
+
+    # Activarlo lo rehabilita. (La invalidación por signal corre en
+    # on_commit — no dispara en tests no-transaccionales; limpiamos a mano.)
+    setup_reg["destino"].activo = True
+    setup_reg["destino"].save()
+    from sinpapel.cache import clear_all
+
+    clear_all()
+    destinos = setup_reg["solicitud"].available_transitions(superuser)
+    assert setup_reg["destino"] in destinos
+
+
+@pytest.mark.django_db
+def test_requisitos_documentales_una_sola_query(setup_reg, django_assert_num_queries):
+    """0.8.1: evaluar_requisitos_documentales agrega en una query, no N+1."""
+    from sinpapel.models import RequisitoEstadoDocumento, TipoDocumento
+    from sinpapel.services.workflow_engine import WorkflowEngine
+
+    for i in range(3):
+        tipo = TipoDocumento.objects.create(nombre=f"REG_TIPO_{i}")
+        RequisitoEstadoDocumento.objects.create(
+            estado=setup_reg["origen"], tipo_documento=tipo, porcentaje=100
+        )
+
+    engine = WorkflowEngine()
+    engine.evaluar_requisitos_documentales(setup_reg["solicitud"])  # calienta cache
+    # 2 queries: ContentType (cacheado por Django, puede ser 0) + agregada.
+    with django_assert_num_queries(1):
+        resultado = engine.evaluar_requisitos_documentales(setup_reg["solicitud"])
+    assert len(resultado) == 3
+    assert all(r["porcentaje_actual"] == 0 for r in resultado)
+
+
 @pytest.mark.django_db(transaction=True)
 def test_side_effects_corren_post_commit(setup_reg, sinpapel_migrated):
     """El handler de side effect debe ejecutarse fuera de la transacción."""

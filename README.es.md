@@ -1,6 +1,6 @@
 # sinpapel
 
-> **v0.8.0** — Máquinas de estado versionadas, auditoría inmutable y firmas electrónicas plugables para Django.
+> **v0.8.1** — Máquinas de estado versionadas, auditoría inmutable y firmas electrónicas plugables para Django.
 
 [![PyPI](https://img.shields.io/pypi/v/sinpapel.svg)](https://pypi.org/project/sinpapel/)
 [![Python](https://img.shields.io/pypi/pyversions/sinpapel.svg)](https://pypi.org/project/sinpapel/)
@@ -26,6 +26,7 @@ Construir procesos sin papel en Django suele significar pegar una librería de m
 - **Backends de Firma Plugables** — interfaz strategy `SignatureBackend` más backends de referencia: `FakeBackend` (tests), `ManualBackend` (default) y `FielBackend` (FIEL/SAT, RSA-SHA256 + X.509).
 - **Pista de Auditoría Inmutable** — mixin `Trazable`, historial `SeguimientoWorkflow`, `RegistroFirma`, más integración con `django-simple-history`.
 - **Timers SLA y Preview de Transiciones** — `SLAConfiguracion` modela tiempos máximos por estado (medidos como tiempo-en-estado desde la última transición) y `SLAEngine` ejecuta las acciones configuradas al vencer: notificar (vía `SINPAPEL_SLA_NOTIFY_HANDLER`), escalar/rechazar (transición automática del `SINPAPEL_SLA_SYSTEM_USER`) o alertar (bandera persistida). El cron se conecta con el comando `sinpapel_verificar_slas` (`--dry-run` soportado). `preview_transition()` retorna un reporte de impacto (razones de bloqueo, documentos faltantes, predicados fallidos, si exige firma) sin mutar el estado.
+SINPAPEL_ENFORCE_ESTADO_ACTIVO = False # rechaza transiciones a Estados inactivos
 - **Signals de Dominio Personalizados** — `predicate_failed`, `sla_breached`, `sla_action_executed`, `transition_preview_requested` para observabilidad y cableado de side-effects.
 
 ## Instalación

@@ -48,11 +48,26 @@ class WorkflowEngine:
     """Motor genérico de transiciones de workflow."""
 
     def _validar_estado_destino(self, target_state_name: str):
-        """Valida que el estado destino existe."""
+        """Valida que el estado destino existe (y está activo, si se enforca).
+
+        SINPAPEL_ENFORCE_ESTADO_ACTIVO (default False, opt-in por
+        compatibilidad — `Catalogo.activo` tiene default False y muchos seeds
+        no lo activan): con True, un Estado con activo=False no es destino
+        válido.
+        """
+        from django.conf import settings
+
         from sinpapel.cache import get_estado_by_name
         estado_destino = get_estado_by_name(target_state_name)
         if estado_destino is None:
             return None, f"Estado destino '{target_state_name}' no existe"
+        if (
+            getattr(settings, "SINPAPEL_ENFORCE_ESTADO_ACTIVO", False)
+            and not estado_destino.activo
+        ):
+            return None, (
+                f"Estado destino '{target_state_name}' está inactivo"
+            )
         return estado_destino, None
 
     def _validar_configuracion_transicion(
@@ -145,15 +160,26 @@ class WorkflowEngine:
 
         requisitos = get_requisitos_for(estado.id)
         if requisitos:
+            from django.db.models import Max
+
             content_type = ContentType.objects.get_for_model(type(instance))
+            # Una sola query agregada para todos los tipos requeridos
+            # (antes: una query por requisito — N+1).
+            porcentajes = dict(
+                InstanciaDocumento.objects.filter(
+                    target_content_type=content_type,
+                    target_object_id=instance.pk,
+                    documento__tipo_documento_id__in=[
+                        r.tipo_documento_id for r in requisitos
+                    ],
+                )
+                .values("documento__tipo_documento_id")
+                .annotate(maximo=Max("porcentaje"))
+                .values_list("documento__tipo_documento_id", "maximo")
+            )
             for requisito in requisitos:
-                porcentaje_actual = max(
-                    InstanciaDocumento.objects.filter(
-                        target_content_type=content_type,
-                        target_object_id=instance.pk,
-                        documento__tipo_documento_id=requisito.tipo_documento_id,
-                    ).values_list("porcentaje", flat=True),
-                    default=0,
+                porcentaje_actual = porcentajes.get(
+                    requisito.tipo_documento_id, 0
                 )
                 satisfecho = (
                     requisito.auto_carga
@@ -261,8 +287,6 @@ class WorkflowEngine:
             documentos_faltantes, predicados_fallidos, aprobadores_requeridos,
             historial_reciente
         """
-        from sinpapel.services.side_effects import SIDE_EFFECTS
-
         config = self._get_config(instance)
         estado_actual = getattr(instance, config.state_field, None)
 
@@ -341,11 +365,13 @@ class WorkflowEngine:
                     "mensaje": pred["mensaje"],
                 })
 
-        # 7. Side effects
-        reporte["side_effects"] = [
-            name for name in SIDE_EFFECTS.keys()
-            if name == target_state_name
-        ]
+        # 7. Side effects (scoped por workflow_key con fallback global)
+        from sinpapel.services.side_effects import resolver_handler
+        reporte["side_effects"] = (
+            [target_state_name]
+            if resolver_handler(target_state_name, getattr(config, "workflow_key", None))
+            else []
+        )
 
         # 7b. Firma requerida (0.8.0): el preview informa si la transición
         # exigirá firma_payload, para que la UI pida la firma antes de ejecutar.
@@ -444,12 +470,18 @@ class WorkflowEngine:
         if flujo is not None:
             # S13.1: cache helper para path con flujo (caso 80% en producción)
             transitions = get_transitions_for(flujo.id, estado_actual.id)
-            return [t.estado_destino for t in transitions]
-        # Sin flujo: legacy fallback (sin cache) — preservado por backward compat
-        qs = ConfiguracionTransicion.objects.filter(
-            estado_origen=estado_actual,
-        ).select_related("estado_destino")
-        return [t.estado_destino for t in qs]
+            destinos = [t.estado_destino for t in transitions]
+        else:
+            # Sin flujo: legacy fallback (sin cache) — backward compat
+            qs = ConfiguracionTransicion.objects.filter(
+                estado_origen=estado_actual,
+            ).select_related("estado_destino")
+            destinos = [t.estado_destino for t in qs]
+
+        from django.conf import settings
+        if getattr(settings, "SINPAPEL_ENFORCE_ESTADO_ACTIVO", False):
+            destinos = [e for e in destinos if e.activo]
+        return destinos
 
     def cambiar_estado(
         self,
@@ -592,6 +624,7 @@ class WorkflowEngine:
             target_state_name,
             instance,
             user,
+            workflow_key=getattr(config, "workflow_key", None),
         )
 
         return {

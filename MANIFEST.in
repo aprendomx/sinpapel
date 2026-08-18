@@ -1,7 +1,16 @@
 include LICENSE
 include README.md
+include README.es.md
 include pyproject.toml
-recursive-include sinpapel/migrations *.py
-recursive-exclude sinpapel/tests *
+include py.typed
+recursive-include migrations *.py
+prune tests
+prune docs
+prune site
+prune .github
+exclude .coverage
+exclude .pre-commit-config.yaml
+exclude mkdocs.yml
+exclude pytest.ini
 recursive-exclude * __pycache__
 recursive-exclude * *.pyc
