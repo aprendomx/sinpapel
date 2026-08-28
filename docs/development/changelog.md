@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.3] — 2026-08-28
+
+### Fixed
+- **`AUTH_USER_MODEL` custom ya no rompe el arranque.** `VersionFlujo.creado_por`,
+  `SeguimientoWorkflow.usuario_accion` y `RegistroFirma.signer` declaraban el FK
+  con el literal `"auth.User"`. En cualquier proyecto con usuario custom, Django
+  abortaba el system check con cinco `fields.E301` (los tres campos más sus
+  modelos `Historical*`) y `manage.py check` / `migrate` fallaban: el framework
+  era inusable. Ahora usan `settings.AUTH_USER_MODEL`.
+
+  **Sin migración:** las migraciones ya registraban `settings.AUTH_USER_MODEL`;
+  el desajuste vivía solo en las definiciones de modelo. No hay cambio de
+  esquema y no se requiere `migrate` al actualizar desde 0.8.2.
+
 ## [0.8.2] — 2026-08-18
 
 ### Fixed

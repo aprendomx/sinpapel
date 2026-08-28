@@ -4,6 +4,7 @@ RegistroFirma extraído desde creditos en S12.2 preservando la tabla SQL
 `creditos_registrofirma` vía db_table override. El schema agnóstico de
 backend (backend_name + backend_metadata JSON) fue establecido en S12.1/T6.
 """
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -43,7 +44,7 @@ class RegistroFirma(models.Model):
     )
 
     signer = models.ForeignKey(
-        "auth.User",
+        settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,

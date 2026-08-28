@@ -4,6 +4,7 @@ Estado, VersionFlujo, ConfiguracionTransicion, SeguimientoWorkflow,
 RequisitoEstadoDocumento extraídos desde creditos en S12.2/T2 preservando
 tablas SQL existentes vía db_table override.
 """
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -91,7 +92,7 @@ class VersionFlujo(models.Model):
     )
     creado: models.DateTimeField = models.DateTimeField(auto_now_add=True, verbose_name=_("Creado en"))
     creado_por: models.ForeignKey = models.ForeignKey(
-        "auth.User",
+        settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -219,7 +220,7 @@ class SeguimientoWorkflow(Trazable):
     )
 
     usuario_accion = models.ForeignKey(
-        "auth.User",
+        settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="acciones_solicitud",
         verbose_name=_("Usuario que realizó la acción"),
