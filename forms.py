@@ -164,16 +164,32 @@ class MetaFormFactory:
     ) -> dict[str, Any]:
         """Construye kwargs para un campo Django o DRF desde CampoMetadato."""
         kwargs: dict[str, Any] = {
-            "required": campo.requerido,
             "label": campo.etiqueta or campo.nombre.replace("_", " ").title(),
             "help_text": campo.ayuda,
         }
 
         if campo.default is not None:
             if is_django:
+                kwargs["required"] = campo.requerido
                 kwargs["initial"] = campo.default
             else:
+                # DRF prohíbe declarar `required` y `default` a la vez
+                # ("May not set both `required` and `default`") y trata el
+                # default como implicación de opcional, así que se omite
+                # `required`. Con default, además, `requerido` no aporta nada:
+                # MetadatosProxy.errores() nunca ve el campo vacío.
                 kwargs["default"] = campo.default
+        else:
+            kwargs["required"] = campo.requerido
+            if not is_django and not campo.requerido:
+                # Un campo opcional sin default vale None en `meta.to_dict()`, y
+                # eso es justo lo que envía de vuelta un cliente que serialice
+                # los metadatos completos. Sin estos dos flags, DRF rechaza
+                # tanto el null como la cadena vacía y el campo resulta
+                # imposible de guardar.
+                kwargs["allow_null"] = True
+                if campo.tipo is str:
+                    kwargs["allow_blank"] = True
 
         if campo.choices is not None:
             kwargs["choices"] = [(c, c) for c in campo.choices]

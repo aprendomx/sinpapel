@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.4] — 2026-08-30
+
+### Fixed
+- **`MetaFormFactory.build_serializer` producía serializers inservibles en dos
+  casos frecuentes**, y en ambos el síntoma era un 500 o un 400 en los
+  endpoints `/metadatos/` de `sinpapel-drf`, no un error al declarar el schema.
+
+  - Un `CampoMetadato(requerido=True, default=...)` emitía `required` y
+    `default` a la vez y DRF aborta con `May not set both 'required' and
+    'default'`. Ahora, en DRF, el default implica opcional y `required` se
+    omite; en Django Forms —donde `default` es solo `initial`— se conserva el
+    comportamiento anterior. La combinación era además redundante:
+    `MetadatosProxy.errores()` nunca ve vacío un campo con default.
+  - Un campo opcional sin default vale `None` en `meta.to_dict()`, que es lo
+    que devuelve un cliente al reenviar los metadatos completos —como hace el
+    formulario de `sinpapel-vue`—. Sin `allow_null` (y `allow_blank` en los de
+    texto), DRF rechazaba tanto el `null` como la cadena vacía y el campo
+    resultaba imposible de guardar por la API.
+
 ## [0.8.3] — 2026-08-28
 
 ### Fixed

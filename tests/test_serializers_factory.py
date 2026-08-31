@@ -105,3 +105,74 @@ def test_build_serializer_import_error():
     with patch.dict("sys.modules", {k: None for k in rf_keys}):
         with pytest.raises(ImportError, match="djangorestframework"):
             MetaFormFactory.build_serializer([])
+
+
+# ─── Campos opcionales y defaults (regresión) ────────────────────────────────
+
+
+@pytest.mark.skipif(not HAS_DRF, reason="djangorestframework no instalado")
+def test_requerido_con_default_no_revienta_drf():
+    """DRF prohíbe declarar `required` y `default` a la vez.
+
+    Un `CampoMetadato(requerido=True, default=...)` es una combinación
+    razonable de escribir —y redundante, porque con default el campo nunca está
+    vacío—, pero emitir ambos hacía que construir el serializer lanzara
+    `AssertionError: May not set both 'required' and 'default'`. El síntoma
+    era un 500 en GET y PATCH de /metadatos/ para TODO el modelo.
+    """
+    schema = [
+        CampoMetadato(
+            nombre="tipo", tipo=str, requerido=True, default="A", choices=["A", "B"]
+        )
+    ]
+
+    Serializer = MetaFormFactory.build_serializer(schema)
+
+    serializer = Serializer(data={})
+    assert serializer.is_valid(), serializer.errors
+    assert serializer.validated_data["tipo"] == "A"
+
+
+@pytest.mark.skipif(not HAS_DRF, reason="djangorestframework no instalado")
+def test_un_campo_opcional_acepta_null_y_vacio():
+    """Un opcional sin default vale None en `meta.to_dict()`.
+
+    Un cliente que reenvíe los metadatos completos —como hace el formulario de
+    sinpapel-vue— manda ese None de vuelta. Sin `allow_null`/`allow_blank`, DRF
+    rechazaba tanto el null como la cadena vacía, y el campo era imposible de
+    guardar por la API.
+    """
+    schema = [CampoMetadato(nombre="motivo", tipo=str)]
+
+    Serializer = MetaFormFactory.build_serializer(schema)
+
+    for valor in (None, ""):
+        serializer = Serializer(data={"motivo": valor})
+        assert serializer.is_valid(), (valor, serializer.errors)
+
+    # Un campo requerido sigue exigiéndose.
+    Requerido = MetaFormFactory.build_serializer(
+        [CampoMetadato(nombre="curp", tipo=str, requerido=True)]
+    )
+    assert not Requerido(data={}).is_valid()
+
+
+@pytest.mark.skipif(not HAS_DRF, reason="djangorestframework no instalado")
+def test_un_opcional_con_choices_acepta_null():
+    """Los `choices` se mapean a ChoiceField, que también rechazaba el null."""
+    schema = [CampoMetadato(nombre="nivel", tipo=str, choices=["A", "B"])]
+
+    Serializer = MetaFormFactory.build_serializer(schema)
+
+    assert Serializer(data={"nivel": None}).is_valid()
+
+
+def test_el_form_de_django_conserva_required_con_default():
+    """En Django Forms `default` es solo `initial`, así que ahí sí conviven."""
+    schema = [CampoMetadato(nombre="tipo", tipo=str, requerido=True, default="A")]
+
+    Form = MetaFormFactory.build_form(schema)
+
+    campo = Form().fields["tipo"]
+    assert campo.required is True
+    assert campo.initial == "A"
