@@ -1,0 +1,1220 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Versioned workflows, immutable audit, and pluggable e-signatures for Django">
+      
+      
+      
+      
+        <link rel="prev" href="../api-publica/">
+      
+      
+        <link rel="next" href="../changelog/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Guía de upgrade / Upgrade guide - sinpapel</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#guia-de-upgrade-upgrade-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="sinpapel" class="md-header__button md-logo" aria-label="sinpapel" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sinpapel
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Guía de upgrade / Upgrade guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../usage/" class="md-tabs__link">
+          
+  
+  
+  Usage
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="sinpapel" class="md-nav__button md-logo" aria-label="sinpapel" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    sinpapel
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage Guides
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/en/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    English
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/es/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Español
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing to sinpapel
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-publica/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API pública y política de estabilidad
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guía de upgrade / Upgrade guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guía de upgrade / Upgrade guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#07x-080" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.7.x → 0.8.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.7.x → 0.8.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cambios-de-esquema-y-datos-schema-data-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cambios de esquema y datos / Schema &amp; data changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cambios-de-comportamiento-behavior-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cambios de comportamiento / Behavior changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settings-nuevos-new-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settings nuevos / New settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#06x-07x" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.6.x → 0.7.x
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#05x-060" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.5.x → 0.6.0
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#07x-080" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.7.x → 0.8.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.7.x → 0.8.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cambios-de-esquema-y-datos-schema-data-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cambios de esquema y datos / Schema &amp; data changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cambios-de-comportamiento-behavior-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cambios de comportamiento / Behavior changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#settings-nuevos-new-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settings nuevos / New settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#06x-07x" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.6.x → 0.7.x
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#05x-060" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.5.x → 0.6.0
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="guia-de-upgrade-upgrade-guide">Guía de upgrade / Upgrade guide<a class="headerlink" href="#guia-de-upgrade-upgrade-guide" title="Permanent link">&para;</a></h1>
+<p>Cada sección lista lo que puede romperte al subir de versión y qué hacer.
+<em>Each section lists what may break when upgrading and what to do.</em></p>
+<hr />
+<h2 id="07x-080">0.7.x → 0.8.0<a class="headerlink" href="#07x-080" title="Permanent link">&para;</a></h2>
+<p><strong>Corre <code>python manage.py migrate sinpapel</code></strong> (migraciones 0007–0009) y
+regenera migraciones de tus apps si tus modelos heredan <code>Trazable</code>
+(cambia <code>on_delete</code> de <code>autor</code>/<code>modificador</code>).</p>
+<h3 id="cambios-de-esquema-y-datos-schema-data-changes">Cambios de esquema y datos / Schema &amp; data changes<a class="headerlink" href="#cambios-de-esquema-y-datos-schema-data-changes" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>Estado.nombre</code> ahora es único</strong> (<code>sin_estado_nombre_uniq</code>). Si tu BD
+  tiene Estados duplicados, la migración fallará: consolida los duplicados
+  ANTES de migrar (reapunta FKs al sobreviviente y borra el resto).
+  <em><code>Estado.nombre</code> is now unique — deduplicate before migrating.</em></li>
+<li><strong>Solo una <code>VersionFlujo</code> activa por nombre</strong>
+  (<code>sin_versionflujo_activa_uniq</code>). Desactiva versiones redundantes antes de
+  migrar. <em>Only one active <code>VersionFlujo</code> per name.</em></li>
+<li><strong><code>Trazable.autor</code>/<code>modificador</code>: CASCADE → SET_NULL.</strong> Borrar un User ya
+  no borra en cascada lo que autoró. Tus modelos que hereden <code>Trazable</code>
+  necesitan <code>makemigrations</code>. <em>User deletion no longer cascades.</em></li>
+<li><strong>PROTECT en la cadena documental y la firma:</strong>
+  <code>Documento.tipo_documento</code>, <code>InstanciaDocumento.documento</code> y
+  <code>SeguimientoWorkflow.firma_registro</code> ahora protegen contra borrado del
+  padre. Flujos de limpieza que borraban catálogos con hijos recibirán
+  <code>ProtectedError</code>. <em>Catalog deletion with children now raises.</em></li>
+</ul>
+<h3 id="cambios-de-comportamiento-behavior-changes">Cambios de comportamiento / Behavior changes<a class="headerlink" href="#cambios-de-comportamiento-behavior-changes" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Las acciones SLA ahora ACTÚAN.</strong> <code>escalar</code>/<code>rechazar</code> ejecutan la
+  transición automática (configura <code>SINPAPEL_SLA_SYSTEM_USER</code> con un username
+  con permisos), <code>alertar</code> persiste la bandera, <code>notificar</code> despacha al
+  handler de <code>SINPAPEL_SLA_NOTIFY_HANDLER</code>. Además el plazo ahora mide
+  <strong>tiempo en el estado actual</strong> (última transición), no edad de la
+  instancia. Si dependías del comportamiento stub 0.7.x (no-op), revisa tus
+  <code>SLAConfiguracion</code> antes de correr el cron. <em>SLA actions now execute for
+  real, and measure time-in-state.</em></li>
+<li><strong><code>transition()</code> exige firma cuando la transición la requiere.</strong> Nuevo
+  campo <code>ConfiguracionTransicion.requiere_firma</code> (default <code>False</code> — sin
+  cambio si no lo activas). <em>New opt-in <code>requiere_firma</code> flag.</em></li>
+<li><strong>La firma modo A usa el backend configurado</strong> (<code>SINPAPEL_SIGNATURE_BACKEND</code>
+  vía factory), ya no <code>FielBackend</code> hardcodeado. Si dependías del bypass,
+  configura el backend explícitamente. <em>Mode A now honors the configured
+  backend.</em></li>
+<li><strong>Modo B valida el <code>registro_firma_id</code>:</strong> debe pertenecer al usuario que
+  transiciona, estar en estado válido y no estar vinculado ya. <em>Mode B now
+  validates ownership, validity and reuse.</em></li>
+<li><strong>FIEL sin bundle de ACs produce <code>VALIDA_SIN_CADENA</code></strong> (antes <code>VALIDA</code>).
+  Con <code>SINPAPEL_FIEL_TRUSTED_CA_BUNDLE</code> configurado (paths PEM de las AC del
+  SAT), un cert no emitido por el bundle se <strong>rechaza</strong> y el emitido produce
+  <code>VALIDA</code>. Si comparabas <code>verification_result == "VALIDA"</code>, usa
+  <code>RegistroFirma.RESULTADOS_VALIDOS</code>. <em>New chain-of-trust semantics.</em></li>
+<li><strong><code>SeguimientoWorkflow</code> y <code>RegistroFirma</code> son inmutables a nivel ORM:</strong>
+  <code>save()</code> sobre un registro existente y <code>delete()</code> lanzan <code>ValueError</code>
+  (los <code>queryset.update/delete</code> masivos no pasan por estos hooks — evítalos).
+  <em>Audit rows are now append-only at the ORM level.</em></li>
+<li><strong><code>instance.available_transitions()</code> filtra por el flujo resuelto</strong> (fix
+  0.7.1, reforzado aquí): ya no devuelve transiciones de otros flujos.</li>
+<li><strong><code>@workflow_enabled</code> valida el contrato <code>Trazable</code></strong> en tiempo de
+  decoración: un modelo sin campo <code>actualizado</code> falla al importar, no en la
+  primera transición.</li>
+<li><strong>Predicados mal configurados bloquean con mensaje</strong> en lugar de lanzar
+  excepción (antes: 500 en cada preview/transition con la condición rota).</li>
+</ul>
+<h3 id="settings-nuevos-new-settings">Settings nuevos / New settings<a class="headerlink" href="#settings-nuevos-new-settings" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default</th>
+<th>Uso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SINPAPEL_SLA_SYSTEM_USER</code></td>
+<td><code>None</code></td>
+<td>Username para transiciones automáticas de SLA</td>
+</tr>
+<tr>
+<td><code>SINPAPEL_SLA_NOTIFY_HANDLER</code></td>
+<td><code>None</code></td>
+<td>Dotted path del handler de notificación SLA</td>
+</tr>
+<tr>
+<td><code>SINPAPEL_FIEL_TRUSTED_CA_BUNDLE</code></td>
+<td><code>None</code></td>
+<td>Path(s) PEM de ACs de confianza (SAT)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="06x-07x">0.6.x → 0.7.x<a class="headerlink" href="#06x-07x" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>0.7.0 eliminó <code>monto_aprobado</code></strong> de <code>SeguimientoWorkflow</code> y del parámetro
+  de <code>transition()</code> / <code>cambiar_estado()</code> (migración 0006). Usa metadatos
+  (<code>MetadatosCapturables</code>) o <code>condiciones</code>/<code>comentarios</code>. <em><code>monto_aprobado</code>
+  removed; use metadata.</em></li>
+<li><strong>0.7.1</strong> corrigió <code>historial_reciente</code> (antes siempre <code>[]</code>), el filtro por
+  flujo de <code>available_transitions</code>, la carrera de transiciones concurrentes y
+  declaró <code>Pillow</code> como dependencia.</li>
+</ul>
+<hr />
+<h2 id="05x-060">0.5.x → 0.6.0<a class="headerlink" href="#05x-060" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Las transiciones enforzan <code>RequisitoEstadoDocumento</code>.</strong> Reglas que
+  existían en BD pero nunca se evaluaban ahora bloquean
+  (<code>PermissionError</code> / <code>documentos_faltantes</code> en preview). Antes de
+  actualizar, revisa qué requisitos tienes configurados
+  (<code>RequisitoEstadoDocumento.objects.all()</code>) y si tus expedientes los
+  satisfacen (<code>InstanciaDocumento.porcentaje</code>, default 100 = completo).
+  <em>Previously-dormant document requirements are now enforced — audit your
+  configured rules before upgrading.</em></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
