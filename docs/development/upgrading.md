@@ -5,6 +5,26 @@ Cada sección lista lo que puede romperte al subir de versión y qué hacer.
 
 ---
 
+## 0.8.4 → 0.8.5
+
+Sin migraciones. **`RegistroFirma.backend_metadata["rfc_firmante"]` del
+`FielBackend` ahora es el RFC real** (atributo 2.5.4.45 del sujeto); hasta
+0.8.4 contenía la **CURP** (issue #5). Se añaden `curp_firmante` y, en persona
+moral, `rfc_representante`.
+
+- Los registros creados con ≤ 0.8.4 **no se reescriben** (`RegistroFirma` es
+  de solo inserción). Distínguelos por la ausencia de `curp_firmante`: en ellos,
+  `rfc_firmante` es en realidad la CURP. Si necesitas el RFC, extráelo del
+  `certificado_cer_b64` persistido (2.5.4.45 del sujeto).
+- Si tenías una subclase de `FielBackend` que corregía `rfc_firmante` tras
+  `request_signature()`, elimínala.
+
+*`rfc_firmante` now holds the actual RFC (subject 2.5.4.45); up to 0.8.4 it held
+the CURP. Records created with ≤ 0.8.4 are not rewritten — tell them apart by
+the missing `curp_firmante` key.*
+
+---
+
 ## 0.7.x → 0.8.0
 
 **Corre `python manage.py migrate sinpapel`** (migraciones 0007–0009) y

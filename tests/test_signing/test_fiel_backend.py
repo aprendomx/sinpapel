@@ -70,9 +70,9 @@ def test_fiel_backend_valid_signature():
 
 
 @pytest.mark.django_db
-def test_fiel_backend_extracts_rfc_from_cert():
-    """RFC del subject del cert se persiste en backend_metadata."""
-    private_key, cert_der = _make_keypair_and_cert(serial_number_subject="XAXX010101000")
+def test_fiel_backend_serial_number_es_curp_no_rfc():
+    """serialNumber (2.5.4.5) es la CURP en e.firma SAT: nunca va a rfc_firmante."""
+    private_key, cert_der = _make_keypair_and_cert(serial_number_subject="XEXX010101HNEXXXA4")
     content = b"contenido"
     firma = private_key.sign(content, padding.PKCS1v15(), hashes.SHA256())
 
@@ -82,7 +82,8 @@ def test_fiel_backend_extracts_rfc_from_cert():
         firma_b64=base64.b64encode(firma).decode(),
         certificado_cer_b64=base64.b64encode(cert_der).decode(),
     )
-    assert rf.backend_metadata["rfc_firmante"] == "XAXX010101000"
+    assert rf.backend_metadata["curp_firmante"] == "XEXX010101HNEXXXA4"
+    assert rf.backend_metadata["rfc_firmante"] == ""  # sin 2.5.4.45 en el sujeto
     assert "numero_serie_cer" in rf.backend_metadata
 
 
@@ -274,3 +275,66 @@ def test_sign_server_side_cleanup_runs_after_signing(fiel_keypair_pem, settings,
         password=fiel_keypair_pem["password"],
     )
     assert len(gc_calls) >= 1, "gc.collect() must run after sign_server_side"
+
+
+# ─── Issue #5: RFC en x500UniqueIdentifier (2.5.4.45), CURP en serialNumber ───
+
+
+def _make_sat_like_cert(rfc_attr: str, curp_attr: str) -> tuple[rsa.RSAPrivateKey, bytes]:
+    """Cert con la forma de una e.firma SAT: sujeto con 2.5.4.45 = RFC y
+    2.5.4.5 = CURP; el emisor trae su propio 2.5.4.45 (RFC del SAT)."""
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    subject = x509.Name([
+        x509.NameAttribute(NameOID.COMMON_NAME, "FIRMANTE SAT"),
+        x509.NameAttribute(NameOID.X500_UNIQUE_IDENTIFIER, rfc_attr),
+        x509.NameAttribute(NameOID.SERIAL_NUMBER, curp_attr),
+    ])
+    issuer = x509.Name([
+        x509.NameAttribute(NameOID.COMMON_NAME, "AC DEL SERVICIO DE ADMINISTRACION TRIBUTARIA"),
+        x509.NameAttribute(NameOID.X500_UNIQUE_IDENTIFIER, "SAT970701NN3"),
+    ])
+    now = _dt.datetime.now(_dt.timezone.utc)
+    cert = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(issuer)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now - _dt.timedelta(days=1))
+        .not_valid_after(now + _dt.timedelta(days=365))
+        .sign(private_key, hashes.SHA256())
+    )
+    return private_key, cert.public_bytes(serialization.Encoding.DER)
+
+
+def _firmar(private_key, cert_der):
+    content = b"contenido"
+    firma = private_key.sign(content, padding.PKCS1v15(), hashes.SHA256())
+    return FielBackend().request_signature(
+        content=content,
+        signer=None,
+        firma_b64=base64.b64encode(firma).decode(),
+        certificado_cer_b64=base64.b64encode(cert_der).decode(),
+    )
+
+
+@pytest.mark.django_db
+def test_fiel_persona_fisica_rfc_de_x500_unique_identifier():
+    """rfc_firmante sale de 2.5.4.45 del sujeto; la CURP va a curp_firmante."""
+    pk, der = _make_sat_like_cert("XAXX010101000", "XEXX010101HNEXXXA4")
+    meta = _firmar(pk, der).backend_metadata
+    assert meta["rfc_firmante"] == "XAXX010101000"
+    assert meta["curp_firmante"] == "XEXX010101HNEXXXA4"
+    assert "rfc_representante" not in meta
+
+
+@pytest.mark.django_db
+def test_fiel_persona_moral_separa_rfc_empresa_y_representante():
+    """Persona moral: 'RFC empresa / RFC representante' y ' / CURP'."""
+    pk, der = _make_sat_like_cert(
+        "AAA010101AAA / XAXX010101000", " / XEXX010101HNEXXXA4"
+    )
+    meta = _firmar(pk, der).backend_metadata
+    assert meta["rfc_firmante"] == "AAA010101AAA"
+    assert meta["rfc_representante"] == "XAXX010101000"
+    assert meta["curp_firmante"] == "XEXX010101HNEXXXA4"

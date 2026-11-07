@@ -65,7 +65,7 @@ class FielBackend:
 
     Verifica RSA-SHA256 contra certificado X.509 y persiste RegistroFirma con
     backend_metadata FIEL (firma_pkcs7_b64, certificado_cer_b64, rfc_firmante,
-    numero_serie_cer).
+    curp_firmante, rfc_representante —solo persona moral—, numero_serie_cer).
     """
 
     name: ClassVar[str] = "fiel"
@@ -117,21 +117,38 @@ class FielBackend:
             resultado = "VALIDA_SIN_CADENA"
             cadena_verificada = False
 
-        rfc = self._extract_subject_attr(cert, NameOID.SERIAL_NUMBER) or ""
+        # e.firma SAT (issue #5): el RFC vive en x500UniqueIdentifier
+        # (2.5.4.45) y serialNumber (2.5.4.5) trae la CURP. Persona moral:
+        # "RFC empresa / RFC representante" y " / CURP representante".
+        # Siempre del SUJETO: el emisor trae su propio 2.5.4.45 (RFC del SAT).
+        rfcs = self._split_sat_attr(
+            self._extract_subject_attr(cert, NameOID.X500_UNIQUE_IDENTIFIER)
+        )
+        curps = self._split_sat_attr(
+            self._extract_subject_attr(cert, NameOID.SERIAL_NUMBER)
+        )
+        rfc = rfcs[0] if rfcs else ""
+        rfc_representante = rfcs[1] if len(rfcs) > 1 else ""
+        curp = curps[-1] if curps else ""
         nombre = self._extract_subject_attr(cert, NameOID.COMMON_NAME) or ""
         serie = format(cert.serial_number, "x")
         now = datetime.datetime.now(datetime.timezone.utc)
 
+        metadata = {
+            "firma_pkcs7_b64": firma_b64,
+            "certificado_cer_b64": certificado_cer_b64,
+            "rfc_firmante": rfc,
+            "curp_firmante": curp,
+            "numero_serie_cer": serie,
+            "cadena_verificada": cadena_verificada,
+            "emisor": cert.issuer.rfc4514_string(),
+        }
+        if rfc_representante:
+            metadata["rfc_representante"] = rfc_representante
+
         return RegistroFirma.objects.create(
             backend_name=self.name,
-            backend_metadata={
-                "firma_pkcs7_b64": firma_b64,
-                "certificado_cer_b64": certificado_cer_b64,
-                "rfc_firmante": rfc,
-                "numero_serie_cer": serie,
-                "cadena_verificada": cadena_verificada,
-                "emisor": cert.issuer.rfc4514_string(),
-            },
+            backend_metadata=metadata,
             content_hash="sha256:" + hashlib.sha256(content).hexdigest(),
             signer=signer,
             signer_display_name=nombre,
@@ -333,6 +350,13 @@ class FielBackend:
             raise SignatureValidationError(
                 "Firma inválida: el contenido no corresponde a esta firma"
             ) from exc
+
+    @staticmethod
+    def _split_sat_attr(value: str | None) -> list[str]:
+        """Parte un atributo SAT 'A / B' en sus componentes no vacíos."""
+        if not value:
+            return []
+        return [p.strip() for p in value.split("/") if p.strip()]
 
     def _extract_subject_attr(self, cert: x509.Certificate, oid) -> str | None:
         try:

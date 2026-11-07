@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.5] — 2026-11-07
+
+### Fixed
+- **`FielBackend` guardaba la CURP en `backend_metadata["rfc_firmante"]`**
+  ([#5](https://github.com/aprendomx/sinpapel/issues/5)). Leía el atributo
+  `serialNumber` (2.5.4.5) del sujeto, que en la e.firma del SAT contiene la
+  CURP; el RFC vive en `x500UniqueIdentifier` (2.5.4.45). Afectaba a los dos
+  modos (client-side y `sign_server_side`). Ahora:
+  - `rfc_firmante` sale de 2.5.4.45 **del sujeto** (nunca del emisor, que
+    trae el RFC del SAT). En persona moral (`"RFC empresa / RFC
+    representante"`) es el RFC de la empresa.
+  - `rfc_representante` (nuevo, solo persona moral): RFC del representante.
+  - `curp_firmante` (nuevo): la CURP que antes se guardaba por error en
+    `rfc_firmante`.
+
+  **Cambia el contenido de `rfc_firmante`** para quien ya lo consuma; los
+  `RegistroFirma` creados con ≤ 0.8.4 conservan la CURP en ese campo (son de
+  solo inserción). Ver `upgrading.md`.
+
 ## [0.8.4] — 2026-08-30
 
 ### Fixed
