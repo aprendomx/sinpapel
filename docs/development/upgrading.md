@@ -5,6 +5,23 @@ Cada sección lista lo que puede romperte al subir de versión y qué hacer.
 
 ---
 
+## 0.8.6 → 0.8.7
+
+Sin migraciones ni cambios incompatibles. Nueva API pública de lectura de
+certificados en `sinpapel.signing` (issue #7), ver
+[API pública](api-publica.md#lectura-de-certificados-fiel-087).
+
+- Si validabas el bundle con `cryptography.x509.load_pem_x509_certificates`,
+  cámbialo por `cargar_bundle_confianza`: el primero falla con la AC6 del SAT
+  aunque `FielBackend` sí la lee.
+- Si importabas `sinpapel.signing.backends._x509_tolerante` (privado), ahora
+  está en `sinpapel.signing._x509_tolerante`. Mejor usa `leer_certificado`.
+
+*New public certificate-reading API in `sinpapel.signing`; the private
+`_x509_tolerante` module moved to `sinpapel.signing`.*
+
+---
+
 ## 0.8.5 → 0.8.6
 
 Sin migraciones ni cambios de API. `FielBackend` ahora lee la **AC6 del SAT**

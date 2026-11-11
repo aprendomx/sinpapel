@@ -19,7 +19,7 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.x509.name import _ASN1Type
 from cryptography.x509.oid import NameOID
 
-from sinpapel.signing.backends._x509_tolerante import cargar_der
+from sinpapel.signing._x509_tolerante import cargar_der
 from sinpapel.signing.backends.fiel import FielBackend
 from sinpapel.signing.exceptions import (
     SignatureBackendNotConfiguredError,

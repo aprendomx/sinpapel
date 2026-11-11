@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.7] — 2026-11-11
+
+### Added
+- **API pública para leer certificados y el bundle de confianza como
+  `FielBackend`** ([#7](https://github.com/aprendomx/sinpapel/issues/7)), en
+  `sinpapel.signing`: `leer_certificado`, `cargar_bundle_confianza`,
+  `emitido_por`, `CertificadoLeido` y `BundleCargado`. Es la misma
+  implementación que usa el backend (que ahora delega en ella), incluida la
+  ruta tolerante de 0.8.6 para la AC6 del SAT, y no requiere settings de
+  Django: sirve para validar el bundle en el despliegue o comprobar que cubre
+  una e.firma real. Estable en 0.8.x; documentada en `api-publica.md`.
+
+### Changed
+- El módulo privado `_x509_tolerante` se mueve de `signing/backends/` a
+  `signing/` para poder importarse sin cargar los modelos. Era privado; usa la
+  API nueva en su lugar.
+- El mensaje de `SignatureBackendNotConfiguredError` por un bundle sin
+  certificados legibles cambia de redacción (sigue nombrando el setting y los
+  `archivo#índice` omitidos).
+
 ## [0.8.6] — 2026-11-10
 
 ### Fixed

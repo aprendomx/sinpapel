@@ -23,7 +23,6 @@ import datetime
 import gc
 import hashlib
 import logging
-import re
 from typing import TYPE_CHECKING, ClassVar
 
 from cryptography import x509
@@ -33,7 +32,12 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.x509.oid import NameOID
 
 from sinpapel.models import RegistroFirma
-from sinpapel.signing.backends._x509_tolerante import CertificadoLeido, cargar_der
+from sinpapel.signing.certificados import (
+    CertificadoLeido,
+    cargar_bundle_confianza,
+    emitido_por,
+    leer_certificado,
+)
 from sinpapel.signing.dto import VerificationResult
 from sinpapel.signing.exceptions import (
     SignatureBackendNotConfiguredError,
@@ -61,10 +65,6 @@ def _with_secure_key_buffer(key_bytes: bytes, password: bytes):
 
 
 logger = logging.getLogger(__name__)
-
-_PEM_CERT = re.compile(
-    rb"-----BEGIN CERTIFICATE-----(.+?)-----END CERTIFICATE-----", re.DOTALL
-)
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import User
@@ -281,61 +281,36 @@ class FielBackend:
         AC **emisoras** vigentes del SAT. Sin setting → lista vacía (modo
         VALIDA_SIN_CADENA).
 
-        Cada certificado se carga por separado (0.8.6, issue #6): uno
-        ilegible se omite con un WARNING que nombra archivo e índice, en vez
-        de invalidar el bundle completo. Solo si no queda NINGÚN certificado
-        válido se lanza SignatureBackendNotConfiguredError. Los nombres con
-        PrintableString no conforme (AC6 del SAT) se leen con la ruta
-        tolerante de ``_x509_tolerante``.
+        Delega en ``sinpapel.signing.cargar_bundle_confianza`` (API pública
+        desde 0.8.7, issue #7): cada certificado se carga por separado, los
+        ilegibles se omiten con un WARNING que nombra archivo e índice, y
+        solo si no queda NINGUNO se lanza SignatureBackendNotConfiguredError.
+        Los nombres con PrintableString no conforme (AC6 del SAT) se leen
+        con la ruta tolerante.
         """
         from django.conf import settings
 
         bundle = getattr(settings, "SINPAPEL_FIEL_TRUSTED_CA_BUNDLE", None)
         if not bundle:
             return []
-        paths = [bundle] if isinstance(bundle, (str, bytes)) else list(bundle)
-        cas: list[x509.Certificate] = []
-        omitidos: list[str] = []
-        for path in paths:
-            with open(path, "rb") as fh:
-                data = fh.read()
-            bloques = _PEM_CERT.findall(data)
-            if bloques:
-                ders = []
-                for i, bloque in enumerate(bloques):
-                    try:
-                        ders.append((i, base64.b64decode(b"".join(bloque.split()))))
-                    except Exception:
-                        omitidos.append(f"{path!s}#{i}")
-                        logger.warning(
-                            "SINPAPEL_FIEL_TRUSTED_CA_BUNDLE: certificado #%d de "
-                            "'%s' no es base64 válido; se omite.", i, path,
-                        )
-            else:
-                ders = [(0, data)]
-            for i, der in ders:
-                try:
-                    leido = cargar_der(der)
-                except ValueError as exc:
-                    omitidos.append(f"{path!s}#{i}")
-                    logger.warning(
-                        "SINPAPEL_FIEL_TRUSTED_CA_BUNDLE: certificado #%d de "
-                        "'%s' no se pudo leer (%s); se omite.", i, path, exc,
-                    )
-                    continue
-                if leido.normalizado:
-                    logger.info(
-                        "SINPAPEL_FIEL_TRUSTED_CA_BUNDLE: certificado #%d de '%s' "
-                        "tiene atributos PrintableString no conformes; se leyó "
-                        "con la ruta tolerante.", i, path,
-                    )
-                cas.append(leido.cert)
-        if not cas:
+        try:
+            cargado = cargar_bundle_confianza(bundle)
+        except SignatureBackendNotConfiguredError as exc:
             raise SignatureBackendNotConfiguredError(
-                "SINPAPEL_FIEL_TRUSTED_CA_BUNDLE no contiene ningún certificado "
-                f"PEM/DER legible (omitidos: {', '.join(omitidos) or 'ninguno'})"
+                f"SINPAPEL_FIEL_TRUSTED_CA_BUNDLE: {exc}"
+            ) from exc
+        for clave in cargado.omitidos:
+            logger.warning(
+                "SINPAPEL_FIEL_TRUSTED_CA_BUNDLE: certificado %s no se pudo "
+                "leer (%s); se omite.", clave, cargado.motivos.get(clave, ""),
             )
-        return cas
+        for clave in cargado.normalizados:
+            logger.info(
+                "SINPAPEL_FIEL_TRUSTED_CA_BUNDLE: certificado %s tiene atributos "
+                "PrintableString no conformes; se leyó con la ruta tolerante.",
+                clave,
+            )
+        return cargado.cas
 
     def _verify_issuer_chain(
         self,
@@ -357,21 +332,11 @@ class FielBackend:
         leyó con la ruta tolerante (``CertificadoLeido.tbs_original``); por
         defecto ``cert.tbs_certificate_bytes``.
         """
-        tbs_bytes = tbs if tbs is not None else cert.tbs_certificate_bytes
-        for ca in trusted_cas:
-            if ca.subject != cert.issuer:
-                continue
-            try:
-                self._validate_cert_validity(ca)
-                ca.public_key().verify(  # type: ignore[union-attr]
-                    cert.signature,
-                    tbs_bytes,
-                    padding.PKCS1v15(),
-                    cert.signature_hash_algorithm,  # type: ignore[arg-type]
-                )
-                return
-            except Exception:
-                continue
+        leido = CertificadoLeido(
+            cert, tbs if tbs is not None else cert.tbs_certificate_bytes, tbs is not None
+        )
+        if emitido_por(leido, trusted_cas) is not None:
+            return
         raise SignatureValidationError(
             "El certificado no está emitido por ninguna AC del bundle de "
             "confianza (SINPAPEL_FIEL_TRUSTED_CA_BUNDLE)."
@@ -390,7 +355,7 @@ class FielBackend:
                 "certificado_cer_b64 inválido: no es base64"
             ) from exc
         try:
-            return cargar_der(der)
+            return leer_certificado(der)
         except ValueError as exc:
             raise SignatureValidationError(
                 f"certificado_cer_b64 no es un certificado X.509 DER legible: {exc}"

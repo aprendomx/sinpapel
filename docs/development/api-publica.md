@@ -60,6 +60,9 @@ un campo es breaking.
 - `sinpapel.signing`: `SignatureBackend` (Protocol), `get_signature_backend`,
   `reset_backend_cache`, backends `FielBackend` / `ManualBackend` /
   `FakeBackend`, `VerificationResult`, excepciones de `signing.exceptions`
+- `sinpapel.signing` — lectura de certificados (0.8.7): `leer_certificado`,
+  `cargar_bundle_confianza`, `emitido_por`, `CertificadoLeido`,
+  `BundleCargado`. Ver la sección siguiente.
 - `sinpapel.signals`: `predicate_failed`, `sla_breached`,
   `sla_action_executed`, `transition_preview_requested` (y sus kwargs)
 - `PredicateEngine.evaluar` / `PredicateEngine.registrar_backend` y los tres
@@ -73,8 +76,41 @@ un campo es breaking.
   `sinpapel_verificar_slas`
 - Settings `SINPAPEL_*` documentados en la guía de uso
 
+### Lectura de certificados FIEL (0.8.7)
+
+Para validar o armar `SINPAPEL_FIEL_TRUSTED_CA_BUNDLE` fuera del flujo de
+firma, con **la misma implementación** que usa `FielBackend` (incluida la
+ruta tolerante para la AC6 del SAT). Se importan desde `sinpapel.signing` y
+no requieren settings de Django.
+
+| Nombre | Contrato |
+|---|---|
+| `leer_certificado(datos: bytes) -> CertificadoLeido` | UN certificado DER o PEM. `ValueError` si es ilegible o si el PEM trae varios. |
+| `cargar_bundle_confianza(rutas) -> BundleCargado` | Un path o lista de paths (PEM con uno o varios certificados, o DER). Omite los ilegibles. `SignatureBackendNotConfiguredError` si no queda ninguno; `OSError` si falta un archivo. |
+| `emitido_por(cert, cas, *, en=None) -> x509.Certificate \| None` | Verificación de **un nivel**: sujeto de la AC == emisor, AC vigente en `en` (default: ahora) y firma sobre el `tbsCertificate` original. No valida la vigencia del propio `cert`. |
+| `CertificadoLeido` | Dataclass frozen: `cert` (`x509.Certificate`, solo para leer campos), `tbs_original` (`bytes`), `normalizado` (`bool`). |
+| `BundleCargado` | Dataclass: `cas`, `omitidos` (`"archivo#índice"`), `motivos` (`{clave: motivo}`), `normalizados`. |
+
+Si `normalizado` es `True`, `cert.tbs_certificate_bytes` **no** es lo que
+firmó la AC: para verificar usa `tbs_original` o pasa el `CertificadoLeido`
+completo a `emitido_por`. Agregar campos a las dataclasses es no-breaking.
+
+```python
+from pathlib import Path
+from sinpapel.signing import cargar_bundle_confianza, emitido_por, leer_certificado
+
+bundle = cargar_bundle_confianza("/etc/siaf/sat-ac-bundle.pem")
+assert not bundle.omitidos, bundle.motivos
+
+efirma = leer_certificado(Path("persona.cer").read_bytes())
+ac = emitido_por(efirma, bundle.cas)
+assert ac is not None, "el bundle no cubre a la AC emisora de esta e.firma"
+```
+
 ### Interno (NO API pública)
 
+- `sinpapel.signing._x509_tolerante` (usa la API de arriba),
+  `FielBackend._load_trusted_cas` / `_verify_issuer_chain` / `_load_cert*`.
 - `sinpapel.cache` (helpers y keys), `sinpapel.injection`,
   `sinpapel.json_logic`, `sinpapel.apps`, todo `_prefijado`, y los receivers
   de invalidación en `sinpapel.signals`.
