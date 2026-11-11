@@ -175,8 +175,6 @@ Los pull requests son bienvenidos. Por favor lee [docs/development/contributing.
 
 ## Licencia
 
-Copyright (C) 2024-2026 Julio Adrián.
-
 sinpapel es software libre: puedes redistribuirlo y/o modificarlo bajo los términos de la GNU General Public License publicada por la Free Software Foundation, ya sea la versión 3 de la Licencia, o (a tu elección) cualquier versión posterior.
 
 sinpapel se distribuye con la esperanza de ser útil, pero **SIN NINGUNA GARANTÍA**; sin siquiera la garantía implícita de COMERCIABILIDAD o IDONEIDAD PARA UN PROPÓSITO PARTICULAR. Ver la [GNU General Public License](https://github.com/aprendomx/sinpapel/blob/main/LICENSE) para más detalles.
