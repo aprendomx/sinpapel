@@ -22,6 +22,8 @@ import contextlib
 import datetime
 import gc
 import hashlib
+import logging
+import re
 from typing import TYPE_CHECKING, ClassVar
 
 from cryptography import x509
@@ -31,6 +33,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.x509.oid import NameOID
 
 from sinpapel.models import RegistroFirma
+from sinpapel.signing.backends._x509_tolerante import CertificadoLeido, cargar_der
 from sinpapel.signing.dto import VerificationResult
 from sinpapel.signing.exceptions import (
     SignatureBackendNotConfiguredError,
@@ -55,6 +58,13 @@ def _with_secure_key_buffer(key_bytes: bytes, password: bytes):
         del key_bytes
         del password
         gc.collect()
+
+
+logger = logging.getLogger(__name__)
+
+_PEM_CERT = re.compile(
+    rb"-----BEGIN CERTIFICATE-----(.+?)-----END CERTIFICATE-----", re.DOTALL
+)
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import User
@@ -99,7 +109,8 @@ class FielBackend:
                 "FielBackend requires firma_b64 and certificado_cer_b64"
             )
 
-        cert = self._load_cert(certificado_cer_b64)
+        leido = self._load_cert_leido(certificado_cer_b64)
+        cert = leido.cert
         self._validate_cert_validity(cert)
         self._verify_signature(cert, content, firma_b64)
 
@@ -110,7 +121,7 @@ class FielBackend:
         # íntegra, identidad del emisor NO verificada contra el SAT.
         trusted_cas = self._load_trusted_cas()
         if trusted_cas:
-            self._verify_issuer_chain(cert, trusted_cas)
+            self._verify_issuer_chain(cert, trusted_cas, tbs=leido.tbs_original)
             resultado = "VALIDA"
             cadena_verificada = True
         else:
@@ -266,9 +277,16 @@ class FielBackend:
         """Carga el bundle de ACs de confianza (SAT) desde settings.
 
         SINPAPEL_FIEL_TRUSTED_CA_BUNDLE: path (str) o lista de paths a
-        archivos PEM (uno o varios certificados por archivo) con las AC
-        raíz/intermedias del SAT. Sin setting → lista vacía (modo
+        archivos PEM (uno o varios certificados por archivo) o DER con las
+        AC **emisoras** vigentes del SAT. Sin setting → lista vacía (modo
         VALIDA_SIN_CADENA).
+
+        Cada certificado se carga por separado (0.8.6, issue #6): uno
+        ilegible se omite con un WARNING que nombra archivo e índice, en vez
+        de invalidar el bundle completo. Solo si no queda NINGÚN certificado
+        válido se lanza SignatureBackendNotConfiguredError. Los nombres con
+        PrintableString no conforme (AC6 del SAT) se leen con la ruta
+        tolerante de ``_x509_tolerante``.
         """
         from django.conf import settings
 
@@ -277,30 +295,69 @@ class FielBackend:
             return []
         paths = [bundle] if isinstance(bundle, (str, bytes)) else list(bundle)
         cas: list[x509.Certificate] = []
+        omitidos: list[str] = []
         for path in paths:
             with open(path, "rb") as fh:
                 data = fh.read()
-            try:
-                cas.extend(x509.load_pem_x509_certificates(data))
-            except Exception:
+            bloques = _PEM_CERT.findall(data)
+            if bloques:
+                ders = []
+                for i, bloque in enumerate(bloques):
+                    try:
+                        ders.append((i, base64.b64decode(b"".join(bloque.split()))))
+                    except Exception:
+                        omitidos.append(f"{path!s}#{i}")
+                        logger.warning(
+                            "SINPAPEL_FIEL_TRUSTED_CA_BUNDLE: certificado #%d de "
+                            "'%s' no es base64 válido; se omite.", i, path,
+                        )
+            else:
+                ders = [(0, data)]
+            for i, der in ders:
                 try:
-                    cas.append(x509.load_der_x509_certificate(data))
-                except Exception as exc:
-                    raise SignatureBackendNotConfiguredError(
-                        f"SINPAPEL_FIEL_TRUSTED_CA_BUNDLE: '{path}' no "
-                        f"contiene certificados PEM/DER válidos"
-                    ) from exc
+                    leido = cargar_der(der)
+                except ValueError as exc:
+                    omitidos.append(f"{path!s}#{i}")
+                    logger.warning(
+                        "SINPAPEL_FIEL_TRUSTED_CA_BUNDLE: certificado #%d de "
+                        "'%s' no se pudo leer (%s); se omite.", i, path, exc,
+                    )
+                    continue
+                if leido.normalizado:
+                    logger.info(
+                        "SINPAPEL_FIEL_TRUSTED_CA_BUNDLE: certificado #%d de '%s' "
+                        "tiene atributos PrintableString no conformes; se leyó "
+                        "con la ruta tolerante.", i, path,
+                    )
+                cas.append(leido.cert)
+        if not cas:
+            raise SignatureBackendNotConfiguredError(
+                "SINPAPEL_FIEL_TRUSTED_CA_BUNDLE no contiene ningún certificado "
+                f"PEM/DER legible (omitidos: {', '.join(omitidos) or 'ninguno'})"
+            )
         return cas
 
     def _verify_issuer_chain(
-        self, cert: x509.Certificate, trusted_cas: list[x509.Certificate]
+        self,
+        cert: x509.Certificate,
+        trusted_cas: list[x509.Certificate],
+        tbs: bytes | None = None,
     ) -> None:
         """Verifica que cert esté emitido (firmado) por una AC del bundle.
 
         Emparejamiento por subject == issuer + verificación criptográfica de
         la firma del certificado con la llave pública de la AC. La AC además
         debe estar vigente.
+
+        Valida **un solo nivel**: el bundle debe contener las AC que emiten
+        directamente los certificados de los firmantes (en producción SAT:
+        AC5, AC6 y AC7), no solo la raíz.
+
+        ``tbs``: bytes tbsCertificate originales. Obligatorio si el cert se
+        leyó con la ruta tolerante (``CertificadoLeido.tbs_original``); por
+        defecto ``cert.tbs_certificate_bytes``.
         """
+        tbs_bytes = tbs if tbs is not None else cert.tbs_certificate_bytes
         for ca in trusted_cas:
             if ca.subject != cert.issuer:
                 continue
@@ -308,7 +365,7 @@ class FielBackend:
                 self._validate_cert_validity(ca)
                 ca.public_key().verify(  # type: ignore[union-attr]
                     cert.signature,
-                    cert.tbs_certificate_bytes,
+                    tbs_bytes,
                     padding.PKCS1v15(),
                     cert.signature_hash_algorithm,  # type: ignore[arg-type]
                 )
@@ -321,11 +378,22 @@ class FielBackend:
         )
 
     def _load_cert(self, cert_b64: str) -> x509.Certificate:
+        return self._load_cert_leido(cert_b64).cert
+
+    def _load_cert_leido(self, cert_b64: str) -> CertificadoLeido:
+        """Carga el .cer del firmante, tolerando PrintableString no conformes
+        (e.firma emitidas por la AC6 del SAT, issue #6)."""
         try:
-            return x509.load_der_x509_certificate(base64.b64decode(cert_b64))
+            der = base64.b64decode(cert_b64)
         except Exception as exc:
             raise SignatureValidationError(
-                "certificado_cer_b64 inválido o no es X.509 DER"
+                "certificado_cer_b64 inválido: no es base64"
+            ) from exc
+        try:
+            return cargar_der(der)
+        except ValueError as exc:
+            raise SignatureValidationError(
+                f"certificado_cer_b64 no es un certificado X.509 DER legible: {exc}"
             ) from exc
 
     def _validate_cert_validity(self, cert: x509.Certificate) -> None:

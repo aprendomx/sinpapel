@@ -5,6 +5,30 @@ Cada sección lista lo que puede romperte al subir de versión y qué hacer.
 
 ---
 
+## 0.8.5 → 0.8.6
+
+Sin migraciones ni cambios de API. `FielBackend` ahora lee la **AC6 del SAT**
+y las e.firma que emite (issue #6), y un certificado ilegible en
+`SINPAPEL_FIEL_TRUSTED_CA_BUNDLE` ya no invalida el bundle completo.
+
+- **Agrega AC6 a tu bundle** si la habías excluido. En producción el bundle
+  debe tener las AC **emisoras** vigentes: AC5 (hasta 2027-05-03), AC6 (hasta
+  2031-03-24) y AC7 (hasta 2031-05-23). La cadena se valida a un solo nivel,
+  así que la raíz sola no basta.
+- Un certificado ilegible del bundle ahora se **omite con un WARNING**
+  (logger `sinpapel.signing.backends.fiel`, con archivo e índice) en vez de
+  lanzar `SignatureBackendNotConfiguredError`. Solo se lanza si no queda
+  ninguno legible. Vigila ese log si dependías del error para detectar
+  bundles mal armados.
+- Si validabas los certificados del bundle con `cryptography` antes de usarlos
+  para excluir AC6, ya no hace falta.
+
+*`FielBackend` now reads SAT's AC6 and the e.firma it issues. Unreadable
+certificates in the bundle are skipped with a WARNING instead of failing the
+whole bundle. Include AC5, AC6 and AC7 — chain validation is single-level.*
+
+---
+
 ## 0.8.4 → 0.8.5
 
 Sin migraciones. **`RegistroFirma.backend_metadata["rfc_firmante"]` del
@@ -92,7 +116,7 @@ regenera migraciones de tus apps si tus modelos heredan `Trazable`
 |---|---|---|
 | `SINPAPEL_SLA_SYSTEM_USER` | `None` | Username para transiciones automáticas de SLA |
 | `SINPAPEL_SLA_NOTIFY_HANDLER` | `None` | Dotted path del handler de notificación SLA |
-| `SINPAPEL_FIEL_TRUSTED_CA_BUNDLE` | `None` | Path(s) PEM de ACs de confianza (SAT) |
+| `SINPAPEL_FIEL_TRUSTED_CA_BUNDLE` | `None` | Path(s) PEM/DER de las AC **emisoras** de confianza (SAT); se valida un solo nivel |
 
 ---
 

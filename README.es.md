@@ -140,7 +140,8 @@ SINPAPEL_SIGNATURE_BACKEND = "sinpapel.signing.backends.fiel.FielBackend"
 SINPAPEL_ALLOW_SERVER_SIGNING = False  # habilita firma FIEL server-side (revisión legal)
 SINPAPEL_EMIT_PREVIEW_EVENTS = False   # poner True para disparar el signal transition_preview_requested
 # Bundle de ACs del SAT para cadena de confianza FIEL (path PEM o lista).
-# Sin bundle, las firmas FIEL se guardan como VALIDA_SIN_CADENA.
+# Se valida UN nivel: incluye las AC EMISORAS vigentes (prod: AC5, AC6, AC7),
+# no solo la raíz. Sin bundle, las firmas FIEL se guardan como VALIDA_SIN_CADENA.
 SINPAPEL_FIEL_TRUSTED_CA_BUNDLE = "/etc/ssl/sat/acs.pem"
 SINPAPEL_SLA_SYSTEM_USER = "sla-bot"          # usuario de transiciones automáticas SLA
 SINPAPEL_SLA_NOTIFY_HANDLER = "miapp.notify.sla_handler"  # hook de notificación SLA

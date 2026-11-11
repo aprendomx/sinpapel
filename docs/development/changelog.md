@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.6] — 2026-11-10
+
+### Fixed
+- **`FielBackend` no podía leer la AC6 del SAT ni las e.firma que emite**
+  ([#6](https://github.com/aprendomx/sinpapel/issues/6)). La AC6 (vigente
+  2023-03-24 → 2031-03-24) codifica `unstructuredName` como `PrintableString`
+  con «ó», y `cryptography` rechaza el certificado completo. Nueva ruta de
+  lectura tolerante (`signing/backends/_x509_tolerante.py`, sin dependencias
+  nuevas): si el parser estricto falla, re-etiqueta esos atributos a
+  `UTF8String` (o `T61String`) sin cambiar longitudes y vuelve a leer. La
+  firma del certificado se verifica siempre contra los bytes
+  `tbsCertificate` **originales**, así que la tolerancia no relaja ninguna
+  verificación criptográfica. Aplica al `.cer` del firmante y al bundle.
+- **Un certificado ilegible ya no invalida todo
+  `SINPAPEL_FIEL_TRUSTED_CA_BUNDLE`.** Cada certificado se carga por separado;
+  los ilegibles se omiten con un WARNING que nombra archivo e índice, y solo
+  se lanza `SignatureBackendNotConfiguredError` si no queda ninguno.
+- El error por un `.cer` del firmante ilegible ahora distingue base64
+  inválido de un DER que no se puede leer, e incluye el motivo.
+
+### Docs
+- `_verify_issuer_chain` valida **un solo nivel**: el bundle debe tener las
+  AC emisoras vigentes (producción: AC5, AC6, AC7), no solo la raíz.
+
 ## [0.8.5] — 2026-11-07
 
 ### Fixed

@@ -140,7 +140,8 @@ SINPAPEL_SIGNATURE_BACKEND = "sinpapel.signing.backends.fiel.FielBackend"
 SINPAPEL_ALLOW_SERVER_SIGNING = False  # gate FIEL server-side signing (legal review)
 SINPAPEL_EMIT_PREVIEW_EVENTS = False   # set True to fire transition_preview_requested signal
 # Trusted SAT CA bundle for FIEL chain-of-trust (PEM path or list of paths).
-# Without it, FIEL signatures are stored as VALIDA_SIN_CADENA.
+# One level is checked: include the current ISSUING CAs (prod: AC5, AC6, AC7),
+# not just the root. Without it, FIEL signatures are stored as VALIDA_SIN_CADENA.
 SINPAPEL_FIEL_TRUSTED_CA_BUNDLE = "/etc/ssl/sat/acs.pem"
 SINPAPEL_SLA_SYSTEM_USER = "sla-bot"          # user for automatic SLA transitions
 SINPAPEL_SLA_NOTIFY_HANDLER = "myapp.notify.sla_handler"  # SLA notification hook
