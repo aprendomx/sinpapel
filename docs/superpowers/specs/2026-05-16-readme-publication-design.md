@@ -43,7 +43,7 @@ Non-goals (out of scope for this spec):
 
 | File | Action | Notes |
 |---|---|---|
-| `LICENSE` | Replace | Full GPL-3.0 text from gnu.org canonical version. Copyright line: `Copyright (C) 2024-2026 Julio Adrián <jadrian.s@gmail.com>`. |
+| `LICENSE` | Replace | Full GPL-3.0 text from gnu.org canonical version. |
 | `README.md` | Rewrite | ~350 lines, EN, concise structure (see §4). |
 | `README.es.md` | Rewrite | Mirror of README.md in ES. Same anchors. |
 | `CHANGELOG.md` | Create | Keep a Changelog 1.1.0 format. Entries reconstructed from `git log` (v0.1.0 → v0.5.0). One file (EN headings, content bilingual is over-engineering for a CHANGELOG). |

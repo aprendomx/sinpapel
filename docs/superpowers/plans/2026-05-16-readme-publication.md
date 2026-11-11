@@ -50,7 +50,6 @@ Prepend the project copyright notice **before** the canonical GPL header. The fi
 
 ```
 sinpapel — versioned workflows, immutable audit, and pluggable e-signatures for Django.
-Copyright (C) 2024-2026 Julio Adrián <jadrian.s@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -75,7 +74,6 @@ Run:
 ```bash
 cat > LICENSE <<'HEADER'
 sinpapel — versioned workflows, immutable audit, and pluggable e-signatures for Django.
-Copyright (C) 2024-2026 Julio Adrián <jadrian.s@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -393,8 +391,6 @@ Pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for de
 
 ## License
 
-Copyright (C) 2024-2026 Julio Adrián.
-
 sinpapel is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
 sinpapel is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [GNU General Public License](LICENSE) for more details.
@@ -589,8 +585,6 @@ sinpapel sigue [Semantic Versioning](https://semver.org/). La release actual es 
 Los pull requests son bienvenidos. Por favor lee [CONTRIBUTING.md](CONTRIBUTING.md) para setup de desarrollo, convenciones de commits y el requisito de sign-off DCO (Developer Certificate of Origin).
 
 ## Licencia
-
-Copyright (C) 2024-2026 Julio Adrián.
 
 sinpapel es software libre: puedes redistribuirlo y/o modificarlo bajo los términos de la GNU General Public License publicada por la Free Software Foundation, ya sea la versión 3 de la Licencia, o (a tu elección) cualquier versión posterior.
 
